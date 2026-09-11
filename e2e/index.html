@@ -1,0 +1,1403 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Safe, Automated Action for Kubernetes">
+      
+      
+        <meta name="author" content="Consize OSS">
+      
+      
+        <link rel="canonical" href="https://docs.consizehq.com/e2e/">
+      
+      
+        <link rel="prev" href="../testing/">
+      
+      
+        <link rel="next" href="../decisions/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>E2E Tests - Consize</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#live-cluster-e2e-the-m2-safety-engine-on-a-real-gke-cluster" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Consize" class="md-header__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Consize
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              E2E Tests
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../THE_SAFETY_NET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  The Safety Net
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../features/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interactive Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../customer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../testing/" class="md-tabs__link">
+          
+  
+  
+  Internal / Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Consize" class="md-nav__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Consize
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../THE_SAFETY_NET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Safety Net
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal / Dev
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal / Dev
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-proves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it proves
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-as-found-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment (as found 2026-08-24)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#teardown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Teardown
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-run-of-2026-08-24-gke-devops-portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results — run of 2026-08-24 (GKE devops-portfolio)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results — run of 2026-08-24 (GKE devops-portfolio)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#track-1-pass-on-a-real-application-boutiquefrontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Track 1 — PASS on a real application (boutique/frontend) ✅
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#track-2-fail-auto-rollback-consize-canary-synthetic-five-attempts-three-lessons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Track 2 — FAIL → auto-rollback (consize-canary, synthetic) — five attempts, three lessons
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-proves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it proves
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-as-found-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment (as found 2026-08-24)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#teardown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Teardown
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results-run-of-2026-08-24-gke-devops-portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results — run of 2026-08-24 (GKE devops-portfolio)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results — run of 2026-08-24 (GKE devops-portfolio)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#track-1-pass-on-a-real-application-boutiquefrontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Track 1 — PASS on a real application (boutique/frontend) ✅
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#track-2-fail-auto-rollback-consize-canary-synthetic-five-attempts-three-lessons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Track 2 — FAIL → auto-rollback (consize-canary, synthetic) — five attempts, three lessons
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="live-cluster-e2e-the-m2-safety-engine-on-a-real-gke-cluster">Live-cluster E2E — the M2 safety engine on a real GKE cluster</h1>
+<blockquote>
+<p>Status: <strong>run 2026-08-24 on GKE <code>devops-portfolio</code> (project <code>devops-portfolio-prod</code>, us-central1)</strong> — see the results section at the bottom.</p>
+</blockquote>
+<p>The M2 acceptance criteria deferred the live-cluster E2E as a CI gate. This runbook closes that gap: the full <strong>analyze → apply (guarded) → verify → rollback</strong> loop exercised against a real cluster, with a least-privilege ServiceAccount doing the patching. The scripts live in <a href="../tests/e2e-live/"><code>tests/e2e-live/</code></a>.</p>
+<h2 id="what-it-proves">What it proves</h2>
+<table>
+<thead>
+<tr>
+<th>Track</th>
+<th>Scenario</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Apply a real recommendation to <code>boutique/frontend</code> (real workload), verify after the window</td>
+<td>verdict <strong>passed</strong>, no rollback, requests stay applied</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Apply a real recommendation to the synthetic canary, then inject a forced regression (memory dropped below its 180 MiB allocator footprint) inside the verification window</td>
+<td>verifier <strong>FAILs</strong> on new OOM events → <strong>auto-rollback</strong> restores the applied values, pod healthy again</td>
+</tr>
+<tr>
+<td>RBAC</td>
+<td><code>kubectl auth can-i</code> matrix for the write/read identities</td>
+<td>update deployments only in the bound namespaces; nothing else, anywhere</td>
+</tr>
+</tbody>
+</table>
+<h2 id="environment-as-found-2026-08-24">Environment (as found 2026-08-24)</h2>
+<ul>
+<li>GKE <code>devops-portfolio</code> — 7 small nodes (e2-custom-1-4096), 3 zones; free-trial quotas (12 vCPU).</li>
+<li>kube-prometheus-stack in <code>monitoring</code> — Prometheus at <code>monitoring-kube-prometheus-prometheus.monitoring:9090</code>, kubelet/cadvisor metrics present (the verifier's SLI data).</li>
+<li>CloudNativePG operator in <code>cnpg-system</code> (used for the Consize Postgres).</li>
+<li>Namespaces: <code>boutique</code> (11d microservices demo, idle), <code>ai-inference</code>, <code>monitoring</code>, <code>cnpg-system</code>, … <code>test-a</code>/<code>test-b</code> empty.</li>
+<li><strong>Caveat: the monitoring Prometheus originally had no PVC — fixed mid-run with a 10 Gi <code>standard-rwo</code> PVC (ADR-028).</strong> It was reinstalled ~2.4 h before the run, so early history was ephemeral (resets on pod recreation); no workload has 5 days of data → the E2E runs analysis with <code>CONSIZE_MIN_DATA_DAYS=0.1</code> (ADR-024). The caveat <em>actually bit twice</em> mid-run: the metric history was lost at ~16:40Z (pod recreated — a due verification returned inconclusive; ADR-027) and again at ~21:26Z (this time root-caused: the <code>application-pool</code> node autoscaler replaced nodes under the monitoring pods, and the PVC-less WAL died with each — see Results, run 4). The stack now survives node churn: the Prometheus CR carries a volumeClaimTemplate, so history persists across pod/node replacements.</li>
+<li>Artifact Registry: <code>us-central1</code> repo creation is rejected on this project ("Requested entity was not found"); the <strong>multi-region <code>us</code> location works</strong> → registry <code>us-docker.pkg.dev/devops-portfolio-prod/consize</code>.</li>
+</ul>
+<h2 id="topology">Topology</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>boutique (approved-only, no auto-apply label)      consize-sandbox (auto-apply=enabled)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>└── frontend — Track 1 target                      └── consize-canary — Track 2 target
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                                                       (python, holds 180 MiB, /healthz)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>consize-system
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── Postgres (CNPG Cluster consize-db, 1 GiB)   ← the shared audit trail (ADR-008)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── consize-api      Deployment  (SA consize-writer)  ← the only write surface (ADR-021)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── consize-collector CronJob   (SA consize-reader)   ← usage_buckets, read-only
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── consize-analyze  CronJob    (store only)          ← CONSIZE_MIN_DATA_DAYS=0.1
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── consize-verify   CronJob    (SA consize-writer)   ← window 15m, sustained 3m (E2E-shortened)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>└── consize-store    Secret     ← DATABASE_URL + PROMETHEUS_URL
+</code></pre></div>
+<p>Identities (deploy/rbac.yaml + tests/e2e-live/namespace.yaml):</p>
+<ul>
+<li><code>consize-writer</code> — <code>update deployments</code> ONLY, bound to consize-sandbox + boutique (write). Used by api (apply) and verify (rollback) — one write surface.</li>
+<li><code>consize-reader</code> — read-only on deployments/statefulsets/replicasets/pods. Older E2E runs bound this per namespace; production can instead leave <code>CONSIZE_NAMESPACES</code> empty and use the read-only ClusterRoleBinding for cluster-wide discovery.</li>
+</ul>
+<h2 id="running-it">Running it</h2>
+<p>Prereqs: gcloud + kubectl authenticated to the cluster, docker, jq.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>tests/e2e-live
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>./run.sh<span class="w"> </span>preflight<span class="w">   </span><span class="c1"># cluster reachable + kubelet metrics queryable</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>./run.sh<span class="w"> </span>deploy<span class="w">      </span><span class="c1"># images → Artifact Registry, stack, Postgres, migrations, canary</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>./run.sh<span class="w"> </span>ingest<span class="w">      </span><span class="c1"># manual collector + analyze runs → pending recommendations</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>./run.sh<span class="w"> </span>track1<span class="w">      </span><span class="c1"># dry-run → approved apply on boutique/frontend</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>./run.sh<span class="w"> </span>verify1<span class="w">     </span><span class="c1"># waits for the 15m window, verifies, asserts PASSED</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>./run.sh<span class="w"> </span>track2<span class="w">      </span><span class="c1"># approved apply on the canary + inject the OOM regression</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>./run.sh<span class="w"> </span>verify2<span class="w">     </span><span class="c1"># waits for the 15m window, verifies, asserts FAIL + auto-rollback</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>./run.sh<span class="w"> </span>rbac<span class="w">        </span><span class="c1"># auth can-i matrix</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>./run.sh<span class="w"> </span>status<span class="w">      </span><span class="c1"># store + cluster state any time</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>./run.sh<span class="w"> </span>summary<span class="w">     </span><span class="c1"># evidence recap</span>
+</code></pre></div>
+<p>De-risking choices:</p>
+<ul>
+<li><strong>Two tracks, two verdicts.</strong> Track 1 is the happy path on a <em>real</em> application; Track 2 manufactures the rollback on a disposable workload. The regression is injected <strong>after</strong> a real, analysis-driven apply — the policy never recommends below actual usage (request = p95 × 1.2), so analysis itself cannot produce an OOM; the verifier exists precisely to catch regressions that appear during the window, whatever their source.</li>
+<li><strong>The canary is only applied against after it has real data</strong> (~1.5 h of Prometheus history), so Track 2's recommendation is genuine, not seeded.</li>
+<li><strong>Images are rebuilt and pushed each deploy</strong>; the deploy script is idempotent (repo/secret/manifests are all re-appliable).</li>
+<li><strong>API access is a local port-forward</strong> (ClusterIP only — nothing exposed to the internet).</li>
+<li><strong>Verification cadence</strong>: the shipped verifier runs every minute and processes
+  any apply whose safety window is due. The base window is 1 h and scales by
+  apply step number, plus <code>CONSIZE_SUSTAINED_MINUTES=5</code> (ADR-048/019). Earlier
+  live E2E sessions shortened the base window for session-length testing.</li>
+<li><strong>Database surface (M3, ADR-033)</strong>: the collector CronJob sets <code>CONSIZE_DBMETRICS=fixture</code>, so the deployed stack also ingests the deterministic demo instance <code>rds/payments-prod</code> (<code>db.t3.large</code> → <code>db.t3.medium</code>, $50/mo, confidence 100%, verified locally end-to-end against Postgres on 2026-08-25). Apply it the same way as any recommendation — <code>mode=approved</code> with an actor inside its maintenance window (<code>sun:00:00-sat:00:00</code> UTC, i.e. any moment except Saturday UTC); a real apply returns the stub's "manual class change required" error until a live provider lands, and dry-runs work end to end. Its <code>auto-db=enabled</code> label demonstrates the approval-default guardrail's auto path.</li>
+</ul>
+<h2 id="teardown">Teardown</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./run.sh<span class="w"> </span>status<span class="w">                        </span><span class="c1"># eyeball state first</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>tests/e2e-live/teardown.sh<span class="w">             </span><span class="c1"># remove sandbox + system namespaces, images</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>tests/e2e-live/teardown.sh<span class="w"> </span>--restore-boutique<span class="w">   </span><span class="c1"># also restore frontend's pre-E2E requests</span>
+</code></pre></div>
+<hr />
+<h2 id="results-run-of-2026-08-24-gke-devops-portfolio">Results — run of 2026-08-24 (GKE devops-portfolio)</h2>
+<p>Evidence files in <code>tests/e2e-live/out/</code>; the full audit trail (apply events, verification runs) is in the Postgres store, visible through the API (<code>./run.sh status</code>).</p>
+<h3 id="track-1-pass-on-a-real-application-boutiquefrontend">Track 1 — PASS on a real application (boutique/frontend) ✅</h3>
+<p>The pipeline ran end-to-end against the demo store's frontend:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recommendation (memory)</td>
+<td><code>64 MiB → 44.8 MiB</code> (46 976 205 B), savings $-tracked, confidence scored</td>
+</tr>
+<tr>
+<td>Guardrail dry-run</td>
+<td>step plan 1/6 (30 % steps, downsize-only, QoS-preserving)</td>
+</tr>
+<tr>
+<td>Approved apply (<code>actor=e2e</code>)</td>
+<td>apply event #4, <code>applied</code>, 14:55:04Z</td>
+</tr>
+<tr>
+<td>Verification (window 15 m)</td>
+<td>run #1 verdict <strong>passed</strong> — restarts 0→0, OOM 0→0, evictions 0→0 (throttling <code>unavailable</code>: this kube-prometheus-stack version does not export <code>container_cpu_cfs_throttled_seconds_total</code> — a data gap, not a failure)</td>
+</tr>
+<tr>
+<td>Aftermath</td>
+<td>no reverted event; frontend still applied at 44.8 MiB/89.6 MiB (<code>track1-resources.json</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The step follow-up (#12) was queued as designed — the first step landed, the rest wait for verification.</p>
+<h3 id="track-2-fail-auto-rollback-consize-canary-synthetic-five-attempts-three-lessons">Track 2 — FAIL → auto-rollback (consize-canary, synthetic) — five attempts, three lessons</h3>
+<p>The canary received a genuine analysis-driven apply (256 MiB → ~233 MiB, memory), then an externally injected regression (dropped to 64 MiB/96 MiB → OOMKill → CrashLoopBackOff) during the verification window. It took five attempts because each attempt surfaced something real: a patcher bug, two distinct monitoring data-loss failures, and a scheduling race.</p>
+<ul>
+<li><strong>Run 1 — FAIL and rollback <em>worked</em>, and exposed a real bug.</strong> Verdict <strong>failed</strong> at 15:29Z (restarts 0 → 36.13 post vs baseline), alert logged, <code>reverted</code> event #6 recorded, canary restarted… but on <strong>87 MiB/142 MiB</strong> instead of the pre-apply 256 MiB/512 MiB (<code>track2-restored.json</code>). The rollback had inverted the apply diff onto the <em>drifted live state</em> — exactly the drift case the verifier exists to catch. Root-caused and fixed: <code>Rollback</code> now reads live totals and patches an honest <code>live → pre-apply</code> diff (ADR-026), unit-tested (<code>TestRollbackAfterDrift</code>). <strong>The E2E found a defect no unit test had.</strong></li>
+<li><strong>Run 2 — infrastructure data loss, conservatism held.</strong> The retry apply (#7, 15:37Z) was verified by the scheduled CronJob at 16:07Z, but the ephemeral Prometheus had been recreated (~16:40Z) and the pre-apply baseline was gone: every SLI returned <code>inconclusive</code> ("data missing in one window"). <strong>No rollback fired</strong> — without baseline evidence Consize refuses to act (ADR-027). Inconclusive is recorded and terminal; the manual re-verify attempt (16:53Z) then hit a packaging error (an arm64 verify image — <code>exec format error</code>), fixed and re-pushed (amd64, digest <code>d9d6ddb</code>).</li>
+<li><strong>Run 3 — FAIL → rollback proven live, and the assertion suite caught its own test bug.</strong> Fresh apply (#8, 20:15Z) → injection → verdict <strong>failed</strong> at ~20:32Z (OOM events 0→N in the post window) → auto-rollback → canary <strong>restored to exactly the pre-apply memory values</strong> — the ADR-026 absolute-restore semantics proven on a live drifted workload. The restore <em>assertion</em> then failed on the CPU fields: the injection had also lowered CPU (100m/500m), and Consize rightly does not undo an external actor's unrelated change. The test, not the engine, was wrong: the injection is now memory-only, matching the apply/rollback contract.</li>
+<li><strong>Run 4 — the scheduled verifier raced the manual one; then the cluster's node autoscaler ate the metrics.</strong> Fresh apply (#10, 20:39Z) → memory-only injection → canary crashed from 21:04Z (after a scheduling fix: the 1000m canary could not land on the 1-vCPU node while the old pod held it — scale 0→1). At 21:07:02Z the <strong>scheduled CronJob</strong> fired seconds before the manual verify2 and recorded a <em>premature <code>passed</code></em> (its post window hadn't accumulated the crash data yet — post restarts 0 while <code>kubectl</code> showed the count climbing). The wrong row was deleted (a recording error under the ADR-023 upsert), evidence soaked to 9 restarts — and then the probe came back null: the <strong>application-pool node autoscaler had replaced nodes at 20:48Z/21:12Z/21:26Z</strong>, and the PVC-less monitoring Prometheus lost its whole WAL with the last one. Event #10 became unverifiable (baseline gone) and was superseded.</li>
+<li><strong>Run 5 — the headline run, on durable SLI storage.</strong> Root cause of runs 2 and 4 fixed: the monitoring Prometheus now has a 10 Gi <code>standard-rwo</code> PVC (ADR-028), the scheduled verify CronJob was suspended for the remainder of the session (the run book below is manual anyway), the canary was restored to 256 MiB/512 MiB, and its poisoned usage buckets were cleaned. Fresh recommendation → apply → injection → verification → FAIL → auto-rollback → assertions.</li>
+</ul>
+<p>Run 5 ran clean, start to finish, on the durable stack — apply #11 → verdict <strong>failed</strong> → auto-rollback → assertions, all green:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recommendation</td>
+<td>#384: memory 256 MiB → 234 MiB (245 366 784 B), savings \$0.08/mo, confidence 7 % (analysis-driven from 5 clean usage buckets, p95 ≈ 194 MiB × 1.2)</td>
+</tr>
+<tr>
+<td>Approved apply (actor=e2e-bot)</td>
+<td>event #11, <code>applied</code>, 23:01:30Z — deployed 234 MiB/468 MiB (QoS-preserving ratio), write SA</td>
+</tr>
+<tr>
+<td>Regression injected (bad release)</td>
+<td>memory dropped to 64 MiB/96 MiB → OOMKill → CrashLoopBackOff, restarts 3+ before the window closed (scheduling deadlock fixed ahead of the run: canary CPU request 1000m → 100m on the 1-vCPU nodes)</td>
+</tr>
+<tr>
+<td>Verification (window 15 m)</td>
+<td>run #7 verdict <strong>failed</strong> 23:17:43Z — <strong>restarts 0 → 32.80</strong> post vs baseline (the firing SLI; OOM/evictions flat, throttling <code>unavailable</code> — this stack exports neither counter), alert logged <code>consize: FAIL verification … rolling back</code></td>
+</tr>
+<tr>
+<td>Auto-rollback</td>
+<td><code>reverted</code> event #12, 23:17:44Z; <code>track2-restored.json</code> <strong>identical</strong> to <code>track2-orig.json</code> (<code>diff</code> clean) — pre-apply 256 MiB/512 MiB restored absolutely (ADR-026)</td>
+</tr>
+<tr>
+<td>Aftermath</td>
+<td>canary 1/1 Running, 0 restarts, 180 MiB allocator fits the restored request</td>
+</tr>
+</tbody>
+</table>
+<p>The run that took five attempts delivered the headline evidence: <strong>analyze → apply → injected regression → FAIL verdict with SLI evidence → alert → auto-rollback → byte-identical restore → healthy workload</strong>, all through the least-privilege ServiceAccount, with the full trail in the Postgres store (<code>status</code> shows events #4–#12: 1 passed, 3 failed, 2 inconclusive, 3 reverted).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

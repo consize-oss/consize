@@ -1,0 +1,1673 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Safe, Automated Action for Kubernetes">
+      
+      
+        <meta name="author" content="Consize OSS">
+      
+      
+        <link rel="canonical" href="https://docs.consizehq.com/reference/">
+      
+      
+        <link rel="prev" href="../decisions/">
+      
+      
+        <link rel="next" href="../plan/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Reference - Consize</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#consize-consolidated-reference-adrs-mathematics-terminology" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Consize" class="md-header__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Consize
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../THE_SAFETY_NET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  The Safety Net
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../features/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interactive Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../customer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../testing/" class="md-tabs__link">
+          
+  
+  
+  Internal / Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Consize" class="md-nav__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Consize
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../THE_SAFETY_NET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Safety Net
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal / Dev
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal / Dev
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../e2e/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="consize-consolidated-reference-adrs-mathematics-terminology">Consize — Consolidated Reference: ADRs, Mathematics, Terminology</h1>
+<p>One-file reference for the whole system: every architecture decision record (ADR-001 → ADR-036), every calculation the engine makes (formula + worked example), and the terminology the codebase, docs, and UI use.</p>
+<ul>
+<li><strong><a href="../decisions/">docs/decisions.md</a> remains the canonical ADR source.</strong> This file consolidates the ADRs for one-stop reading; if the two ever disagree, decisions.md wins and this file should be fixed.</li>
+<li>Code paths are <code>engine/…</code> relative to the repo root unless stated; the product UI is <code>ui/</code>.</li>
+<li>Worked examples labeled <strong>(live)</strong> use real numbers from the production cluster (<code>devops-portfolio</code>, project <code>devops-portfolio-prod</code>, instance <code>consize-demo</code>); examples labeled <strong>(illustrative)</strong> are synthetic numbers chosen for readable arithmetic.</li>
+<li>Last updated 2026-08-25 (sprint state: GCP adapter live, Next.js UI live on the poke; see <a href="../plan/">plan.md</a>, <a href="../features/">features.md</a>).</li>
+</ul>
+<hr />
+<h1 id="part-a-architecture-decision-records">Part A — Architecture Decision Records</h1>
+<h2 id="adr-001-go-for-the-engine-react-for-the-ui">ADR-001: Go for the engine, React for the UI</h2>
+<p><strong>Status:</strong> Accepted · 2026-08-23</p>
+<p>One binary family (collector, analysis, apply, verifier, API) touching k8s and cloud SDKs; a dashboard for charts and audit views. <strong>Decision:</strong> engine in Go (single module, vertical-slice packages, <code>cmd/</code> per binary); UI in React + Vite + Tailwind served as static assets behind the API. <strong>Consequences:</strong> best-in-class k8s/cloud SDK ecosystem, static binaries + distroless images, one language for a team of one; the API contract (OpenAPI) is the shared type boundary. <em>(Superseded in part by ADR-036: the product UI moved to Next.js; the embedded SPA remains as fallback.)</em></p>
+<h2 id="adr-002-percentile-based-sizing-over-averages">ADR-002: Percentile-based sizing over averages</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Averages hide bursts; maxes recommend the wrong size. <strong>Decision:</strong> recommendations derive from <strong>p95 (request sizing)</strong> and <strong>p99 (limit sizing)</strong> over 14 days of 15-minute buckets, with explicit headroom multipliers — no averages, ever. <strong>Consequences:</strong> robust to spikes and weekends; slightly larger requests than average-based sizing — correct, because Consize's job is <em>safe</em> savings, not maximal savings. <em>(Math: Part B §1–§2.)</em></p>
+<h2 id="adr-003-downsize-only-in-v1">ADR-003: Downsize-only in v1</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Upsizing recommendations are valuable but expand the safety surface. <strong>Decision:</strong> v1 recommends only reductions; upsizing is an explicit future toggle. Throttling/OOM detection still reports evidence — visibility without action. <strong>Consequences:</strong> smaller blast radius, clearer demo story.</p>
+<h2 id="adr-004-auto-apply-is-opt-in-per-namespace">ADR-004: Auto-apply is opt-in per namespace</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Auto-apply is the differentiator ("platform, not report"), but unconditional auto-apply is how trust dies in one incident. <strong>Decision:</strong> auto-apply runs only in namespaces labeled <code>consize.savings.dev/auto-apply=enabled</code>; everything else requires explicit approval. Exclusions always win. <strong>Step limit ≤ 30% per apply.</strong> <strong>Consequences:</strong> safe default, trust-by-config; the demo shows both paths. <em>(DB surface: approval default + <code>consize.savings.dev/auto-db</code> label, ADR-031.)</em></p>
+<h2 id="adr-005-postgres-for-the-store">ADR-005: Postgres for the store</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> managed Postgres (RDS/Cloud SQL) <em>outside</em> the managed cluster — Consize never right-sizes its own database. <strong>Consequences:</strong> battle-tested, familiar, trivially backed up; not columnar like ClickHouse — fine at v1 scale (10k workloads × buckets/day).</p>
+<h2 id="adr-006-verification-via-sli-comparison-not-chaos">ADR-006: Verification via SLI comparison, not chaos</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The rollback decision needs a signal measured from the system, cheap, and defensible. <strong>Decision:</strong> baseline 24 h pre-apply vs 24 h post-apply on error rate, p99, throttling, OOM/evictions (k8s) and CPU saturation/connections (DB); threshold breaches sustained 5 min → <strong>FAIL → automatic rollback</strong>. <strong>Consequences:</strong> no traffic injection; rollback evidence is charts a skeptic accepts; quiet systems may yield INCONCLUSIVE — handled by an explicit verdict, never silence (ADR-022/027).</p>
+<h2 id="adr-007-idempotent-bucketed-collection-backfill-first">ADR-007: Idempotent bucketed collection, backfill-first</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Collectors crash, windows overlap, Prometheus retention varies. <strong>Decision:</strong> upsert by <code>(workload, metric, window_start)</code>; bucketing keyed on source timestamp; explicit backfill flag replays history. <strong>Consequences:</strong> safe re-runs, no dupes, easy recovery; confidence scoring uses data volume so sparse windows degrade recommendations, not crash them.</p>
+<h2 id="adr-008-apply-never-runs-without-an-audit-path">ADR-008: Apply never runs without an audit path</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The store (audit trail) is the source of truth for "what did Consize do and why". <strong>Decision:</strong> any apply requires a prior <code>apply_event</code> row; if the store is unhealthy (<code>readyz</code> fails), applies are blocked regardless of cluster health. <strong>Consequences:</strong> fail-safe by construction; audit is a hard dependency, not a feature.</p>
+<h2 id="adr-009-one-repo-one-version-one-release">ADR-009: One repo, one version, one release</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> monorepo, semver from commit 1, single release workflow (tag → CI → scan → sign → chart + image). <strong>Consequences:</strong> simple mental model, atomic releases; infra and engine version-locked — accepted at this scale.</p>
+<h2 id="adr-010-self-hosted-on-the-cluster-it-manages">ADR-010: Self-hosted on the cluster it manages</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The product's own story is "run Consize like you'd run Consize-managed workloads". <strong>Decision:</strong> Consize deploys into the cluster it analyzes (separate namespace, network-isolated), with its own Postgres managed separately. <strong>Consequences:</strong> the demo is dogfooding; honest production story, real maintenance pressure — that's the point.</p>
+<h2 id="adr-011-single-sample-15-minute-windows-in-v1">ADR-011: Single-sample 15-minute windows in v1</h2>
+<p><strong>Status:</strong> Accepted · M1 decisions recorded 2026-08-24</p>
+<p>The engine's day = 96 buckets math assumes one value per 15-minute window; sub-window sampling costs 15× the Prometheus load for precision daily-p95 aggregation barely uses. <strong>Decision:</strong> the collector queries Prometheus once per metric at 15-minute steps; every window stores P50=P95=P99=Max = the sampled point. Sub-window sampling is a future refinement with no schema/policy changes (columns exist). <strong>Consequences:</strong> one query per metric per cycle; one bad scrape skews one window — bounded because a window is 1/96 of a day's p95.</p>
+<h2 id="adr-012-store-behind-an-interface-memory-impl-for-tests">ADR-012: Store behind an interface, memory impl for tests</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> all engine code depends on the <code>store.Store</code> interface only; <code>Memory</code> and <code>Postgres</code> implement identical semantics (idempotent upserts, supersede-on-create, denormalized reads). The behavior suite runs against both; Postgres integration gated by <code>CONSIZE_TEST_POSTGRES</code>. <code>store.Open</code> falls back to memory when <code>DATABASE_URL</code> is unset — every binary demos zero-config.</p>
+<h2 id="adr-013-embedded-versioned-migrations-run-at-startup">ADR-013: Embedded versioned migrations, run at startup</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> SQL files embedded (<code>//go:embed</code>), applied in filename order inside a transaction, tracked in <code>schema_migrations</code> (idempotent). <code>store.Open</code> migrates on startup; <code>cmd/migrate</code> exists for initContainers/CI. <strong>Consequences:</strong> fresh and existing deployments both work; no down-migrations — destructive down-migrations are undesirable with the audit-trail principle (ADR-008).</p>
+<h2 id="adr-014-pricing-degrades-never-fails">ADR-014: Pricing degrades, never fails</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The AWS Price List API can be unreachable, slow, or rate-limited — and analysis must still run. <strong>Decision:</strong> three layers — <code>Static</code> (shipped defaults), <code>AWS</code> (SigV4 fetch of the EC2 on-demand index; median $/vcpu-hr and $/GiB-hr × 730 h, TTL-cached 24 h), <code>Resilient</code> (falls back to static on any primary error, with a warning log). The API exposes the active price table alongside savings. <strong>Consequences:</strong> recommendations and savings always compute; a fallen-back table is visible in the payload, not silently wrong. <em>(Math: Part B §9.)</em></p>
+<h2 id="adr-015-bulk-poddeployment-resolution-not-per-pod-lookups">ADR-015: Bulk pod→deployment resolution, not per-pod lookups</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> three bulk list calls per cycle — ReplicaSets (RS→Deployment), Pods (pod→RS), Deployments (metadata). Series whose owner doesn't resolve to a listed deployment are dropped with a log line, never attributed to a wrong workload. <strong>Consequences:</strong> O(3) API calls regardless of fleet size; ownership changes are resolved at collection time, consistent with the same-cycle metadata snapshot.</p>
+<h2 id="adr-016-half-known-windows-are-dropped-in-bucket-merge">ADR-016: Half-known windows are dropped in bucket merge</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>CPU and memory arrive as separate bucket rows; a window present in only one series would supply a zero for the other, dragging daily p95s toward zero and fabricating "already optimal" recommendations. <strong>Decision:</strong> <code>cmd/analyze</code> merges the two series on <code>window_start</code> and drops windows missing either metric. <strong>Consequences:</strong> input hygiene is conservative by construction; re-collection (ADR-007) restores dropped windows.</p>
+<h2 id="adr-017-limits-ride-with-recommendations-downsize-both-together">ADR-017: Limits ride with recommendations; downsize both together</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>A CPU request cut without a matching limit cut does nothing; unedited memory limits keep the OOM risk. <strong>Decision:</strong> every recommendation carries <code>current_limit</code>/<code>proposed_limit</code> alongside request values (equal values = unchanged); the patcher always writes both, per the same step policy. <strong>Consequences:</strong> sizing math grows one dimension (limit = max(2×request, p99), as before, just carried through); follow-ups and rollback carry both values.</p>
+<h2 id="adr-018-the-verifier-is-a-one-shot-cronjob-binary-not-a-service">ADR-018: The verifier is a one-shot CronJob binary, not a service</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Verification needs enough post-apply telemetry to prove the change did not
+hurt the workload, but a full 24 h wait after every small step makes the
+product feel stuck. <strong>Decision:</strong> <code>cmd/verify</code> is a batch binary:
+<code>AppliedEventsUnverified()</code> → for each event whose step-scaled window is due →
+compare SLIs → record verdict → roll back + alert on FAIL → exit. The shipped
+base window is 1 h and scales by step number: step 1 waits 1 h, step 2 waits
+2 h, step 3 waits 3 h, and so on. <code>CreateVerificationRun</code> upserts per apply
+event, so a retried tick overwrites rather than duplicates. <strong>Consequences:</strong>
+first-step feedback is fast, deeper reductions get more observation time, and
+the same <code>verifier.Service</code> slots into a daemon unchanged if real-time
+verification is ever wanted.</p>
+<h2 id="adr-019-workload-scoped-kubelet-native-slis-app-level-metrics-opt-in">ADR-019: Workload-scoped kubelet-native SLIs, app-level metrics opt-in</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Most clusters lack app instrumentation; the verifier must still work. <strong>Decision:</strong> v1 verifies four kubelet/cadvisor/kube-state-metrics signals scoped to the Deployment that changed — throttling (<code>container_cpu_cfs_throttled_seconds_total</code>), OOM kills, restarts, evictions — at 1-minute resolution so "sustained ≥ 5 min" is measurable. Deployment scoping uses namespace plus the generated pod-name shape (<code>&lt;deployment&gt;-&lt;pod-template-hash&gt;-&lt;pod-id&gt;</code>), so a noisy sibling workload cannot roll back a healthy apply. Error-rate/p99 expressions opt in via <code>CONSIZE_SLI_ERROR_EXPR</code>/<code>CONSIZE_SLI_P99_EXPR</code> (rate-wrapped, <code>sum by (namespace)</code>), default off until teams provide app-level labels. <strong>Consequences:</strong> zero-instrumentation verification covers the whole fleet; a workload with no data is <em>inconclusive</em>, never a pass (ADR-022). <em>(Math: Part B §6.)</em></p>
+<h2 id="adr-020-step-splits-materialize-as-follow-up-pending-recommendations">ADR-020: Step splits materialize as follow-up pending recommendations</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>A 70% reduction needs several 30% applies; the remainder must be actionable, not just logged. <strong>Decision:</strong> after a real apply, the remainder is inserted as a pending follow-up via <code>CreateFollowUpRecommendation</code> — which does <strong>not</strong> supersede existing pending recommendations. The follow-up cannot apply until the current step verifies (in-flight guardrail) — the apply → verify → apply rhythm by construction. <strong>Consequences:</strong> overlap with fresh nightly analysis is possible and cleared when the step finishes; visible in the API, never silent. <em>(Math: Part B §5.)</em></p>
+<h2 id="adr-021-proportional-patch-distribution-with-exact-sum-rounding-and-qos-preservation">ADR-021: Proportional patch distribution with exact-sum rounding and QoS preservation</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> <code>K8sPatcher</code> distributes each resource's step across containers proportionally to each container's current request share; the last container absorbs rounding so totals land <em>exactly</em> on the proposed values. QoS rule: a container keeps exactly the request/limit fields it already declared — never add or remove a field (that would change its QoS class); containers with neither field are untouched. Writes: GET → mutate → <code>Update</code> guarded by resourceVersion, up to 3 conflict retries on a fresh read. <strong>Consequences:</strong> multi-container workloads stay internally consistent and QoS-stable; one write path shared by apply and rollback.</p>
+<h2 id="adr-022-inconclusive-never-rolls-back-nothing-measurable-is-inconclusive">ADR-022: Inconclusive never rolls back; nothing-measurable is inconclusive</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>FAIL triggers a cluster-touching rollback — the highest-stakes decision in the system; missing data must not be able to trigger it, nor be papered over as a pass. <strong>Decision:</strong> verdicts are three-valued — <code>passed</code> | <code>failed</code> | <code>inconclusive</code>; rollback fires only on <code>failed</code>. A signal with data in one window but not the other is inconclusive; no signal judgeable at all is also inconclusive. Inconclusive runs are recorded rows; a genuinely unverifiable event stays inconclusive forever, blocking further applies in its namespace until a human looks. <strong>Consequences:</strong> quiet clusters get flagged, not auto-approved; an inconclusive namespace needs human attention before the next apply — the safety posture v1 wants.</p>
+<h2 id="adr-023-append-only-apply-trail-in-flight-state-is-derived">ADR-023: Append-only apply trail; in-flight state is derived</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> <code>apply_events</code> is INSERT-only (results are new rows: planned → applied → reverted). In-flight state is <em>derived</em>: an <code>applied</code> event with no <code>verification_runs</code> row. A crash between patch and verification row leaves a retryable state, not a corrupted record; the verifier's upsert (<code>ON CONFLICT (apply_event_id)</code>) keeps one row per event while allowing a re-run to overwrite a premature inconclusive. <strong>Consequences:</strong> every claim about the trail is provable from the row sequence; the store's DB role is INSERT-only on these tables (security.md).</p>
+<h2 id="adr-024-the-data-minimum-is-a-configurable-confidence-gate-consize_min_data_days">ADR-024: The data-minimum is a configurable confidence gate (CONSIZE_MIN_DATA_DAYS)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The 5-day minimum is a statistical-confidence rule, not a safety rule — the verifier independently protects every apply. A hard-coded 5 blocked new fleets and made the live E2E impossible (ephemeral test Prometheus, no workload with 5 days of history). <strong>Decision:</strong> <code>MinDataDays</code> becomes <code>analysis.Config.MinDataDays</code> (float, "distinct days with data"), shipped default 5; <code>Analyze</code> delegates to <code>AnalyzeCfg</code> so existing behavior is byte-identical. <code>cmd/analyze</code> reads <code>CONSIZE_MIN_DATA_DAYS</code> (default 5) via a new <code>config.Float</code> helper. Confidence still scales with data volume, so a lowered minimum never inflates confidence. <strong>Consequences:</strong> operators can trade statistical confidence for cycle speed; shipped default unchanged. The live cluster runs 0.1 as a documented bootstrap (restore 5 once consize-demo holds 5 days).</p>
+<h2 id="adr-025-per-namespace-collection-scoping-consize_namespaces">ADR-025: Per-namespace collection scoping (CONSIZE_NAMESPACES)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><code>CONSIZE_NAMESPACES</code> ("ns1,ns2") scopes workload listing to named namespaces. Empty keeps cluster-wide discovery. The production posture pairs that empty value with a read-only <code>consize-reader</code> ClusterRoleBinding, while direct writes remain separately scoped through per-namespace <code>consize-writer</code> RoleBindings. <code>NewK8sMetadata(kubeconfig, namespaces)</code> implements this with <code>listNS()</code> returning the configured set or <code>NamespaceAll</code>. <strong>Consequences:</strong> operators can choose team-scoped collection or cluster-wide discovery without ever granting cluster-wide write. A RoleBinding's RoleRef resolves in the binding's namespace only, so the write Role must exist in every namespace that explicitly opts into Direct apply.</p>
+<h2 id="adr-026-rollback-restores-pre-apply-values-absolutely-drift-proof">ADR-026: Rollback restores pre-apply values absolutely (drift-proof)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The original rollback inverted the apply diff (<code>Current ↔ Proposed</code> swap); that's correct only while live state still equals the state the apply left behind. The live E2E proved otherwise: an external actor drifted the workload <em>during</em> the window, and a swapped-diff rollback landed on <code>live + (preApply − applied)</code> — restoring nothing. <strong>Decision:</strong> <code>Rollback</code> reads the live totals (<code>Patcher.ReadResources</code>) and patches with an honest <code>live → pre-apply</code> diff; proportional distribution lands totals exactly on recorded pre-apply values regardless of drift. The <code>reverted</code> event carries that diff. Pre-apply restore — not re-applying the recommendation — because FAIL means the change was harmful, and "undo our change" is the only safe semantic whether the recommendation caused the regression or an external actor did. <strong>Consequences:</strong> drift-proof by construction, unit-tested with a stateful fake patcher (<code>TestRollbackAfterDrift</code>).</p>
+<h2 id="adr-027-inconclusive-is-terminal-and-that-is-the-safe-failure-mode-live-e2e-data-loss">ADR-027: Inconclusive is terminal, and that is the safe failure mode (live E2E data loss)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>During the live E2E the ephemeral monitoring Prometheus was recreated mid-run; a due verification evaluated with an empty baseline window, recorded <code>inconclusive</code>, and — correctly — no rollback fired. The event was unverifiable forever. <strong>Decision:</strong> <code>inconclusive</code> stays terminal for the event it names, and never rolls back: without baseline evidence, Consize cannot distinguish "the change harmed the workload" from "the data disappeared"; rolling back on absent data would let an infrastructure failure veto a good change. The verdict forces <em>human</em> attention, not automated action. If an operator restores the baseline, the verifier's upsert lets a manual re-run overwrite the inconclusive row. <strong>Consequences:</strong> honest "unknown" rows instead of fabricated failures; operators with ephemeral Prometheus must expect occasional inconclusive verdicts ("re-run after data returns").</p>
+<h2 id="adr-028-verification-requires-durable-sli-history-live-e2e-data-loss-round-two">ADR-028: Verification requires durable SLI history (live E2E, data-loss round two)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The monitoring Prometheus lost its history twice; round two was root-caused: node autoscaling scale-downs replaced nodes and the emptyDir-backed StatefulSet's WAL died with the old node (three nodes created in one hour). <strong>Decision:</strong> durable SLI storage is a prerequisite for verification, not an optimization — the monitoring Prometheus received a 10 Gi <code>standard-rwo</code> PVC via its Prometheus CR (<code>spec.storage.volumeClaimTemplate</code>). The verify window is effectively an SLA on the metrics path; Consize itself cannot repair a broken one — <code>inconclusive</code> is the honest symptom. <strong>Consequences:</strong> the E2E's canary cycle runs on durable storage; operational guidance: persist and size the SLI store so it outlives node churn.</p>
+<h2 id="adr-029-recommendations-pagination-superseded-pruning-and-an-embedded-read-only-dashboard-m2-debt-closure">ADR-029: Recommendations pagination, superseded pruning, and an embedded read-only dashboard (M2 debt closure)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>Two debts: <code>GET /api/v1/recommendations</code> returned everything unbounded (418 rows live at handover), and the product had no surface to show anything. <strong>Decision</strong> (three coupled):</p>
+<ol>
+<li><strong>Pagination is server-side and total-aware.</strong> <code>ListRecommendations</code> gains <code>limit, offset</code> and returns the matching <code>total</code> before slicing. Handler defaults <code>limit=100</code>, caps at 500, rejects <code>limit &lt; 1</code> / <code>offset &lt; 0</code> with 400; every response carries <code>"pagination": {"limit","offset","total"}</code>. Sorting (savings descending) happens before slicing, so pages compose into a stable global order.</li>
+<li><strong>Only superseded rows are ever pruned, and only by age.</strong> <code>PruneRecommendations(status, cutoff)</code> runs at the end of every analyze cycle with <code>CONSIZE_REC_RETENTION</code> (default 168 h). applied/verified/rolled_back/pending are never pruned; superseded rows are replaceable by construction.</li>
+<li><strong>The dashboard is embedded in the API binary</strong> (<code>package ui</code>, <code>engine/ui/</code>): one Deployment serves JSON API and page on the same origin — no CORS, atomic versioning. Hash-routed; server paths are <code>/</code> + assets only; unknown <code>/api/*</code> paths stay honest 404s.</li>
+</ol>
+<p><strong>Consequences:</strong> live cluster runs <code>api:e2e-v2</code>/<code>analyze:e2e-v2</code> with live pagination; the dashboard serves at <code>/</code>. Known v1 wart: wire field names are PascalCase Go struct fields (no json tags) — snake_case is a contract change for the M4 API freeze. Charts landed later with the data surface (ADR-034 §3).</p>
+<h2 id="adr-030-m3-data-surface-databases-unify-into-the-existing-model">ADR-030: M3 data surface — databases unify into the existing model</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The M3 acceptance criteria demand "one dashboard, one savings number" — a parallel DB surface would fail the milestone by construction. <strong>Decision</strong> (nine parts):</p>
+<ol>
+<li><strong>DB instances are Workloads</strong> (<code>Source="db"</code>, <code>Kind="database"</code>, <code>Namespace</code> = provider namespace like "rds" or the pod's k8s namespace). <code>Workload</code> gains DB-only fields, empty for k8s: <code>DBClass</code>, <code>DBReplicas</code>, <code>DBMaintenanceWindow</code> (UTC <code>ddd:hh:mm-ddd:hh:mm</code>), <code>DBProvider</code> (<code>aws</code> | <code>gcp</code> | <code>fixture</code>).</li>
+<li><strong>DB metrics ride usage_buckets</strong>: <code>db_cpu_percent</code>, <code>db_iops</code> (absolute count), <code>db_connections</code> (absolute), <code>db_mem_percent</code>, <code>db_errors</code> (counter for the verifier). IOPS/connections stored absolute, not as percentages — the denominator is the candidate class's catalog baseline, so percent must be computed per-class.</li>
+<li><strong>DB recommendations are Recommendations with <code>Resource="class"</code></strong> plus <code>ClassCurrent</code>/<code>ClassProposed</code>; savings, lifecycle, supersede-on-reanalysis all work unchanged — one savings number falls out for free.</li>
+<li><strong>Class diffs ride <code>Diff</code></strong> (new <code>current_class</code>/<code>proposed_class</code> JSON fields); <code>apply_events.diff</code> is JSONB — no schema change.</li>
+<li><strong>Class catalog + analysis live in <code>internal/analysis</code></strong> (<code>db.go</code>), pure and golden-tested; shipped catalog is RDS-style with documented default rates; overridable via config.</li>
+<li><strong>DB apply is its own service (<code>internal/dbapply</code>)</strong> with the same guardrails (store health, pending-only, exclusions win, mode policy, concurrency, audit-first) plus two DB-specific ones: <strong>maintenance-window enforcement</strong> (current UTC time must fall inside the instance's window; <code>now</code> injected for tests) and <strong>one-class-step</strong> (adjacent class only; larger moves become follow-ups). <strong>Approval is the default</strong>: <code>mode=auto</code> requires the instance label <code>consize.savings.dev/auto-db=enabled</code>.</li>
+<li><strong>DB verification reads the store, not a live provider</strong> — DB metrics are ingested by the collector, so the verifier's DB path reads buckets from the store: one durable source of truth, same verdict semantics (ADR-006/027); SLIs: CPU saturation, connections, error counters; rollback restores the previous class via the same admin interface.</li>
+<li><strong>Provider access is a seam, not a dependency</strong> — <code>internal/dbmetrics</code> defines the collector-side <code>Source</code> interface (<code>ListInstances</code>, <code>Series</code>) with a deterministic fixture implementation; live adapters deferred (the M1 GCP-pricing precedent).</li>
+<li><strong>Headroom thresholds resolved as utilization CAPS on the projected p95</strong> of the candidate class: CPU &lt; 60%, IOPS &lt; 60% ("IOPS headroom above 40%"), memory &lt; 75% ("free memory above 25%"), connections &lt; 70% — all constants in the DB analysis config.</li>
+</ol>
+<p><strong>Consequences:</strong> M3 is a superset of the M2 shapes — no new tables, no parallel API; DB recommendations appear in existing lists with <code>Resource="class"</code>; the unified surface filter falls out of existing data. <code>Workload</code>/<code>Recommendation</code>/<code>Diff</code> carry fields meaningless for k8s workloads (documented in the structs).</p>
+<h2 id="adr-031-db-apply-guardrails-maintenance-windows-one-class-step-approval-default">ADR-031: DB apply guardrails — maintenance windows, one class step, approval default</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>DB writes add failure modes k8s doesn't have: provider operations with their own timing constraints, and absolute writes (the target class names the full target state — unlike k8s diffs, relative to live). <strong>Decision</strong> (six parts):</p>
+<ol>
+<li><strong>Maintenance window</strong> (weekly, UTC, <code>ddd:hh:mm-ddd:hh:mm</code>), enforced on every real apply. <code>end &lt; start</code> wraps past midnight; <code>end == start</code> is malformed; empty or malformed window is <strong>fail-closed for every mode</strong>. Dry-runs are exempt from the <em>timing</em> guard but still report <code>InWindow</code>/<code>Window</code>, and still fail closed on unconfigured/malformed windows.</li>
+<li><strong>One class step per apply</strong> — each apply moves exactly one adjacent catalog step; the remainder queues as a follow-up pending recommendation (current class = the class just applied; savings = the price difference it will close). Same philosophy as the k8s ≤ 30% rule; downsize-only.</li>
+<li><strong>Approval is the default</strong> — <code>mode=auto</code> requires <code>consize.savings.dev/auto-db=enabled</code>; <code>mode=approved</code> requires an explicit actor; <code>mode=dry_run</code> records a planned event and touches nothing, and never queues follow-ups.</li>
+<li><strong>The store row is not written by the apply engine</strong> — the collector's next sync converges live state; the follow-up carries the applied class forward; rollback needs no live read (the pre-apply class in the apply event is the target, ADR-032 §6).</li>
+<li><strong><code>ClassChanger</code> is the provider seam, <code>StubChanger</code> the shipped placeholder</strong> — fails every real write with "manual class change required"; FAIL verdicts then escalate to manual intervention instead of silently doing nothing.</li>
+<li><strong>The API routes on the recommendation's resource</strong> — <code>Resource="class"</code> → DB engine, cpu/memory → k8s engine; read-only API (neither engine) answers 503 for the whole apply surface; a missing engine 503s its kind; guardrail blocks return structured 422 <code>{"error":"apply blocked","reasons":[...]}</code>.</li>
+</ol>
+<p><strong>Consequences:</strong> the DB surface cannot be applied accidentally — no window → blocked; outside window → blocked; auto without label → blocked; multi-step move → one step at a time with an audit trail per step.</p>
+<h2 id="adr-032-db-verification-judges-against-absolute-caps-on-the-applied-class">ADR-032: DB verification judges against absolute caps on the applied class</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>A relative (baseline × multiplier) threshold would false-positive on every healthy DB downsize — a class downsize <em>legitimately</em> raises utilization. <strong>Decision</strong> (six parts):</p>
+<ol>
+<li><strong>Judgment against the analysis caps, absolutely</strong> — CPU &lt; 60%, connections &lt; 70% of the <strong>applied</strong> class's baseline, sustained per the 5-minute rule, measured in 15-minute collector steps (one bucket at/above a cap = a 15-minute breach). The baseline window still provides evidence (medians) and the one-window-missing inconclusive rule still applies.</li>
+<li><strong><code>≥</code> semantics at the cap</strong> — the analysis promise is "projected p95 <em>below</em> the cap", so a bucket exactly at the cap is a breach (<code>dbLongestRun</code> uses ≥; the k8s path uses strictly-greater).</li>
+<li><strong>Connections projected onto the class actually applied</strong>, not the recommended one — judging against the wrong class would pass a regression (1800 connections = 75% of a <code>db.t3.large</code> baseline but 56% of <code>xlarge</code>).</li>
+<li><strong>The error counter is judged per-bucket median, not window totals</strong> — window lengths differ (24 h baseline vs a fresh post window); <code>post median &gt; baseline median</code> is the regression signature.</li>
+<li><strong><code>Verify</code> dispatches internally</strong> on the event's resource tag — a class event can never be judged by the k8s path or rolled back through the deployment patcher, and vice versa.</li>
+<li><strong>Rollback restores the absolute pre-apply class from the apply event</strong> — never a delta, never a live read; the recorded <code>ClassCurrent</code> is the complete rollback target even if live class drifted (same rationale as ADR-026). The reverted event records the inverted class pair.</li>
+</ol>
+<p><strong>Consequences:</strong> a healthy downsize passes (utilization rises but stays under the caps it was sized for); real regressions fail and auto-roll-back; no store metrics → inconclusive, never a pass. The DB path needs no Prometheus client — its only data source is the store.</p>
+<h2 id="adr-033-db-metrics-fixture-and-collector-wiring-demo-seed">ADR-033: DB metrics fixture and collector wiring (demo seed)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Decision:</strong> <code>internal/dbmetrics</code> ships a deterministic <code>Fixture</code> source — one RDS-style instance (<code>payments-prod</code>, <code>db.t3.large</code>, namespace <code>rds</code>, provider <code>fixture</code>) running hand-computed golden demand (10% CPU, 12.5% memory, 200 IOPS, 300 connections) modulated by daily (±10%) and weekly (±5%) sinusoids evaluated from the Unix clock, so the golden recommendation (<code>db.t3.medium</code>, $50/mo) holds exactly; errors constant 2 per bucket so the error SLI passes. Maintenance window <code>sun:00:00-sat:00:00</code> UTC (in-window for every moment except Saturday UTC); <code>consize.savings.dev/auto-db=enabled</code> set. The collector gains an optional DB surface (<code>Collector.DB</code>, nil = k8s only), ingested after the k8s path with the same idempotent upsert semantics. <code>CONSIZE_DBMETRICS</code> selects the source in <code>cmd/collector</code>: unset/<code>none</code> = k8s only (shipped default); <code>fixture</code> = demo; unknown values fail at startup. <strong>Consequences:</strong> the full DB loop is exercisable without any cloud account; <strong>retired from all live paths as of ADR-035</strong> (fixture workload deleted from the live store; the fixture stays in code for tests and the zero-config demo). The verifier never touches this seam — it reads the store.</p>
+<h2 id="adr-034-live-db-provider-cloudwatch-rds-adapter-and-the-chartreporting-contract-m35">ADR-034: Live DB provider — CloudWatch RDS adapter and the chart/reporting contract (M3.5)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The only shipped <code>dbmetrics.Source</code> was the fixture — the biggest demo→product gap: a production deployment pointed at a real fleet would ingest <strong>zero</strong> databases. <strong>Decision</strong> (six parts):</p>
+<ol>
+<li><strong><code>internal/dbmetrics/cloudwatch</code> implements <code>Source</code> against the RDS/CloudWatch APIs</strong>, hand-rolled with the existing SigV4 (exported as <code>AWSSigner</code> from <code>internal/pricing</code> — no AWS SDK dependency). <code>ListInstances</code> pages <code>DescribeDBInstances</code> (query protocol, XML); <code>Series</code> folds <code>GetMetricStatistics</code> (AWS JSON 1.1) into step-aligned <code>[start,end)</code> buckets, chunking windows into ≤ 24 h slices for the 1,440-datapoint API cap. Env: <code>CONSIZE_DBMETRICS=cloudwatch</code>, <code>CONSIZE_AWS_REGION</code> (default us-east-1), optional <code>CONSIZE_DB_FILTER</code>, standard AWS credential env vars. Fields without a <code>Workload</code> home ride as <code>consize.savings.dev/*</code> labels; MultiAZ → <code>DBReplicas=2</code>.</li>
+<li><strong>Metric mapping is honest</strong>: <code>db_cpu_percent</code> ← CPUUtilization; <code>db_mem_percent</code> ← 100×(1−FreeableMemory/(catalog GiB×2³⁰)) clamped at 0 (FreeableMemory dips negative on small instances); <code>db_iops</code> ← ReadIOPS+WriteIOPS; <code>db_connections</code> ← DatabaseConnections. <strong><code>db_errors</code> has no CloudWatch equivalent → no-evidence, never FAIL</strong>, locked by tests in both directions (a healthy verification passes with the errors SLI "unavailable"; a CPU-saturation regression still FAILs without it).</li>
+<li><strong><code>GET /api/v1/workloads/{id}/series?metric=&amp;days=</code> is the chart contract.</strong> Five metric names regardless of surface (<code>cpu_percent, mem_percent, iops, connections, errors</code>; anything else 400; unknown workload 404; <code>days</code> positive int, default 14). Resolution is <strong>surface-aware</strong>: DB workloads read the <code>db_*</code> store metrics with units percent/iops/connections/errors; compute workloads read k8s raw metrics (<code>cpu_used_milli</code>, <code>mem_used_bytes</code>) with units millicores/bytes. A contract-valid name with no store metric on the surface is <strong>200 with empty points — no-data, not an error</strong>. The response carries <code>unit</code>. <em>(The initial implementation mapped only DB metrics — found live: compute series came back empty while analysis had the buckets; the fix is the surface-aware resolution, tested for both surfaces.)</em></li>
+<li><strong><code>GET /api/v1/savings</code> gains realized numbers</strong>, additive to the existing projected fields: <code>realized_monthly</code>/<code>realized_yearly</code> = sum of <code>SavingsMonthly</code> over recommendations whose <strong>latest</strong> apply event is still <code>applied</code> and whose latest apply has a <code>passed</code> verification verdict. A later <code>reverted</code> event, failed verification, or inconclusive verification excludes it; projected and realized never mixed. <code>by_owner</code> gives the same two numbers per owner label (unassigned when absent). This keeps the M4 AC literal: realized means verified, not merely attempted.</li>
+<li><strong>Recommendations gain <code>risk</code> (low|medium|high) + <code>risk_reasons</code></strong>, computed at the API from existing data (no schema change): low data days, saturation near headroom constraints, step distance &gt; 1 class, maintenance window not open, follow-up pending, data-loss-risk flags. The UI renders a risk pill with reasons as tooltip, ranked by savings.</li>
+<li><strong>GCP Cloud Monitoring (Cloud SQL) is the documented follow-up</strong> on the same <code>Source</code> seam — one interface, a second implementation.</li>
+</ol>
+<p><strong>Consequences:</strong> a production deployment with AWS credentials ingests a real RDS fleet end-to-end with the same safety semantics as the fixture. The live cluster as of 2026-08-25: "projected $52.59/mo, realized $0.36/mo from the one verified apply". The <code>db_errors</code> gap is documented, not silent.</p>
+<h2 id="adr-035-live-db-provider-gcp-cloud-monitoring-cloud-sql-adapter-provider-scoped-catalogs-m35-6-closed">ADR-035: Live DB provider — GCP Cloud Monitoring (Cloud SQL) adapter, provider-scoped catalogs (M3.5 §6 closed)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The user's product focus moved to their real GCP account (2026-08-25 mandate: "don't use seeded data again, I want to focus on the GCP account") — the adapter shipped before the live-account AWS gate, and the fixture demo path was retired from the live cluster entirely. Two facts drove decisions: Cloud SQL only accepts <code>db-custom-*</code> or shared-core tiers for Postgres (legacy <code>db-n1-standard-*</code> → HTTP 400, learned live), and the Admin API's maintenance-window day convention is <strong>1 = Monday … 7 = Sunday</strong> (verified against <code>gcloud sql instances describe</code>: a Sunday window returns <code>day: 7</code>). <strong>Decision</strong> (four parts):</p>
+<ol>
+<li><strong><code>internal/dbmetrics/cloudmonitoring</code> implements <code>Source</code> against the Cloud SQL Admin API and Cloud Monitoring.</strong> <code>ListInstances</code> pages <code>sql/v1beta4/projects/{p}/instances</code> (JSON, state RUNNABLE only); <code>Series</code> queries <code>v3/projects/{p}/timeSeries</code> mapped to the five <code>db_*</code> store metrics. Auth is hand-rolled: an RS256 JWT minted from the <code>GOOGLE_APPLICATION_CREDENTIALS</code> service-account key (RFC 7523, <code>token_uri</code>), with the GCE metadata-server fallback for in-cluster runs; <code>tokenFunc</code> injectable for tests. Env: <code>CONSIZE_DBMETRICS=gcp</code>, <code>CONSIZE_GCP_PROJECT</code> (default: key's <code>project_id</code>, then metadata), optional <code>CONSIZE_DB_FILTER</code>.</li>
+<li><strong>Metric mapping follows Cloud Monitoring's surface</strong>: <code>db_cpu_percent</code> ← <code>cloudsql.googleapis.com/database/cpu/utilization</code> ×100 clamped 0..100; <code>db_mem_percent</code> ← <code>database/memory/utilization</code> ×100; <code>db_connections</code> ← <code>database/network/connections</code>; <strong><code>db_iops</code> and <code>db_errors</code> have no Cloud Monitoring equivalent → no-evidence, never FAIL</strong>. Series requests carry the RUNNABLE filter, paginate with <code>nextPageToken</code>, and map days-to-window with the verified Monday-first convention (<code>gcpDays</code>); the initial Monday-first bug (shipped mapping 1=Sunday → a Sunday window rendered <code>sat:03:00</code>) was found live on consize-demo, fixed, and the mapping table now encodes the real convention. ZONAL→1 / REGIONAL→2 replicas; userLabels + derived <code>consize.savings.dev/{region,tier,storage}</code> labels, derived set last so they cannot be clobbered.</li>
+<li><strong>DB class catalogs are provider-scoped.</strong> <code>analysis.DBCatalog</code> (RDS) and the new <code>GCPDBCatalog</code> (price-ordered: db-f1-micro $11, db-g1-small $43, db-custom-1-3840 $72, db-custom-2-7680 $144, db-custom-4-15360 $288, db-custom-8-30720 $575 — documented us-central1 defaults; <code>VCPU</code>/<code>MemGiB</code> now float64 for GCP's fractional shapes) are <strong>never merged</strong>: a single ladder would let RDS propose GCP classes and vice versa. <code>DBClassStep</code>, <code>dbapply.stepPlan</code>/<code>classPrice</code>, the verifier's <code>dbClassFor</code>, and <code>dbSizing</code> all resolve within the workload's own provider's catalog; golden tests lock both directions.</li>
+<li><strong>The collector's <code>CONSIZE_DBMETRICS</code> switch gains <code>gcp</code></strong> (<code>dbSourceFor</code> refactor makes the switch unit-testable). The live cluster's collector CronJob runs <code>CONSIZE_DBMETRICS=gcp</code> with the service-account key mounted from a <code>consize-gcp</code> Secret (<code>GOOGLE_APPLICATION_CREDENTIALS=/etc/consize-gcp/key.json</code>); analyze runs <code>CONSIZE_MIN_DATA_DAYS=0.1</code> as a documented bootstrap for the fresh instance (restore default 5 once it holds 5 days). The fixture workload was deleted from the live store — the demo seed no longer exists in any live path.</li>
+</ol>
+<p><strong>Consequences:</strong> the live cluster ingests the user's real Cloud SQL instance end to end: consize-demo (<code>db-custom-1-3840</code>, ZONAL, window sun 03:00–04:00, us-central1) → real Cloud Monitoring series → recommendation <code>db-g1-small</code> $29/mo with honest risk (medium: low data days, window not yet open). Projected savings are now 100% real: $31.59/mo projected (incl. the $29 GCP rec) + $0.36 realized from the verified M2 apply. A wrong window would have let applies through on the wrong day — the Monday-first convention is locked by tests. Remaining on this seam: the live-account AWS E2E as CI gate (unchanged, ADR-034 §6).</p>
+<h2 id="adr-036-nextjs-product-ui-m4-rewrite-product-standard-architecture-embedded-spa-retained-as-fallback">ADR-036: Next.js product UI (M4 rewrite) — product-standard architecture, embedded SPA retained as fallback</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The M4 UI shipped as a vanilla static SPA embedded in the API binary — demoable, but not product-standard: no component model, no SSR, no typed API layer. The 2026-08-25 mandate: "why are we not using nextjs? … make the UI standard, have you seen usage.ai?" — benchmark: a dark FinOps console (near-black canvas, sidebar navigation, KPI cards with dollar deltas, status pills, uppercase micro-labels). The engine API is already a clean <code>/api/v1</code> contract (ADR-034 §3), so a modern frontend can sit on it without engine changes. <strong>Decision</strong> (four parts):</p>
+<ol>
+<li><strong><code>ui/</code> is a Next.js (App Router, TypeScript, Tailwind) application</strong> at the repo root, replacing the embedded SPA as the product UI: <code>lib/api.ts</code> typed client against relative <code>/api/v1</code>, <code>lib/types.ts</code> API types, <code>lib/format.ts</code> currency/number formatting, <code>components/</code> (Sidebar, ApplyModal, ApplyTimeline, UsageChart, ui primitives), <code>app/</code> routes (dashboard, workloads, workload detail, recommendations, audit, apply). Charts: Recharts; icons: lucide-react.</li>
+<li><strong><code>next.config.ts</code> rewrites <code>/api/v1/:path*</code> → <code>API_UPSTREAM</code></strong> (default <code>http://127.0.0.1:18099</code>) so the same build runs against the local poke, the cluster, or a cloud-deployed API — the frontend never hardcodes a backend origin; <code>NEXT_PUBLIC_API_BASE</code> is the escape hatch. CORS is avoided entirely by same-origin proxying.</li>
+<li><strong>The embedded SPA stays in the API binary untouched</strong> as the single-binary fallback (zero-dependency demo: one image, one port); not developed further — new UI work lands in <code>ui/</code>.</li>
+<li><strong>Deploy story</strong>: <code>ui/</code> builds to a static export or Node server image alongside the engine images; the cluster serves it through the same <code>consize-api</code> Service (route <code>/</code> → UI, <code>/api/v1</code> → engine) once the rollout lands; until then the poke runs <code>next dev</code>/<code>next start</code> against the local API.</li>
+</ol>
+<p><strong>Consequences:</strong> a standard stack a hiring-team reviewer would expect (Next.js, App Router, typed API client), matching the usage.ai-class visual benchmark, sharing one API contract with the embedded SPA. Cost: a second deployable and a build step; the engine remains the single source of truth for all data and safety decisions (the UI is a read-mostly client; applies still require the engine's guardrails).</p>
+<h2 id="adr-037-authentication-and-server-side-authorization-local-users-revocable-sessions-role-gated-writes">ADR-037: Authentication and server-side authorization — local users, revocable sessions, role-gated writes</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p>The M4 AC ("UI read-only users cannot trigger applies; RBAC enforced server-side, not just hidden buttons") had no identity layer to build on: the apply <code>actor</code> was a self-reported JSON body string, <code>mode=auto</code> needed no identity, and security.md §2's OIDC promise was aspirational. <strong>Decision</strong> (seven parts):</p>
+<ol>
+<li><strong><code>internal/auth</code> package on a provider seam</strong> (<code>Authenticator</code> interface) — the LocalUsers provider ships now (bcrypt hashes in Postgres); OIDC implements the same seam later, the repo's signature seam-first pattern (dbmetrics.Source, ClassChanger).</li>
+<li><strong>Sessions are Postgres rows, not JWTs</strong>: 32-byte random tokens stored as SHA-256 hashes only, 7-day TTL, revocable (delete on logout), deleted on lookup when expired — no dependency, no client-side state.</li>
+<li><strong>Roles <code>viewer|operator|admin</code></strong> (CHECK-constrained in <code>users.role</code>), mapped to security.md §2's consize:view / consize:operator / consize:admin; <code>RequireUser</code> → 401 <code>{"error":"unauthorized"}</code> on reads, <code>RequireRole("operator")</code> → 403 <code>{"error":"forbidden","role_required":…}</code> on writes.</li>
+<li><strong><code>api.New</code> takes <code>Options{Auth, CookieSecure}</code></strong> — zero options = auth disabled; the nil <code>*auth.Service</code> is explicitly converted to a nil <code>Authenticator</code> interface (the Go typed-nil trap would otherwise have enforced auth anyway), so all pre-existing tests stay green untouched.</li>
+<li><strong>Apply actor is server-verified</strong>: the client-supplied body actor is rejected; the trail records <code>"api:&lt;session user email&gt;"</code> — the store comment <code>Actor // operator | auto | api:&lt;user&gt;</code> is now literally true.</li>
+<li><strong>Bootstrap</strong>: <code>CONSIZE_BOOTSTRAP_ADMIN="email:password"</code> creates the first admin only while the users table is empty; the UI keys off <code>GET /auth/me</code> (<code>auth_enabled</code> distinguishes "login required" from "auth not enforced").</li>
+<li><strong>Deployment nuance</strong>: poke runs auth-enforced with its bootstrap admin; the live cluster ships <code>CONSIZE_AUTH_REQUIRED=false</code> — the embedded-SPA fallback and curl-actor flows keep working, and flipping to true (+ a <code>consize-auth</code> Secret) enforces the same contract against the same store.</li>
+</ol>
+<p><strong>Consequences:</strong> the M4 AC is closed (contract tests <code>TestAuthHandlerMatrix</code> + <code>TestActorIsServerVerified</code>); migration 0004 adds <code>users</code> + <code>sessions</code>; security.md §2 is no longer aspirational for humans. Remaining seam work: the OIDC provider, rate limits (security.md §7), and API keys for the Terraform PR flow (E2.4) — all ride the same <code>Authenticator</code>/middleware seams. <em>(Amendment 2026-08-26, §6: first-run admin creation — <code>POST /auth/setup</code> + <code>needs_setup</code> in me()'s 401, wizard on /login; no default credential, never open registration; see the amendment in decisions.md.)</em></p>
+<h2 id="adr-038-branding-consize-wordmark-brand-mark-favicon">ADR-038: Branding — conSize wordmark, brand mark, favicon</h2>
+<p><strong>Decision:</strong> one <code>ui/components/Brand.tsx</code> is the only logo renderer (brand tile = gauge icon on a token-derived panel with a green ring; wordmark "conSize" with a capital S in the brand green); gauge favicon <code>ui/app/icon.svg</code>; title "conSize — infrastructure rightsizing". The tile derives from palette tokens, so light mode re-themes it. <em>(Full ADR in decisions.md.)</em></p>
+<h2 id="adr-039-improved-navigation-sections-k-palette-mobile-drawer">ADR-039: Improved navigation — sections, ⌘K palette, mobile drawer</h2>
+<p><strong>Decision:</strong> grouped sidebar sections (Overview / Optimize / Operations) with <code>aria-current</code> active marking; <code>CommandPalette.tsx</code> (⌘K / Ctrl+K, ↑↓/Enter/Esc, routes + lazily-indexed live workloads with source hints); below <code>lg</code> the sidebar is an off-canvas drawer owned by Shell (sticky top bar toggle, backdrop + link-click + route-change close, content <code>lg:pl-[232px]</code>). <em>(Full ADR in decisions.md.)</em></p>
+<h2 id="adr-040-lightdark-mode-next-themes-attribute-switched-tokens">ADR-040: Light/dark mode — next-themes, attribute-switched tokens</h2>
+<p><strong>Decision:</strong> <code>next-themes</code> stamps <code>data-theme</code> on <code>&lt;html&gt;</code> (default dark, persisted in localStorage, no system-following); one <code>:root[data-theme="light"]</code> block redefines every raw token (backgrounds, inks, borders, accents re-tinted for white) so the whole console — panels, charts, pills, brand tile — re-themes with zero component changes; toggles: Dark/Light segmented control (sidebar footer) + icon buttons (mobile top bar, login page). <em>(Full ADR in decisions.md.)</em></p>
+<hr />
+<h1 id="part-b-mathematical-calculations">Part B — Mathematical Calculations</h1>
+<p>All formulas below are read from the engine source (<code>engine/internal/analysis/analysis.go</code>, <code>engine/internal/analysis/db.go</code>, <code>engine/internal/apply/apply.go</code>, <code>engine/internal/dbmetrics/dbmetrics.go</code>, <code>engine/internal/verifier/{verifier,db}.go</code>, <code>engine/internal/api/{risk,savings,series}.go</code>, <code>engine/internal/pricing/aws.go</code>). Constants are named exactly as in code.</p>
+<h2 id="1-percentile-linear-interpolation">§1 Percentile — linear interpolation</h2>
+<p>The engine never uses "the Nth percentile = value at position ⌈N/100×count⌉" rounding. It interpolates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>r    = p/100 × (n − 1)          # rank
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>i    = floor(r)                 # lower index
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>f    = r − i                    # fraction
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>P(p) = v[i] + f × (v[i+1] − v[i])   # linear interpolation between sorted neighbors
+</code></pre></div>
+<p>where <code>v</code> is the sorted ascending series of n values. <strong>Worked example (illustrative):</strong> n = 14 daily p95s, sorted: <code>[100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230]</code>.</p>
+<ul>
+<li>p95: r = 0.95 × 13 = 12.35 → i = 12, f = 0.35 → v[12] = 220, v[13] = 230 → P95 = 220 + 0.35 × 10 = <strong>223.5</strong></li>
+<li>p99: r = 0.99 × 13 = 12.87 → i = 12, f = 0.87 → P99 = 220 + 0.87 × 10 = <strong>228.7</strong></li>
+</ul>
+<h2 id="2-compute-sizing-request-limit-sizecpusizememory">§2 Compute sizing (request &amp; limit) — <code>sizeCPU</code>/<code>sizeMemory</code></h2>
+<p><strong>Input aggregation:</strong> the 14-day window of 15-minute buckets is first reduced to one <strong>p95 per UTC day</strong> (<code>dailyP95</code>: group by <code>WindowStart/86400</code>, take the p95 of the day's samples), then the p95/p99 is taken <strong>over the daily p95s</strong> (see §10 for the chart variant).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>request  = ceil(p95 × Headroom)        Headroom = 1.2
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>limit    = max(ceil(p99), request × MinLimitMult)      MinLimitMult = 2.0
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>limit    = min(limit, current limit)   # limits only decrease in v1
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>skip if  request ≥ current request     # downsize-only
+</code></pre></div>
+<p><strong>Worked example (illustrative):</strong> daily p95 series as in §1; current request 500 m, current limit 1000 m.</p>
+<ul>
+<li>request = ceil(223.5 × 1.2) = ceil(268.2) = <strong>269 m</strong></li>
+<li>p99 = ceil(228.7) = 229 m; request×2 = 538 m → limit = max(229, 538) = <strong>538 m</strong> (≤ 1000 ✓)</li>
+<li>CPU savings: (500 − 269) / 1000 × $27.40 = <strong>$6.33/mo</strong> (§3)</li>
+</ul>
+<p><strong>Note the semantics:</strong> the 1.2× headroom means the p95 sits at 100/1.2 ≈ <strong>83.3% of the request</strong> — that boundary is what the risk scorer references ("the 1.2x headroom boundary is 83%").</p>
+<h2 id="3-compute-savings">§3 Compute savings</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>CPU savings   = (RequestCPU − request) / 1000  × CPUPerCoreMonth     # Δ cores × $/core-month
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Memory savings = (RequestMem − requestGiB) / GiB × MemPerGiBMonth     # Δ GiB × $/GiB-month
+</code></pre></div>
+<p>Prices: <code>DefaultPrices()</code> = <strong>CPUPerCoreMonth $27.40, MemPerGiBMonth $3.66</strong> (shipped static defaults, ADR-014). Savings scale with the <strong>request</strong> reduction only (limits don't gate the bill directly).</p>
+<p><strong>Worked example (illustrative, continuing §2):</strong> 500 m CPU → 269 m: 0.231 core × $27.40 = $6.33/mo; memory with a daily-p95 of 466 MiB: reqMiB = ceil(466×1.2) = 560 MiB → 1024 − 560 = 0.453 GiB × $3.66 = $1.66/mo; combined ≈ <strong>$7.99/mo</strong>.</p>
+<h2 id="4-db-sizing-projections-caps-candidate-search-dbprojectdbsizingdbfails">§4 DB sizing — projections, caps, candidate search — <code>dbProject</code>/<code>dbSizing</code>/<code>dbFails</code></h2>
+<p>Observed (window p95s of the DB metrics) are <strong>projected onto the candidate class</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cpu   = obsCPU%   × cur.VCPU    / cand.VCPU
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>iops  = obsIOPS   / cand.MaxIOPS × 100
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>mem   = obsMem%   × cur.MemGiB  / cand.MemGiB
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>conns = obsConns  / cand.MaxConns × 100
+</code></pre></div>
+<p>The candidate fits iff all four are <strong>below the caps</strong> (breach at ≥):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>DBCPUCap   = 60.0   # projected CPU % must be below this
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>DBIOPSCap  = 60.0   # projected IOPS % below this
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>DBMemCap   = 75.0   # projected memory % below this
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>DBConnsCap = 70.0   # projected connections % below this
+</code></pre></div>
+<p><strong>Search</strong> (<code>dbSizing</code>): downsize-only, candidates = the current class's <strong>own provider catalog</strong> (RDS or GCP, never crossed — ADR-035 §3), strictly cheaper than current, <strong>cheapest first</strong>; the first fit is the maximum-savings class that keeps every promise. If the current class itself fails its own caps, no cheaper class can — the bottleneck attribution names the first saturated dimension in policy order (cpu, iops, mem, conns).</p>
+<p><strong>Worked example (live):</strong> consize-demo, <code>db-custom-1-3840</code> (1 vCPU, 3.75 GiB, $72/mo) with observed CPU ≈ 10.4% (p95 over real Cloud Monitoring series):</p>
+<ul>
+<li>candidate <code>db-g1-small</code> (1 vCPU, 1.7 GiB, $43/mo): cpu = 10.4 × 1/1 = <strong>10.4%</strong> &lt; 60 ✓</li>
+<li>memory projection scales with the GiB ratio: mem = obsMem% × 3.75/1.7 ≈ obsMem% × 2.21 — the class that wins on price keeps memory headroom only if observed memory is well under 34% (34 × 2.21 ≈ 75).</li>
+<li>savings = $72 − $43 = <strong>$29/mo</strong> (the live recommendation; total projected $31.59/mo includes it).</li>
+</ul>
+<p><strong>Worked example (fixture, golden-tested):</strong> payments-prod <code>db.t3.large</code> (2 vCPU, 8 GiB, $100/mo) at base demand 10% CPU, 12.5% mem, 200 IOPS, 300 conns → <code>db.t3.medium</code> (2 vCPU, 4 GiB, $50/mo): cpu = 10 × 2/2 = 10% ✓; mem = 12.5 × 8/4 = 25% ✓; iops = 200/1200×100 = 16.7% ✓; conns = 300/800×100 = 37.5% ✓ → <strong>$50/mo</strong>.</p>
+<h2 id="5-apply-stepping-steptowardstepvaluessavingsof">§5 Apply stepping — <code>stepToward</code>/<code>stepValues</code>/<code>savingsOf</code></h2>
+<p><strong>Step rule (k8s):</strong> each apply moves at most <strong>30% of the current value</strong> (<code>StepLimit = 0.30</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>step = floor(current × 0.30)
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>next = current − step;  if next &lt; target → next = target    # final step lands exactly
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>if target ≥ current → current                                # upsize/equal: no-op (downsize-only)
+</code></pre></div>
+<p><strong>Worked example (illustrative):</strong> 1000 m → 100 m:
+700 → 490 → 343 → 241 → 169 → 119 → <strong>100</strong> (7 applies; <code>totalSteps</code> counts via <code>for c := req; c != target &amp;&amp; c &gt; 0; c = stepToward(...)</code>).</p>
+<p>Each step's follow-up recommendation carries the remainder, with savings <strong>scaled by the request-reduction share</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>followUp savings = total × (stepReq − finalReq) / (curReq − finalReq)
+</code></pre></div>
+<p>E.g. total $18.00, stepReq 700, final 100, current 1000: after step 1, follow-up savings = 18 × (700−100)/(1000−100) = 18 × 0.667 = <strong>$12.00</strong>. The follow-up is blocked by the in-flight guardrail until the current step verifies (ADR-020) — the apply → verify → apply rhythm.</p>
+<p><strong>DB stepping</strong> is by catalog position, not percentage: exactly <strong>one adjacent class per apply</strong> (<code>DBClassStep</code>), larger moves queue follow-ups (ADR-031 §2); follow-up savings = adjacent class price − final class price (from the provider-scoped catalog).</p>
+<h2 id="6-verification-math-k8s-path-verifyk8slongestrun">§6 Verification math — k8s path — <code>verifyK8s</code>/<code>longestRun</code></h2>
+<p>Baseline window vs post window uses the effective step-scaled duration at
+1-minute samples. Each signal has a multiplier; threshold =
+<strong>baseline × mult</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>signal</th>
+<th>kind</th>
+<th>mult</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>throttling (<code>container_cpu_cfs_throttled_seconds_total</code>)</td>
+<td>rate</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>oom_killed</td>
+<td>counter</td>
+<td>0 (any new event)</td>
+</tr>
+<tr>
+<td>restarts</td>
+<td>counter</td>
+<td>0 (any new event)</td>
+</tr>
+<tr>
+<td>evictions</td>
+<td>counter</td>
+<td>0 (any new event)</td>
+</tr>
+<tr>
+<td>error_rate (opt-in expr)</td>
+<td>rate</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>p99_latency (opt-in expr)</td>
+<td>rate</td>
+<td>1.3</td>
+</tr>
+</tbody>
+</table>
+<p><code>longestRun(post, threshold)</code> = the longest streak of consecutive post samples above the threshold; a breach is <code>run.minutes ≥ SustainedMinutes</code> (default <strong>5</strong>, configurable via <code>CONSIZE_SUSTAINED_MINUTES</code>; E2E used 3). A FAIL fires the automatic rollback + alert.</p>
+<p><strong>Worked example (illustrative):</strong> baseline throttling rate 2.0/s → threshold 2.0/s. Post window has 9 consecutive samples ≥ 2.0/s → 9 min ≥ 5 → <strong>FAIL</strong>.</p>
+<h2 id="7-verification-math-db-path-verifydbdblongestrun">§7 Verification math — DB path — <code>VerifyDB</code>/<code>dbLongestRun</code></h2>
+<p>Judged against <strong>absolute caps on the class actually applied</strong> (ADR-032), not baseline-relative:</p>
+<ul>
+<li><code>cpu_saturation</code> ← <code>db_cpu_percent</code>, breach when a bucket ≥ <strong>60</strong> (<code>DBCPUCap</code>) — <code>dbLongestRun</code> uses <strong>≥</strong> (the k8s path uses strictly-greater); buckets are 15 minutes, so one bucket at/above the cap is a 15-minute breach.</li>
+<li><code>connections</code> ← <code>db_connections</code> <strong>projected onto the applied class's baseline</strong>: <code>value / appliedClass.MaxConns × 100 ≥ 70</code> (<code>DBConnsCap</code>). The baseline window still supplies medians as evidence, and one-window-missing → inconclusive (ADR-006/027).</li>
+<li><code>errors</code> ← <code>db_errors</code>: per-bucket <strong>median</strong> post &gt; baseline median → FAIL (window-length-agnostic, ADR-032 §4).</li>
+<li><strong>No-evidence, never FAIL</strong>: <code>db_iops</code>/<code>db_errors</code> have no CloudWatch/Cloud Monitoring equivalent (ADR-034 §2, ADR-035 §2) — a healthy verification passes with those SLIs "unavailable"; a CPU-saturation regression still FAILs without them.</li>
+</ul>
+<h2 id="8-risk-scoring-riskfornearheadroomwindowp95">§8 Risk scoring — <code>riskFor</code>/<code>nearHeadroom</code>/<code>windowP95</code></h2>
+<p>Levels: <strong>low</strong> (default) &lt; <strong>medium</strong> &lt; <strong>high</strong>; the highest flag wins, all reasons are listed in <code>risk_reasons</code>. The window statistic used is <code>windowP95</code> = the p95 of each day's p95s, then the p95 over the daily p95s.</p>
+<ul>
+<li><strong>high</strong>: workload flagged <code>consize.savings.dev/data-loss-risk=true</code>; malformed maintenance window.</li>
+<li><strong>medium</strong>:</li>
+<li>low data days: <code>daysWithData &lt; MinDataDays</code> (default 5; reason reads "low data days (N of 5 required)").</li>
+<li>compute: utilization p95 at ≥ 80% of the current request — the 1.2× headroom boundary sits at 83%.</li>
+<li>class step spans &gt; 1 catalog class (applies move one adjacent step).</li>
+<li>no maintenance window configured (class applies are blocked); or window not yet open.</li>
+<li>pending follow-up of a multi-step plan (<code>ClassCurrent ≠</code> the instance's live class).</li>
+<li>any dimension's window p95 <strong>within 10 points of its cap</strong> (<code>nearHeadroom</code>: <code>p95 ≥ cap − 10</code>, with absolute counts scaled to percent of the class baseline first): "cpu p95 at 55.2% within 10 points of the 60% headroom cap".</li>
+</ul>
+<p><strong>Worked example (live):</strong> consize-demo → db-g1-small rec shows <strong>medium</strong> with reasons "low data days (1 of 5 required)" (bootstrap at <code>CONSIZE_MIN_DATA_DAYS=0.1</code> still reports against the <em>default</em> 5 in the reason string) and "maintenance window not yet open" (window sun 03:00–04:00; applies outside it are blocked).</p>
+<h2 id="9-pricing-conversions-pricingawsgo">§9 Pricing conversions — <code>pricing/aws.go</code></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>CPUPerCoreMonth = median($/vcpu-hr across the EC2 on-demand index) × 730
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>MemPerGiBMonth  = median($/GiB-hr) × 730
+</code></pre></div>
+<p>730 = <code>HoursPerMonth</code> (the average month, 365×24/12). The AWS live fetch uses these; the static <code>DefaultPrices()</code> ($27.40 / $3.66) is the shipped fallback table (ADR-014). (Golden test against canned AWS data: 35.04 CPU / 8.76 mem — that's the test fixture, not the default.)</p>
+<p><strong>Class catalogs (ADR-030 §5, ADR-035 §3)</strong> — both price-ordered, cheapest first; never merged across providers:</p>
+<table>
+<thead>
+<tr>
+<th>RDS (<code>DBCatalog</code>)</th>
+<th>VCPU</th>
+<th>GiB</th>
+<th>MaxIOPS</th>
+<th>MaxConns</th>
+<th>$/mo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>db.t3.micro</td>
+<td>1</td>
+<td>1</td>
+<td>300</td>
+<td>200</td>
+<td>15</td>
+</tr>
+<tr>
+<td>db.t3.small</td>
+<td>2</td>
+<td>2</td>
+<td>600</td>
+<td>400</td>
+<td>25</td>
+</tr>
+<tr>
+<td>db.t3.medium</td>
+<td>2</td>
+<td>4</td>
+<td>1200</td>
+<td>800</td>
+<td>50</td>
+</tr>
+<tr>
+<td>db.t3.large</td>
+<td>2</td>
+<td>8</td>
+<td>2400</td>
+<td>1600</td>
+<td>100</td>
+</tr>
+<tr>
+<td>db.t3.xlarge</td>
+<td>4</td>
+<td>16</td>
+<td>4800</td>
+<td>3200</td>
+<td>200</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>GCP (<code>GCPDBCatalog</code>, us-central1 defaults)</th>
+<th>VCPU</th>
+<th>GiB</th>
+<th>MaxIOPS</th>
+<th>MaxConns</th>
+<th>$/mo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>db-f1-micro</td>
+<td>0.6</td>
+<td>0.6</td>
+<td>3000</td>
+<td>250</td>
+<td>11</td>
+</tr>
+<tr>
+<td>db-g1-small</td>
+<td>1</td>
+<td>1.7</td>
+<td>3000</td>
+<td>250</td>
+<td>43</td>
+</tr>
+<tr>
+<td>db-custom-1-3840</td>
+<td>1</td>
+<td>3.75</td>
+<td>48000</td>
+<td>1000</td>
+<td>72</td>
+</tr>
+<tr>
+<td>db-custom-2-7680</td>
+<td>2</td>
+<td>7.5</td>
+<td>48000</td>
+<td>1000</td>
+<td>144</td>
+</tr>
+<tr>
+<td>db-custom-4-15360</td>
+<td>4</td>
+<td>15</td>
+<td>48000</td>
+<td>1000</td>
+<td>288</td>
+</tr>
+<tr>
+<td>db-custom-8-30720</td>
+<td>8</td>
+<td>30</td>
+<td>48000</td>
+<td>1000</td>
+<td>575</td>
+</tr>
+</tbody>
+</table>
+<p>(GCP MaxIOPS/MaxConns are documented baselines — Cloud SQL publishes no per-tier caps the way RDS does; they rarely discriminate between tiers, which reflects how the service behaves.)</p>
+<h2 id="10-chart-risk-aggregation-dailyseries-dailyp95-windowp95">§10 Chart &amp; risk aggregation — <code>dailySeries</code> / <code>dailyP95</code> / <code>windowP95</code></h2>
+<p>Two similar-but-distinct reductions — don't confuse them:</p>
+<ul>
+<li><strong>Analysis</strong> (<code>dailyP95</code>): per-day p95 of the day's 15-minute samples → then the p95/p99 <strong>over the daily p95s</strong> (used for request/limit, §2).</li>
+<li><strong>Series endpoint</strong> (<code>dailySeries</code>): one point per UTC day carrying <strong>p50/p95/p99/max of the day's window p95s</strong> — <code>P50 = Percentile(vals, 50)</code>, <code>P95 = Percentile(vals, 95)</code>, <code>P99 = Percentile(vals, 99)</code>, <code>Max = max(vals)</code> — where <code>vals</code> = the window P95s (<code>b.P95</code>) in that day. The chart shows the day's p50/p95/p99/max bands.</li>
+<li><strong>Risk</strong> (<code>windowP95</code>): p95 of each day's p95s, then p95 over the daily p95s — i.e. the analysis window statistic reused for near-headroom checks (§8).</li>
+</ul>
+<h2 id="11-savings-semantics-realized-vs-projected-apisavingsgo">§11 Savings semantics — realized vs projected — <code>api/savings.go</code></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>projected_monthly = Σ SavingsMonthly over pending recommendations
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>realized_monthly  = Σ SavingsMonthly over recommendations whose LATEST apply event Result == "applied"
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>                      and whose latest apply event has a passed verification verdict
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>                      (a later "reverted", failed verification, or inconclusive verification excludes it)
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>realized_yearly   = realized_monthly × 12
+</code></pre></div>
+<p>The latest-event + passed-verification rule is what makes the AC "realized from verified applies only" true: an apply that has not passed verification can never count, even if it is still applied. <code>by_owner</code> splits both numbers per <code>consize.savings.dev/owner</code> label (unassigned when absent).</p>
+<p><strong>Worked example (live):</strong> cluster projected $31.59/mo, realized $0.36/mo (the one verified M2 apply) — never conflated; two distinct tiles in the UI.</p>
+<h2 id="12-confidence-and-the-data-minimum-gate">§12 Confidence and the data-minimum gate</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>daysOfData  = count of distinct UTC days (WindowStart/86400) with ≥ 1 bucket
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>confidence  = min(daysOfData / ConfidenceDays, 1.0)      ConfidenceDays = 14
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>skip when   daysOfData &lt; Config.MinDataDays              default 5; cluster bootstrap 0.1 (ADR-024)
+</code></pre></div>
+<p><strong>Worked example:</strong> 7 days of data → confidence 0.5; 14+ days → 1.0. At the default minimum, a workload with 4 days is skipped ("insufficient data (4/5 days)").</p>
+<h2 id="13-the-fixture-demand-model-demandvalue-demotests-only">§13 The fixture demand model — <code>demandValue</code> (demo/tests only)</h2>
+<p>Retired from all live paths (ADR-035) but still shipped for tests and the zero-config demo:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>h = (secs mod 86400) / 86400         # position in the day, 0..1
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>w = (secs mod 604800) / 604800       # position in the week, 0..1
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>value = base × (1 + 0.10 × sin(2πh) + 0.05 × sin(2πw))
+</code></pre></div>
+<p>Percents round to 1 decimal, counts to integers; each window stores P50=P95=P99=Max=value, Samples=1 (ADR-011). Fixture instance: <code>payments-prod</code> db.t3.large, base demand CPU 10%, mem 12.5%, IOPS 200, conns 300, errors 2/bucket; window <code>sun:00:00-sat:00:00</code>; <code>auto-db</code> label set. Golden outcome: <code>db.t3.medium</code>, $50/mo (§4).</p>
+<h2 id="14-maintenance-window-conventions">§14 Maintenance-window conventions</h2>
+<ul>
+<li>Format: weekly UTC <code>ddd:hh:mm-ddd:hh:mm</code>; <code>end &lt; start</code> wraps past midnight (<code>sun:23:00-mon:01:00</code>); <code>end == start</code> is malformed; empty or malformed → <strong>fail-closed for every mode</strong> (ADR-031 §1). Dry-runs are exempt from the <em>timing</em> check but report <code>InWindow</code>/<code>Window</code> and still fail closed on unconfigured/malformed.</li>
+<li><strong>GCP Admin API day convention: 1 = Monday … 7 = Sunday</strong> (<code>gcpDays = ["mon","tue","wed","thu","fri","sat","sun"]</code> in <code>internal/dbmetrics/cloudmonitoring/cloudmonitoring.go</code>, verified live on consize-demo and test-locked; the shipped bug — mapping 1=Sunday — rendered a Sunday window as <code>sat:03:00</code> and was fixed, ADR-035 §2). Hour 23 wraps via <code>gcpDays[day%7]</code>; out-of-range → "" (fail-closed).</li>
+<li>Live instance: consize-demo window <strong>sun:03:00-sun:04:00</strong> (matches <code>gcloud sql instances describe</code>).</li>
+</ul>
+<h2 id="15-pagination-retention">§15 Pagination &amp; retention</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>GET /api/v1/recommendations?limit=&amp;offset=
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  limit default 100, cap 500, reject limit &lt; 1 / offset &lt; 0 with 400
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  response: { ..., "pagination": {"limit", "offset", "total"} }
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>  sort: savings descending, before slicing → pages compose into a stable global order
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>PruneRecommendations(status, cutoff): only superseded rows, only by age,
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>  CONSIZE_REC_RETENTION default 168 h; applied/verified/rolled_back/pending never pruned
+</code></pre></div>
+<hr />
+<h1 id="part-c-terminology">Part C — Terminology</h1>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>poke</strong></td>
+<td>The local development instance of the whole stack: API + Postgres (<code>127.0.0.1:18099</code>, DB on <code>54330</code>/<code>consize_test</code>) running against <strong>real</strong> data — real GCP Cloud Monitoring series for consize-demo and real cluster Prometheus (via <code>kubectl port-forward</code>, <code>CONSIZE_WINDOW=3h</code> locally). The Next.js UI runs against it at <code>:3000</code>. Origin of the name: "poke at it with a stick" — the always-on scratch environment to probe behavior.</td>
+</tr>
+<tr>
+<td><strong>headroom</strong></td>
+<td>The safety margin between projected usage and the capacity being provisioned. Two distinct uses: (1) <strong>request headroom</strong>: request = p95 × 1.2, so the p95 sits at ~83% of the request; (2) <strong>DB headroom caps</strong>: candidate classes must keep projected utilization <em>below</em> 60% CPU / 60% IOPS / 75% memory / 70% connections (ADR-030 §9). "Near headroom" = within 10 points of a cap (risk flag).</td>
+</tr>
+<tr>
+<td><strong>p50 / p95 / p99</strong></td>
+<td>Percentiles of the 15-minute window series, aggregated per UTC day, then over the daily series (§1, §2). p95 sizes requests, p99 sizes limits (via max(p99, 2×request)); p50/p95/p99/max are the chart bands. <strong>Never averages</strong> (ADR-002).</td>
+</tr>
+<tr>
+<td><strong>percentile (linear interpolation)</strong></td>
+<td>The engine's percentile definition: <code>v[floor(r)] + frac(r)·(v[floor(r)+1] − v[floor(r)])</code>, <code>r = p/100·(n−1)</code> (§1).</td>
+</tr>
+<tr>
+<td><strong>window / bucket</strong></td>
+<td>One 15-minute sample of one metric for one workload, stored in <code>usage_buckets</code> upserted on <code>(workload, metric, window_start)</code> (ADR-007). A day = 96 windows. Single-sample in v1 (P50=P95=P99=Max, ADR-011).</td>
+</tr>
+<tr>
+<td><strong>daily p95 / window p95</strong></td>
+<td>Two aggregations, don't confuse: <code>dailyP95</code> = p95 of a day's 15-min samples (analysis input); <code>windowP95</code> = p95 of the daily p95s, then p95 over them (risk's near-headroom statistic) (§10).</td>
+</tr>
+<tr>
+<td><strong>millicores (m)</strong></td>
+<td>CPU units as k8s expresses them: 1000 m = 1 vCPU. Savings math divides by 1000 to get cores (§3).</td>
+</tr>
+<tr>
+<td><strong>GiB / MiB</strong></td>
+<td>Binary units (1 GiB = 2³⁰ bytes): k8s memory and the pricing tables use them; <code>MemPerGiBMonth</code> is $/GiB-month.</td>
+</tr>
+<tr>
+<td><strong>step / follow-up</strong></td>
+<td>An apply never jumps the whole reduction: k8s applies move ≤ 30% of the current value per apply; DB applies move exactly one adjacent class. The remainder is queued as a <strong>follow-up</strong> pending recommendation, blocked until the current step verifies — the apply → verify → apply rhythm (ADR-020, ADR-031 §2, §5).</td>
+</tr>
+<tr>
+<td><strong>guardrail</strong></td>
+<td>A rule that can block an apply before it touches anything: store health (readyz), pending-only, exclusions, auto-apply label policy, concurrency (1 in-flight), step ≤ 30% / one class step, maintenance window, approval mode. Blocks return structured 422 <code>{"error":"apply blocked","reasons":[...]}</code>.</td>
+</tr>
+<tr>
+<td><strong>maintenance window</strong></td>
+<td>The weekly UTC time range an instance may be changed: <code>ddd:hh:mm-ddd:hh:mm</code>, wraps at midnight, fail-closed when empty/malformed (ADR-031 §1, §14).</td>
+</tr>
+<tr>
+<td><strong>no-evidence</strong></td>
+<td>A metric a provider cannot produce (<code>db_errors</code> on CloudWatch; <code>db_iops</code>/<code>db_errors</code> on Cloud Monitoring). No-evidence <strong>never FAILs</strong> verification — it is not evidence of health (ADR-034 §2, ADR-035 §2).</td>
+</tr>
+<tr>
+<td><strong>fixture</strong></td>
+<td>The deterministic demo DB source (<code>dbmetrics.Fixture</code>: payments-prod, golden demand, sinusoid model §13). <strong>Retired from all live paths</strong> as of ADR-035; kept for tests and the zero-config demo.</td>
+</tr>
+<tr>
+<td><strong>projected vs realized savings</strong></td>
+<td>Projected = Σ pending recommendations; realized = Σ recommendations whose <em>latest</em> apply event is still <code>applied</code> and whose latest apply has a <code>passed</code> verification verdict (reverted/failed/inconclusive excludes; ×12 for yearly) — never conflated, two distinct UI tiles (§11).</td>
+</tr>
+<tr>
+<td><strong>confidence</strong></td>
+<td>0..1 = min(daysOfData/14, 1) — how much of the ideal 14-day window a recommendation is based on; scales with data volume, never inflated by lowering <code>CONSIZE_MIN_DATA_DAYS</code> (§12).</td>
+</tr>
+<tr>
+<td><strong>risk / risk pill</strong></td>
+<td>low</td>
+</tr>
+<tr>
+<td><strong>superseded</strong></td>
+<td>A recommendation replaced by a newer analysis cycle for the same workload/resource; the only rows ever pruned, and only by age (ADR-029 §2).</td>
+</tr>
+<tr>
+<td><strong>dry-run</strong></td>
+<td>Apply mode that records a <code>planned</code> event and touches nothing; exempt from the maintenance-window <em>timing</em> guard but still reports <code>InWindow</code>/<code>Window</code> and fails closed on unconfigured/malformed windows; never queues follow-ups (ADR-031 §1,§3).</td>
+</tr>
+<tr>
+<td><strong>verifier / SLI / verdict</strong></td>
+<td>The <code>cmd/verify</code> batch binary compares baseline vs post signals (SLIs) and records a three-valued verdict: <strong>passed</strong></td>
+</tr>
+<tr>
+<td><strong>rollback</strong></td>
+<td>On FAIL: k8s — restore <strong>pre-apply values absolutely</strong> via a live <code>live → pre-apply</code> diff (drift-proof, ADR-026); DB — restore the absolute pre-apply class recorded in the apply event (ADR-032 §6). Recorded as a <code>reverted</code> apply event.</td>
+</tr>
+<tr>
+<td><strong>RBAC / least privilege</strong></td>
+<td>The collector uses <code>consize-reader</code>: read-only ClusterRoleBinding for cluster-wide discovery when <code>CONSIZE_NAMESPACES</code> is empty, or namespace-scoped reads when set. Direct apply/rollback use the separate <code>consize-writer</code> identity, bound only in explicitly write-enabled namespaces; <code>mode=auto</code> additionally requires the auto-apply label. IaC PR mode needs GitHub access, not Kubernetes write RBAC.</td>
+</tr>
+<tr>
+<td><strong>CDP smoke</strong></td>
+<td>Headless-Chrome (Chrome DevTools Protocol on <code>127.0.0.1:9222</code>) end-to-end UI check: load pages, poll rendered text for hit markers, count <code>window.__rejected</code> promise rejections. Used to verify the Next.js UI (and before it, the embedded SPA) against the poke.</td>
+</tr>
+<tr>
+<td><strong>API_UPSTREAM / rewrite</strong></td>
+<td><code>next.config.ts</code> rewrites <code>/api/v1/:path*</code> → <code>API_UPSTREAM</code> (default <code>http://127.0.0.1:18099</code>): the same Next.js build works against poke, cluster, or cloud API; <code>NEXT_PUBLIC_API_BASE</code> is the escape hatch; no CORS (ADR-036 §2).</td>
+</tr>
+<tr>
+<td><strong>auto-apply label</strong></td>
+<td><code>consize.savings.dev/auto-apply=enabled</code> (namespace) / <code>consize.savings.dev/auto-db=enabled</code> (DB instance) — the only way automatic application is allowed; everything else needs an explicit approved actor (ADR-004, ADR-031 §3).</td>
+</tr>
+<tr>
+<td><strong>usage_buckets</strong></td>
+<td>The store table holding every workload's metric windows; the single data source for analysis, risk, series charts, and DB verification.</td>
+</tr>
+<tr>
+<td><strong>backfill</strong></td>
+<td>Re-running collection for a past range; safe because upserts are idempotent on <code>(workload, metric, window_start)</code> (ADR-007).</td>
+</tr>
+<tr>
+<td><strong>source / provider</strong></td>
+<td>The <code>dbmetrics.Source</code> seam (<code>ListInstances</code>, <code>Series</code>): <code>fixture</code> (tests/demo), <code>cloudwatch</code> (RDS, ADR-034), <code>cloudmonitoring</code> (GCP, ADR-035); selected by <code>CONSIZE_DBMETRICS</code>. The verifier never uses it — DB verification reads the store (ADR-030 §7).</td>
+</tr>
+<tr>
+<td><strong>surface</strong></td>
+<td>k8s compute vs cloud databases — the two workload surfaces; the API's series endpoint is surface-aware (units millicores/bytes vs percent/iops/connections/errors, ADR-034 §3) and the UI has one unified filter across both.</td>
+</tr>
+<tr>
+<td><strong>class / instance class</strong></td>
+<td>A provider DB tier (e.g. <code>db.t3.medium</code>, <code>db-custom-1-3840</code>) with catalog VCPU/GiB/IOPS/conns capacity and price; provider-scoped catalogs, never merged (ADR-035 §3).</td>
+</tr>
+<tr>
+<td><strong>step plan</strong></td>
+<td>The dry-run's report of the one adjacent class step (DB) or ≤30% step (k8s): <code>Current</code>, <code>Proposed</code>, <code>TotalSteps</code>, <code>InWindow</code>, <code>Window</code> — what the apply <em>would</em> do.</td>
+</tr>
+<tr>
+<td><strong>sustained minutes</strong></td>
+<td>How long a signal must stay past its threshold to count as a breach (default 5; <code>CONSIZE_SUSTAINED_MINUTES</code>). The live E2E used 3 for a shorter demo window.</td>
+</tr>
+<tr>
+<td><strong>realized</strong></td>
+<td>See projected vs realized. The M4 AC "realized from verified applies only" is the latest-event + passed-verification rule in §11.</td>
+</tr>
+<tr>
+<td><strong>session</strong></td>
+<td>A revocable login: 32-byte random token issued at login, stored in Postgres as a SHA-256 hash only, 7-day TTL, deleted on logout or on expiry; carried in the <code>consize_session</code> httpOnly + SameSite=Lax cookie (+ Secure behind TLS) (ADR-037 §2).</td>
+</tr>
+<tr>
+<td><strong>role</strong></td>
+<td><code>viewer</code> (read-only; apply calls rejected server-side with 403) · <code>operator</code> (approve + apply) · <code>admin</code> (policy/settings) — stored in <code>users.role</code>, enforced by the API, never by the UI alone (ADR-037 §3).</td>
+</tr>
+<tr>
+<td><strong>actor</strong></td>
+<td>The identity recorded on every apply event: <code>operator</code> (legacy self-reported), <code>auto</code> (label-automated), or <code>api:&lt;email&gt;</code> — the session-verified actor since ADR-037; on auth-enforced deployments clients can no longer self-report identity.</td>
+</tr>
+<tr>
+<td><strong>bootstrap admin</strong></td>
+<td>The first user, created by <code>CONSIZE_BOOTSTRAP_ADMIN="email:password"</code> while the users table is empty — the only out-of-band credential (ADR-037 §6). The first-run wizard (<code>POST /auth/setup</code>, <code>needs_setup</code> flag) is its interactive equivalent for ad-hoc deployments — same one-admin-ever gate.</td>
+</tr>
+<tr>
+<td><strong>auth_enabled</strong></td>
+<td>The <code>GET /auth/me</code> flag distinguishing "login required" (true) from "auth not enforced" (false, demo build); the UI shows the login page only for the former (ADR-037 §6).</td>
+</tr>
+<tr>
+<td><strong>bootstrap minimum</strong></td>
+<td><code>CONSIZE_MIN_DATA_DAYS=0.1</code> on the live analyze CronJob — a documented temporary value so the fresh consize-demo instance is analyzable at all; restore the default 5 once it holds 5 days of data (ADR-024, ADR-035 §4).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Maintainers: when a decision changes, update <a href="../decisions/">decisions.md</a> first (canonical), then this file, then <a href="../features/">features.md</a> and <a href="../plan/">plan.md</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

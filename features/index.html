@@ -1,0 +1,2153 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Safe, Automated Action for Kubernetes">
+      
+      
+        <meta name="author" content="Consize OSS">
+      
+      
+        <link rel="canonical" href="https://docs.consizehq.com/features/">
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../demo/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Features - Consize</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#consize-feature-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Consize" class="md-header__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Consize
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Features
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../THE_SAFETY_NET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  The Safety Net
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interactive Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../customer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../testing/" class="md-tabs__link">
+          
+  
+  
+  Internal / Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Consize" class="md-nav__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Consize
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../THE_SAFETY_NET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Safety Net
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-compute-surface-collector-prometheus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Compute surface (collector + Prometheus)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-database-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Database surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-analysis-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Analysis engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pricing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pricing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-safety-engine-guarded-apply-verify-auto-rollback-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. The safety engine: guarded apply → verify → auto-rollback → audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. The UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. The UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-polish-pass-e16e18-adrs-038040" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The polish pass (E1.6–E1.8, ADRs 038–040)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-visual-standard-adr-041-2026-08-26-zorveus-standard-restyle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The visual standard (ADR-041, 2026-08-26) — Zorveus-standard restyle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-savings-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Savings semantics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-risk-flags-on-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Risk flags on recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-rbac-and-security-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. RBAC and security posture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-live-cluster-e2e-and-the-living-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Live-cluster E2E and the living demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-teams-and-on-call-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Teams and on-call ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-incident-routing-and-on-call-ownership-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Incident routing and on-call ownership (in progress)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Incident routing and on-call ownership (in progress)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ownership-ui-amendment-2026-08-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ownership UI amendment (2026-08-27)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-weekly-savings-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Weekly savings reports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-cloud-waste-opportunities-and-iac-pr-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Cloud-waste opportunities and IaC PR workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal / Dev
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal / Dev
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../e2e/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-compute-surface-collector-prometheus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Compute surface (collector + Prometheus)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-database-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Database surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-analysis-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Analysis engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pricing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pricing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-safety-engine-guarded-apply-verify-auto-rollback-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. The safety engine: guarded apply → verify → auto-rollback → audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. The UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. The UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-polish-pass-e16e18-adrs-038040" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The polish pass (E1.6–E1.8, ADRs 038–040)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-visual-standard-adr-041-2026-08-26-zorveus-standard-restyle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The visual standard (ADR-041, 2026-08-26) — Zorveus-standard restyle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-savings-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Savings semantics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-risk-flags-on-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Risk flags on recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-rbac-and-security-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. RBAC and security posture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-live-cluster-e2e-and-the-living-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Live-cluster E2E and the living demo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-teams-and-on-call-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Teams and on-call ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-incident-routing-and-on-call-ownership-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Incident routing and on-call ownership (in progress)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Incident routing and on-call ownership (in progress)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ownership-ui-amendment-2026-08-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ownership UI amendment (2026-08-27)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-weekly-savings-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Weekly savings reports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-cloud-waste-opportunities-and-iac-pr-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Cloud-waste opportunities and IaC PR workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="consize-feature-guide">Consize — Feature Guide</h1>
+<blockquote>
+<p>Where every feature is, how it works, and exactly where the code lives.</p>
+</blockquote>
+<h2 id="overview">Overview</h2>
+<p>Consize is an infrastructure rightsizing platform that finds the waste in your
+Kubernetes workloads and cloud databases, removes it safely, and proves the
+savings. The product is a loop, not a report: <strong>analyze</strong> real usage →
+<strong>recommend guarded applies</strong> → <strong>verify</strong> the change against the system's own
+signals → <strong>auto-rollback</strong> on regression → <strong>audit</strong> every step. One dashboard
+and one savings number cover both surfaces — compute (pod requests/limits) and
+data (database instance classes). The savings figure is the demo; the safety
+engine is the product. Two defining principles run through everything: nothing
+applies silently, and no apply happens without an audit trail (ADR-008).</p>
+<hr />
+<h2 id="1-compute-surface-collector-prometheus">1. Compute surface (collector + Prometheus)</h2>
+<p><strong>What it does.</strong> Ingests Kubernetes workload metadata and 14 days of Prometheus
+usage for every managed deployment, stored as idempotent 15-minute buckets in
+<code>usage_buckets</code> (P50=P95=P99=Max per window — single-sample windows, ADR-011).</p>
+<p><strong>How it works.</strong> A one-shot collector binary runs as a CronJob every 15 minutes
+(<code>*/15 * * * *</code>). It runs Prometheus <code>query_range</code> queries for CPU and memory
+(<code>container_cpu_usage_seconds_total</code> rate, <code>container_memory_working_set_bytes</code>)
+(<code>internal/collector/collector.go</code>), and resolves pod→deployment ownership with
+three bulk list calls — never per-pod lookups (ADR-015). <code>CONSIZE_NAMESPACES</code>
+scopes reads per-namespace so a least-privilege Role works (ADR-025). Windows
+are upserted by <code>(workload, metric, window_start)</code>, so re-runs are safe and
+backfill is a re-run (ADR-007).</p>
+<p><strong>Where the code lives.</strong>
+- <code>engine/cmd/collector/main.go</code> — binary entry point
+- <code>engine/internal/collector/collector.go</code> — orchestration, k8s + Prometheus intake
+- <code>engine/internal/collector/k8s.go</code> — metadata + owner resolution
+- <code>engine/internal/collector/prometheus.go</code> — <code>query_range</code> client
+- <code>engine/deploy/collector-cronjob.yaml</code> — the CronJob manifest</p>
+<p><strong>Where you see it.</strong> The <code>consize-collector</code> CronJob; its output shows in
+<code>GET /api/v1/workloads</code> and every chart.</p>
+<h2 id="2-database-surface">2. Database surface</h2>
+<p><strong>What it does.</strong> Brings cloud databases (RDS today, Cloud SQL next) into the
+same model: DB instances are Workloads with <code>Source="db"</code>, their metrics ride
+the same <code>usage_buckets</code> under <code>db_cpu_percent</code>, <code>db_iops</code>, <code>db_connections</code>,
+<code>db_mem_percent</code>, <code>db_errors</code> (ADR-030).</p>
+<p><strong>How it works.</strong> A collector-side <code>Source</code> seam (<code>ListInstances</code>, <code>Series</code>)
+keeps cloud adapters thin (ADR-030 §8, ADR-033). The <strong>fixture</strong> (a deterministic
+demo source: <code>rds/payments-prod</code>, <code>db.t3.large</code> → <code>db.t3.medium</code>, $50/mo) exists
+for tests and demos via <code>CONSIZE_DBMETRICS=fixture</code>, but <strong>all live paths run a
+real adapter — the demo seed was deleted from the live store</strong> (ADR-035). The
+<strong>AWS CloudWatch adapter</strong> implements the seam against RDS (<code>DescribeDBInstances</code>
+paged, <code>GetMetricStatistics</code> chunked to the 1,440-point cap), reusing the
+pricing package's SigV4 signer — no AWS SDK dependency (ADR-034). It maps
+CPUUtilization, FreeableMemory→mem %, Read+WriteIOPS, and DatabaseConnections;
+<code>db_errors</code> has no CloudWatch equivalent, so the verifier treats it as
+no-evidence, never FAIL. The <strong>GCP Cloud Monitoring / Cloud SQL adapter</strong> (ADR-035)
+implements the same seam against <code>sql/v1beta4</code> + Monitoring <code>v3/timeSeries</code>,
+auth via a hand-rolled RS256 JWT from the service-account key (metadata-server
+fallback in-cluster). It maps <code>database/cpu/utilization</code> and
+<code>database/memory/utilization</code> (×100, clamped) plus <code>database/network/connections</code>;
+IOPS and errors have no GCP equivalent → no-evidence, never FAIL. Class catalogs
+are <strong>provider-scoped</strong> (RDS classes never cross-recommend GCP tiers); the
+maintenance-window day convention is Monday-first per the Admin API (test-locked).</p>
+<p><strong>Where the code lives.</strong>
+- <code>engine/internal/dbmetrics/dbmetrics.go</code> — the <code>Source</code> seam + fixture
+- <code>engine/internal/dbmetrics/cloudwatch/cloudwatch.go</code> — live RDS adapter
+- <code>engine/internal/dbmetrics/cloudmonitoring/cloudmonitoring.go</code> — live Cloud SQL adapter (JWT auth, day mapping, metric mapping)
+- <code>engine/internal/analysis/db.go</code> — <code>GCPDBCatalog</code> (provider-scoped, price-ordered)
+- <code>engine/deploy/collector-cronjob.yaml</code> — <code>CONSIZE_DBMETRICS</code> wiring (live cluster: <code>gcp</code> + SA key from <code>consize-gcp</code> Secret)
+- <code>engine/internal/store/migrations/0003_db_surface.sql</code> — DB fields</p>
+<p><strong>Where you see it.</strong> DB workloads in <code>GET /api/v1/workloads</code>, class
+recommendations (<code>Resource="class"</code>) in <code>/recommendations</code>. On the live cluster
+(<code>devops-portfolio</code>): <code>gcp/consize-demo</code> (<code>db-custom-1-3840</code>, us-central1,
+window sun 03:00–04:00) ingested from Cloud Monitoring with a real
+<code>db-g1-small</code> $29/mo recommendation; <code>consize-collector</code> runs
+<code>CONSIZE_DBMETRICS=gcp</code>.</p>
+<h2 id="3-analysis-engine">3. Analysis engine</h2>
+<p><strong>What it does.</strong> Turns buckets into recommendations: per-workload request/limit
+targets for compute, and instance-class targets with headroom guarantees for
+databases.</p>
+<p><strong>How it works.</strong> Pure functions, golden-tested. Compute: daily p95 series, then
+window percentiles — <strong>request = p95 × 1.2</strong>, <strong>limit = max(2×request, p99)</strong>,
+downsize-only (ADR-002, ADR-003). Workloads are skipped, with a recorded reason,
+when: labeled excluded, in a protected namespace, flagged <code>data-loss-risk</code>,
+under the data-minimum gate (<code>CONSIZE_MIN_DATA_DAYS</code>, default 5 — ADR-024), or
+already optimal; half-known windows are dropped in the merge, never built on
+half-truths (ADR-016). Databases: a class catalog with utilization caps
+(CPU &lt; 60%, IOPS &lt; 60%, mem &lt; 75%, connections &lt; 70% — ADR-030 §9),
+cheapest-fit selection, and explicit bottleneck attribution ("kept …
+bottleneck X") when nothing fits.</p>
+<p><strong>Where the code lives.</strong>
+- <code>engine/internal/analysis/analysis.go</code> — compute policy + skip conditions
+- <code>engine/internal/analysis/db.go</code> — class catalog, caps, candidate search
+- <code>engine/cmd/analyze/main.go</code> — the CronJob binary
+- <code>engine/cmd/demo/main.go</code> — the 60-second fixture demo report
+- <code>engine/internal/fixtures/</code> — the 10 deterministic fixture workloads</p>
+<p><strong>Where you see it.</strong> The <code>consize-analyze</code> CronJob (<code>*/15 * * * *</code>); output in
+<code>GET /api/v1/recommendations?status=pending</code>.</p>
+<h2 id="4-pricing">4. Pricing</h2>
+<p><strong>What it does.</strong> Turns sizes into dollars, with degradation as a design
+principle: pricing never fails analysis.</p>
+<p><strong>How it works.</strong> Three layers (ADR-014): <code>Static</code> (shipped GKE-style default
+rates), <code>AWS</code> (SigV4 fetch of the EC2 on-demand index, median $/vCPU-hr and
+$/GiB-hr × 730 h, 24 h TTL cache), and <code>Resilient</code> (falls back to static on any
+primary error, with a visible warning). <code>CONSIZE_PRICING=static|aws</code> selects
+the mode. <strong>GCP pricing is deferred</strong> — same <code>Service</code> interface when it lands
+(M1 plan). The same package exports the <code>AWSSigner</code> the CloudWatch adapter
+reuses.</p>
+<p><strong>Where the code lives.</strong>
+- <code>engine/internal/pricing/pricing.go</code> — Service interface, Static, Cached, Resilient
+- <code>engine/internal/pricing/aws.go</code> — AWS Price List client
+- <code>engine/internal/config/config.go</code> — env plumbing</p>
+<p><strong>Where you see it.</strong> The active price table rides in <code>GET /api/v1/savings</code> —
+a fallen-back table is visible, not silent.</p>
+<h2 id="5-the-safety-engine-guarded-apply-verify-auto-rollback-audit">5. The safety engine: guarded apply → verify → auto-rollback → audit</h2>
+<p><strong>What it does.</strong> The reason Consize is a platform and not a report. Every
+change is dry-run-able, guardrailed, verified, and reversible.</p>
+<p><strong>How it works.</strong> The k8s apply engine (<code>internal/apply</code>) enforces six
+guardrails before any patch: store health (the audit trail must be up —
+ADR-008), pending-only, exclusions win, mode policy (<code>auto</code> needs the
+<code>consize.savings.dev/auto-apply</code> namespace label; everything else needs an
+actor — ADR-004), a ≤30% step limit, and concurrency (one in-flight apply per
+namespace, global cap). Patches go through the <code>K8sPatcher</code>: proportional
+per-container distribution with exact-sum rounding and QoS-class preservation,
+<code>resourceVersion</code>-guarded updates with conflict retries — one write surface
+shared by apply and rollback (ADR-021). Larger reductions step down 30% at a
+time; each remainder materializes as a follow-up pending recommendation that
+cannot apply until the previous step verifies — the apply → verify → apply
+rhythm by construction (ADR-020).</p>
+<p>Verification (<code>internal/verifier</code>) is a one-shot CronJob binary (every minute,
+ADR-018/ADR-048): it compares a step-scaled pre-apply baseline against the
+matching post window on
+workload-scoped kubelet-native signals — throttling, OOM kills, restarts,
+evictions — with opt-in app-level error/p99 expressions (ADR-019). Verdicts
+are three-valued: <strong>passed | failed | inconclusive</strong>. Rollback fires only on
+FAIL (ADR-022); inconclusive is terminal, never silent, and never rolls back —
+a metrics-path failure must not veto a good change (ADR-027). Rollback restores
+<strong>pre-apply values absolutely</strong>, drifting live state included, not the inverted
+diff (ADR-026). FAIL also alerts — structured logs always, Slack webhook when
+<code>CONSIZE_SLACK_WEBHOOK</code> is set (<code>internal/alert/alert.go</code>).</p>
+<p>The audit trail is INSERT-only: <code>apply_events</code> records <code>planned → applied →
+reverted</code> as new rows, never edits, and in-flight state is derived (an
+<code>applied</code> event with no <code>verification_runs</code> row), so a crash leaves a retryable
+trail, not a lie (ADR-023).</p>
+<p>Databases get the same philosophy with two extra guardrails
+(<code>internal/dbapply</code>, ADR-031): a <strong>maintenance window</strong> (weekly UTC, enforced
+on every real apply, fail-closed when unconfigured) and <strong>one class step per
+apply</strong> (adjacent catalog class only; multi-step moves queue follow-ups).
+Approval is the default: <code>mode=auto</code> requires
+<code>consize.savings.dev/auto-db=enabled</code>. DB verification (<code>verifier/db.go</code>)
+judges store buckets against the <strong>absolute analysis caps on the applied
+class</strong> — the threshold is the cap, not baseline × multiplier, because a
+healthy downsize legitimately raises utilization (ADR-032). The provider is a
+stub (<code>StubChanger</code>); real writes fail with an explicit "manual class change
+required" until a live provider lands.</p>
+<p><strong>Where the code lives.</strong>
+- <code>engine/internal/apply/apply.go</code>, <code>engine/internal/apply/k8s.go</code> — guardrails, patcher, rollback
+- <code>engine/internal/dbapply/dbapply.go</code> — DB guardrails, maintenance window, stub changer
+- <code>engine/internal/verifier/verifier.go</code>, <code>engine/internal/verifier/db.go</code> — SLI comparison, DB judgment
+- <code>engine/internal/alert/alert.go</code> — notifications
+- <code>engine/internal/store/migrations/0002_apply_audit.sql</code> — <code>apply_events</code> + <code>verification_runs</code>
+- <code>engine/cmd/verify/main.go</code> — the verifier CronJob binary
+- <code>engine/deploy/verify-cronjob.yaml</code>, <code>engine/deploy/rbac.yaml</code> — schedule + write identity</p>
+<p><strong>Where you see it.</strong> <code>POST /api/v1/recommendations/{id}/apply</code> (dry_run /
+approved / auto), <code>GET /api/v1/applies</code>, <code>GET /api/v1/verification-runs</code>, and
+the <code>consize-verify</code> CronJob (every minute). 503 without a write
+identity, structured 422 with reasons when guardrails block — never silent.</p>
+<h2 id="6-the-api">6. The API</h2>
+<p><strong>What it does.</strong> The REST contract behind the dashboard, same origin as the
+UI (ADR-029).</p>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /healthz</code></td>
+<td>liveness, no dependencies</td>
+</tr>
+<tr>
+<td><code>GET /readyz</code></td>
+<td>store (and cluster/DB engine, if configured) reachable — gates applies (ADR-008)</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/workloads</code></td>
+<td>all workloads, k8s and DB</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/workloads/{id}</code></td>
+<td>one workload, DB fields included</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/workloads/{id}/series?metric=&amp;days=</code></td>
+<td>chart contract: five metric names (<code>cpu_percent, mem_percent, iops, connections, errors</code>), surface-aware units; no-data is 200 with empty points (ADR-034 §3)</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/recommendations?status=&amp;workload_id=&amp;limit=&amp;offset=</code></td>
+<td>paginated (default 100, cap 500, <code>pagination.total</code>), ranked by savings, with <code>risk</code> + <code>risk_reasons</code></td>
+</tr>
+<tr>
+<td><code>GET /api/v1/savings</code></td>
+<td>projected + realized + <code>by_owner</code> + active price table</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/system/status</code></td>
+<td>Consize's own pipeline health: store status, latest telemetry bucket, freshness age, stale threshold, workload/pending counts, in-flight applies, due verifications</td>
+</tr>
+<tr>
+<td><code>POST /api/v1/recommendations/{id}/apply</code></td>
+<td><code>{"mode","actor"}</code>; routes by resource — class → DB engine, cpu/memory → k8s engine (ADR-031 §6)</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/applies?workload_id=&amp;result=</code></td>
+<td>the INSERT-only apply trail, newest first</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/verification-runs?apply_event_id=</code></td>
+<td>verdicts + SLI evidence</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where the code lives.</strong>
+- <code>engine/internal/api/server.go</code> — router + all handlers; <code>engine/internal/api/savings.go</code>, <code>series.go</code>, <code>risk.go</code>, <code>status.go</code>
+- <code>engine/cmd/api/main.go</code></p>
+<p><strong>Where you see it.</strong> Port 8080 (<code>CONSIZE_LISTEN_PORT</code>); the dashboard at <code>GET /</code>.</p>
+<p><strong>Self-observability addendum.</strong> The dashboard consumes <code>/system/status</code> to show
+whether Consize's own collector/analyzer/verifier loop is fresh. The shipped
+stale-data threshold is configurable with <code>CONSIZE_DATA_STALE_AFTER</code> and
+defaults to 2 h — enough tolerance for missed 15-minute collector ticks, but
+short enough to catch a broken pipeline before users mistake stale data for a
+valid recommendation.</p>
+<h2 id="7-the-ui">7. The UI</h2>
+<p><strong>What it does.</strong> One dashboard for both surfaces: savings tiles, ranked
+recommendations with risk pills, per-workload 14-day percentile charts, the
+apply audit timeline — with the safety loop front and center.</p>
+<p><strong>How it works.</strong> The <strong>product UI is a Next.js app</strong> in the top-level <code>ui/</code>
+directory (App Router, TypeScript, Tailwind, Recharts; ADR-036) — benchmarked
+to usage.ai-class dark FinOps consoles: near-black canvas, sidebar navigation,
+KPI cards with dollar deltas, status pills, uppercase micro-labels. It is a
+typed read-mostly client: <code>lib/api.ts</code> talks to relative <code>/api/v1</code>, which
+<code>next.config.ts</code> rewrites to <code>API_UPSTREAM</code> (default <code>http://127.0.0.1:18099</code>)
+so one build runs against the local poke, the cluster, or a cloud backend —
+same-origin, no CORS. No apply buttons by design; RBAC is enforced server-side,
+not by hidden buttons. The <strong>embedded vanilla SPA in the API binary</strong> (served at
+<code>GET /</code>, no build step) remains as the single-binary fallback — untouched, not
+developed further (ADR-036).</p>
+<p><strong>Where the code lives.</strong>
+- <code>ui/app/</code> — routes (dashboard, workloads, workload detail, recommendations, audit, apply)
+- <code>ui/components/</code> — <code>Sidebar.tsx</code>, <code>ApplyModal.tsx</code>, <code>ApplyTimeline.tsx</code>, <code>UsageChart.tsx</code>, primitives
+- <code>ui/lib/api.ts</code>, <code>ui/lib/types.ts</code>, <code>ui/lib/format.ts</code> — typed client + API contract types
+- <code>ui/next.config.ts</code> — <code>/api/v1</code> rewrite to <code>API_UPSTREAM</code>
+- <code>engine/ui/ui.go</code> + <code>engine/ui/app.js</code> — the embedded fallback SPA</p>
+<p><strong>Where you see it.</strong> <code>next start</code> on the poke (against <code>127.0.0.1:18099</code>) or
+the cluster; the embedded fallback at <code>GET /</code> on a running API.</p>
+<h3 id="the-polish-pass-e16e18-adrs-038040">The polish pass (E1.6–E1.8, ADRs 038–040)</h3>
+<p>Three UX slices shipped 2026-08-26 as one pass (user's reorder: branding →
+navigation → light/dark):</p>
+<ul>
+<li><strong>Branding (ADR-038).</strong> One <code>Brand</code> component is the only logo renderer
+  (sidebar, login, loading frames): the gauge brand tile + the <strong>conSize
+  wordmark with a capital S in the brand green</strong>. Favicon is a gauge mark
+  (<code>ui/app/icon.svg</code>), page title "conSize — infrastructure rightsizing".</li>
+<li><strong>Navigation (ADR-039).</strong> Grouped sections (Overview / Optimize /
+  Operations) with active-route marking; a <strong>⌘K command palette</strong> (routes +
+  live workload jump by name, lazily indexed on first open); on screens below
+  lg the sidebar is an <strong>off-canvas drawer</strong> toggled from a sticky top bar
+  (hamburger + compact brand + theme toggle), closed by backdrop, link click,
+  or route change.</li>
+<li><strong>Light/dark mode (ADR-040).</strong> <code>next-themes</code> stamps <code>data-theme</code> on <code>&lt;html&gt;</code>
+  (default dark, persisted in localStorage); one <code>:root[data-theme="light"]</code>
+  token block re-themes the whole console — panels, charts, pills, and the
+  brand tile — with the accents re-tinted for contrast on white. Toggle
+  surfaces: Dark/Light segmented control in the sidebar footer, icon buttons
+  on the mobile top bar and the login page.</li>
+</ul>
+<p><strong>Where the code lives (polish).</strong>
+- <code>ui/components/Brand.tsx</code>, <code>CommandPalette.tsx</code>, <code>ThemeProvider.tsx</code>, <code>ThemeToggle.tsx</code>
+- <code>ui/app/icon.svg</code> (favicon), <code>ui/app/globals.css</code> (<code>.brand-tile</code>, <code>.nav-section</code>,
+  <code>.palette*</code>, <code>.kbd</code>, light token block)
+- <code>ui/components/Sidebar.tsx</code> (sections + drawer), <code>ui/components/Shell.tsx</code>
+  (drawer state, mobile top bar, palette mount), <code>ui/app/login/page.tsx</code> (brand + toggle)</p>
+<p><strong>Where you see it.</strong> Dark is the default; the sidebar's Dark/Light control or
+the top-bar icon flips the whole console; ⌘K jumps anywhere from any page.</p>
+<h3 id="the-visual-standard-adr-041-2026-08-26-zorveus-standard-restyle">The visual standard (ADR-041, 2026-08-26) — Zorveus-standard restyle</h3>
+<p>The polish-pass look was reviewed against the reference the user set
+(zorveus.com — "I want that standard") and rebuilt the same day. The
+structural slices above (ADRs 038–040) are unchanged; their <strong>rendering</strong> now
+follows the <em>measured</em> Zorveus standard (screenshots + computed styles, not
+guesswork):</p>
+<ul>
+<li><strong>Geist</strong> replaces Inter (Vercel's grotesque, <code>--font-geist</code> token).</li>
+<li><strong>Pure-neutral palette</strong> — dark: pure-black canvas <code>#000000</code>, <code>#0a0a0a</code>
+  surfaces, <code>#141414</code> cards with a new <code>--raise</code> gradient top token so light
+  mode re-themes card faces too; light: <code>#f7f7f7</code> canvas, white panels
+  (superseding the ADR-040 slate palette). White-alpha borders everywhere.</li>
+<li><strong>Vercel layered shadows</strong>, 14 px card radius, ghost/solid button pairing,
+  circular avatars, pill-badge kickers, 34 px KPI values, tighter tracking —
+  with <strong>green as the single brand accent</strong> in both themes.</li>
+</ul>
+<p>Everything flows from the <code>:root</code> tokens, so the restyle touched presentation
+tokens plus four small edits (Geist wiring, login hero, two hover classes, KPI
+gap) — no component logic or data changes. Full mapping and evidence in
+<code>docs/decisions.md</code> ADR-041; verified by the polish smoke 33/33 and auth smoke
+10/10 with the new pixel values, plus pixel-level screenshot checks against
+the token values (<code>/tmp/ui-smoke/consize-new-{login,dashboard,dashboard-light}.png</code>).</p>
+<p>Same-day amendment (ADR-041 Amendment 1, per the user's clarification "make it
+like that standard", not copy it): card radius is now <strong>18 px</strong> through the
+<code>--radius</code> token (Zorveus's measured card radius, within the announced 14–18
+range; modal/palette/safety radii follow the token), the primary CTA stays the
+brand green, and the UI source was swept — 53 unnecessary comments removed
+(narrative blocks, ADR citations), keeping only the ~50 that carry information
+the code can't show (enum values, wire formats, race guards, server contracts).</p>
+<p>Second amendment (same day, user directive — the copy "makes the whole thing
+look AI-generated"): the five marketing/explainer blocks are gone from the
+product UI and <strong>reserved for a future landing page</strong> (plan.md backlog): the
+sidebar safety-engine card (incl. the ⌘K hint), the dashboard's 5-step safety
+strip and its subtitle, the login "Infrastructure rightsizing" hero pill, and
+the "Sessions are server-verified · roles viewer / operator / admin" footnote.
+The functional first-run wizard message stays. Dead CSS followed (<code>.safety*</code>
+strip block, sidebar-only <code>.kbd</code>); <code>PageHead.sub</code> is now optional and the
+dashboard renders title-only. Re-verified: build clean, polish smoke 33/33,
+auth smoke 10/10, screenshots re-captured + pixel-checked, and a live-DOM
+absence check found none of the five strings on login or dashboard.</p>
+<p>Third amendment (same day — the premium-dashboard refinement brief, ADR-042):
+flat ultra-dark surfaces replace the layered cards (<code>#0a0a0a</code> panels, hairline
+white/5 borders, shadows off — superseding ADR-041's <code>#141414</code> + Vercel
+shadow), the neon green is muted to <strong>emerald <code>#10b981</code></strong> and <strong>reserved for
+the active sidebar item + positive financial metrics only</strong>, so the primary
+CTA is now solid white and decorative green is swept (login glow, avatar
+circle, hovers, palette selection, spinner). Brand lockup is a single-line
+extrabold conSize with a minimal emerald diamond mark (no tile, no
+RIGHTSIZING sub-text; favicon matches). Ink is pure white, faint is zinc-500;
+micro-type is 10 px uppercase tracking-widest; neutral pills are rounded-full
+white/10 with white text (semantic pass/fail tints kept); tables are roomier
+(th 12/16/10, td 14/16) with right-aligned numerics — white for data, emerald
+for savings (<code>.money</code>). Verified: build clean, polish smoke <strong>35/35</strong> (new
+checks: single-line lockup, white primary, emerald active-nav + savings KPI,
+diamond favicon), auth smoke 10/10, screenshots pixel-checked (pure-black
+canvas, flat <code>#0a0a0a</code> cards, white glow, light <code>#ffffff</code> panels).</p>
+<h2 id="8-savings-semantics">8. Savings semantics</h2>
+<p><strong>What it does.</strong> One savings number that can be proven — projected and
+realized are never conflated (ADR-034 §4).</p>
+<p><strong>How it works.</strong> Projected = sum of <code>SavingsMonthly</code> over <strong>pending</strong>
+recommendations. Realized = sum over recommendations whose latest apply event
+is still <code>applied</code> and whose latest apply has a <code>passed</code> verification verdict.
+A later <code>reverted</code> event, failed verification, or inconclusive verification
+excludes it. <code>by_owner</code> breaks both down by owner label (unassigned when
+absent). On the live cluster today: projected $52.59/mo, realized $0.36/mo
+(the one verified apply from the M2 E2E).</p>
+<p><strong>Where the code lives.</strong> <code>engine/internal/api/savings.go</code>; realized-eligibility
+combines the latest apply event with verification verdicts.</p>
+<h2 id="9-risk-flags-on-recommendations">9. Risk flags on recommendations</h2>
+<p><strong>What it does.</strong> A low | medium | high risk pill with <code>risk_reasons</code> on every
+recommendation, so the plan ranks by savings and safety.</p>
+<p><strong>How it works.</strong> Computed at the API from existing data — no schema change
+(ADR-034 §5): low data days, saturation near the headroom caps, step distance</p>
+<blockquote>
+<p>1 class, maintenance window not open, follow-up pending, <code>data-loss-risk</code>
+flags.</p>
+</blockquote>
+<p><strong>Where the code lives.</strong> <code>engine/internal/api/risk.go</code>; surfaced through
+<code>GET /api/v1/recommendations</code>.</p>
+<h2 id="10-rbac-and-security-posture">10. RBAC and security posture</h2>
+<p><strong>What it does.</strong> Least-privilege end to end: Consize can read only what it
+analyzes and update only what it applies, and it dogfoods its own advice
+(ADR-010).</p>
+<p><strong>How it works.</strong> Two ServiceAccounts in <code>engine/deploy/rbac.yaml</code>:
+<code>consize-reader</code> — read-only cluster discovery for deployments/statefulsets/
+daemonsets/replica sets/jobs/cronjobs/pods/namespaces when <code>CONSIZE_NAMESPACES</code>
+is empty; <code>consize-writer</code> — <code>get/list/watch/update</code> on <strong>deployments only</strong>,
+bound per namespace via RoleBindings only where Direct apply is allowed. Apply
+endpoints answer 503 without a write identity. <code>mode=auto</code> additionally
+requires the namespace label <code>consize.savings.dev/auto-apply=enabled</code>;
+approved Direct apply requires an authenticated operator plus the RoleBinding.
+IaC PR mode does not need Kubernetes write RBAC; it uses the GitHub integration
+to create a reviewable source change. Exclusions always win.
+Full posture in <code>docs/security.md</code> (13/13 RBAC matrix proven live in the E2E).</p>
+<p>On top of that sits <strong>user authentication and server-side authorization
+(ADR-037)</strong>: local users with roles <code>viewer</code> (read-only), <code>operator</code>
+(approve + apply), <code>admin</code> (everything), bcrypt passwords, revocable
+Postgres sessions (7-day TTL, hashed tokens), and a login surface
+(<code>POST /api/v1/auth/login</code>, <code>/auth/logout</code>, <code>GET /auth/me</code>). Writes are
+role-gated server-side — a viewer's apply call answers 403 — and the apply
+<code>actor</code> in the audit trail is the server-verified session email
+(<code>api:&lt;email&gt;</code>), never a client-supplied string. <code>CONSIZE_BOOTSTRAP_ADMIN</code>
+creates the first admin while the users table is empty; the poke runs
+auth-enforced, the live cluster runs <code>CONSIZE_AUTH_REQUIRED=false</code> until
+onboarding lands (E1.5). The provider seam (<code>internal/auth.Authenticator</code>)
+keeps the door open for OIDC SSO per security.md §2.</p>
+<p>Ad-hoc deployments get the interactive equivalent of the bootstrap env var
+<strong>(ADR-037 §6 amendment, 2026-08-26): first-run admin creation</strong> —
+<code>POST /api/v1/auth/setup</code> creates the first admin while <code>users</code> is empty
+(409 forever after, minimum 8-character password), and <code>/auth/me</code>'s 401
+body carries <code>needs_setup:true</code> so the <code>/login</code> page renders a "Create
+admin &amp; sign in" wizard instead of the login form. There is deliberately
+no default credential (no admin/admin) and no open registration: once one
+admin exists, the wizard is gone forever and the only way in is a session.
+Verified by <code>TestFirstAdminSetup</code> and a 10/10 CDP smoke against a fresh
+empty-users stack; the poke's own setup answers 409 (its bootstrap admin
+already exists — honest).</p>
+<p><strong>Where the code lives.</strong> <code>engine/deploy/rbac.yaml</code>, <code>docs/security.md</code>,
+<code>tests/e2e-live/namespace.yaml</code>, <code>engine/internal/auth/</code>,
+<code>engine/internal/store/</code> (users/sessions, migration <code>0004_auth.sql</code>),
+<code>ui/app/login/</code> (login + first-run wizard), <code>ui/components/auth.tsx</code>,
+<code>ui/components/Shell.tsx</code>.</p>
+<h2 id="11-live-cluster-e2e-and-the-living-demo">11. Live-cluster E2E and the living demo</h2>
+<p><strong>What it does.</strong> Proof the loop works on a real cluster — and a demo that stays
+deployed.</p>
+<p><strong>How it works.</strong> <code>tests/e2e-live/</code> is a scripted runbook (<code>run.sh preflight →
+deploy → ingest → track1 → verify1 → track2 → verify2 → rbac → status →
+summary</code>) against GKE <code>devops-portfolio</code>: Track 1 applies a real
+recommendation to <code>boutique/frontend</code> and verifies PASS; Track 2 applies to a
+synthetic canary, injects a regression, and proves FAIL → auto-rollback →
+byte-identical restore. The run surfaced and fixed real bugs: a rollback-drift
+defect (ADR-026), the no-baseline conservatism rule (ADR-027), and the durable
+SLI storage requirement (ADR-028). Consize stays deployed on that cluster as a
+living demo — DB fixture surface included (<code>CONSIZE_DBMETRICS=fixture</code>) — so
+the whole loop is exercisable end to end at any time.</p>
+<p><strong>Where the code lives.</strong>
+- <code>tests/e2e-live/run.sh</code>, <code>tests/e2e-live/teardown.sh</code>, <code>tests/e2e-live/namespace.yaml</code>, <code>tests/e2e-live/canary.yaml</code>, <code>tests/e2e-live/out/</code>
+- Runbook and evidence: <code>docs/e2e.md</code></p>
+<hr />
+<h2 id="architecture">Architecture</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                     ┌────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                     │                Postgres store                 │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                     │  engine/internal/store/  (memory fallback,    │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                     │  migrations 0001–0003, INSERT-only audit)     │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                     └────────────────────────────────────────────────┘
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        ▲                                 │        │        │        │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        │ usage_buckets, workloads        │        │        │        │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        │                                 ▼        ▼        ▼        │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>┌───────────────┐               ┌───────────────┐   ┌────────────────────┐
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  Collector    │               │   Analysis    │   │  API + embedded UI │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│ cmd/collector │               │  cmd/analyze  │   │  cmd/api           │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│ internal/     │──────────────▶│ internal/     │   │  internal/api      │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  collector    │               │  analysis,    │   │  engine/ui (GET /) │
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  dbmetrics    │               │  pricing      │   └──────┬─────────────┘
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  (k8s + DB    │               │  (static|aws) │          │ REST (JSON)
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   sources)    │               └───────────────┘          │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└───────┬───────┘                                          ▼
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        │ Prometheus / k8s API / RDS / CloudWatch    ┌─────────────┐
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        │                                            │  Dashboard  │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        ▼                                            └─────────────┘
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>┌───────────────────────────────┐        ┌──────────────────────────┐
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  Apply engine (guarded)       │        │  Verifier (CronJob)      │
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  internal/apply (k8s)         │        │  internal/verifier       │
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│  internal/dbapply (DB)        │◀───────│  internal/alert          │
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│  dry-run → guardrails → patch │ FAIL→  │  baseline vs post SLIs   │
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│  → follow-up steps            │ rollback│  → verdict → rollback   │
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>└───────────────────────────────┘        └──────────────────────────┘
+</code></pre></div>
+<p>Deployed as: <code>consize-collector</code> (CronJob 15m), <code>consize-analyze</code> (CronJob
+15m), <code>consize-api</code> (Deployment, serves API + dashboard), <code>consize-verify</code>
+(CronJob every minute) — manifests in <code>engine/deploy/</code>, write identity in
+<code>engine/deploy/rbac.yaml</code> (ADR-010: Consize runs in the cluster it manages).</p>
+<h2 id="12-teams-and-on-call-ownership">12. Teams and on-call ownership</h2>
+<p><strong>What it does.</strong> Gives every managed workload an explicit human ownership
+boundary. A Team has a name, named owner, and on-call contact; workloads show
+their assigned team in both the inventory and detail views. The Teams view
+shows the workloads each team owns and lets administrators update escalation
+contacts.</p>
+<p><strong>How it works.</strong> <code>teams</code> is a small durable directory and <code>workloads.team_id</code>
+is nullable. Ownership is deliberately outside collector input: a collector
+refresh updates observed resource state while preserving the admin-selected
+team. All signed-in users can read team data; only admins can create/edit teams
+or assign/unassign a workload. A failed verification embeds the team and
+on-call contact in its existing notification, so the shared webhook is
+actionable today without guessing a provider-specific routing format.</p>
+<p><strong>Where the code lives.</strong> <code>engine/internal/store/</code> (migration <code>0005_teams.sql</code>
+and both Store implementations), <code>engine/internal/api/server.go</code> (<code>/teams</code> and
+workload-team endpoints), <code>engine/internal/verifier/verifier.go</code> (alert
+ownership labels), and <code>ui/app/teams/</code> + <code>ui/components/views/TeamsView.tsx</code>.</p>
+<h2 id="13-incident-routing-and-on-call-ownership-in-progress">13. Incident routing and on-call ownership (in progress)</h2>
+<p>Each installation will route actionable failures to the organization's
+incident-management system and its Slack collaboration channel. The incident
+system—not a manually maintained team directory—owns schedules, escalation,
+acknowledgement, assignment, and resolution. Consize keeps a durable local
+projection so the dashboard can show the current on-call owner, incident
+state, provider link, and the change or rollback still required. Alerts use a
+stable deduplication key, are safe to retry, and include the installation,
+workload, namespace, failed verification signal, proposed change, rollback
+state, and dashboard deep link. Slack delivery uses a configured channel and
+Slack user/group ID for a real mention; free-form display names are not
+treated as routable identities. Provider credentials are referenced from
+Kubernetes Secrets. Incident ownership is accountability and does not grant
+apply permission; existing server-side RBAC remains authoritative.</p>
+<p><strong>First slice — Grafana-style notification routing (2026-08-28).</strong> The
+verifier emits structured alert events for verification failures and rollback
+failures. Each event has labels (<code>alertname</code>, <code>severity</code>, <code>namespace</code>,
+<code>workload</code>, <code>resource</code>, <code>surface</code>, optional <code>team</code>/<code>oncall</code>) plus annotations
+for the change, rollback state, failed signal, and dashboard link. The alert
+router loads <code>CONSIZE_ALERT_ROUTING</code>, which mirrors Grafana's model:
+notification policies match labels and route to named contact points. Slack
+webhook delivery is the first integration and sends Block Kit messages with a
+stable dedup key and optional Slack user-group/user mention. If no routing JSON
+is configured, the legacy <code>CONSIZE_SLACK_WEBHOOK</code> becomes the default Slack
+contact point.</p>
+<p><strong>Product configuration UI.</strong> <code>/alerting</code> is now a first-class Operations page
+for configuring contact points and notification policies. Admins can save the
+routing config and send a test notification; viewers can inspect it. The API
+stores only the routing metadata in <code>app_settings</code> and rejects raw
+<code>webhook_url</code> values, forcing Slack webhooks to be supplied as Kubernetes
+Secret-backed environment variables such as <code>CONSIZE_SLACK_WEBHOOK</code>.</p>
+<p>Example routing JSON:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"default_contact_point"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ops-slack"</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"contact_points"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ops-slack"</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">"integrations"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">        </span><span class="p">{</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">          </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"slack"</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">          </span><span class="nt">"webhook_env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CONSIZE_SLACK_WEBHOOK"</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">          </span><span class="nt">"channel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#platform-oncall"</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">          </span><span class="nt">"mention"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;!subteam^S123456&gt;"</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="p">]</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">"notification_policies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"critical-verification"</span><span class="p">,</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">"match"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"critical"</span><span class="p">,</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="nt">"alertname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ConsizeVerificationFailed"</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="p">},</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">      </span><span class="nt">"contact_point"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ops-slack"</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="ownership-ui-amendment-2026-08-27">Ownership UI amendment (2026-08-27)</h3>
+<p>The ownership route no longer exposes a <strong>Create team</strong> form or manual contact
+editing. For the installation-per-team model, ownership is deployment
+configuration and is displayed read-only until provider-backed onboarding and
+on-call routing land. The route is labeled <strong>Ownership</strong> in navigation and
+shows installation scope, owner, on-call context, and managed workloads.</p>
+<p><strong>Follow-up correction (2026-08-27):</strong> after review, the interim ownership
+route was removed from navigation and <code>/teams</code> now redirects to the dashboard.
+Workload detail no longer exposes manual ownership assignment. The backend
+compatibility surface remains dormant until installation onboarding and the
+remaining provider-backed incident projection/webhook work are implemented.</p>
+<h2 id="14-weekly-savings-reports">14. Weekly savings reports</h2>
+<p><strong>What it does.</strong> Gives stakeholders a periodic savings pulse without turning
+Consize back into a passive reporting tool. Admins can enable a weekly Slack
+digest and choose the default report range. Anyone with read access can
+generate an on-demand report for the past 7, 14, or 30 days and download it as
+a PDF.</p>
+<p><strong>How it works.</strong> <code>internal/report</code> builds the report from the existing source
+of truth: pending recommendations, apply events, verification runs, and the
+latest telemetry bucket. Realized savings in the report count recommendations
+whose apply was verified during the selected period. Pending opportunity comes
+from current pending recommendations. Rollbacks and failed/inconclusive
+verifications are counted from the audit trail. Delivery uses the configured
+Alerting contact point/policy path, so Slack secrets stay in Kubernetes and
+only reporting metadata is stored in <code>app_settings</code>.</p>
+<p><strong>Where the code lives.</strong> <code>engine/internal/report/</code>, <code>engine/internal/api/reports.go</code>,
+<code>engine/cmd/report/</code>, <code>engine/deploy/report-cronjob.yaml</code>, and the Next.js
+<code>/reports</code> console page. API surface:</p>
+<ul>
+<li><code>GET /api/v1/reports/config</code></li>
+<li><code>PUT /api/v1/reports/config</code></li>
+<li><code>GET /api/v1/reports/savings?range=7d|14d|30d&amp;format=json|pdf</code></li>
+<li><code>POST /api/v1/reports/send</code></li>
+</ul>
+<p>The first live rollout used images <code>api:consize-weekly-report-20260828</code> and
+<code>report:consize-weekly-report-20260828</code>; live smoke verified JSON generation,
+PDF generation, Slack send-now, and the disabled CronJob no-op path.</p>
+<h2 id="15-cloud-waste-opportunities-and-iac-pr-workflow">15. Cloud-waste opportunities and IaC PR workflow</h2>
+<p><strong>What it does.</strong> Extends Consize beyond workload rightsizing into common
+cloud-cost leaks: unattached storage volumes, idle load balancers, unused NAT
+gateways, and stopped instances whose attached resources are still billed.
+Findings are shown as cost opportunities with evidence, risk, estimated
+monthly savings, and a reviewable next action.</p>
+<p><strong>How it works.</strong> <code>internal/costscan</code> defines a provider <code>Source</code> seam. The
+live GKE deployment runs <code>CONSIZE_COSTSCAN=gcp</code> with the same <code>consize-gcp</code>
+service-account key used by the Cloud SQL collector. Manual scans from the API
+use that same environment-selected source; unset/<code>none</code> means disabled, never
+implicit fixtures. The GCP source queries the Compute Engine API for detached
+Persistent Disks and stopped VMs whose Persistent Disks still accrue cost. The
+fixture source remains for explicit local demos and tests only. Scan results
+are upserted into <code>cost_opportunities</code>, keyed by
+provider/account/region/type/id, so repeated scans refresh evidence without
+duplicating rows. Operators can either prepare an audited IaC PR plan/diff from
+an opportunity, keeping cloud changes reviewable and avoiding configuration
+drift, or use Direct cleanup where the provider deleter has a safety re-check.
+The first Direct cleanup implementation supports GCP unattached Persistent
+Disks only: Consize re-reads the disk, refuses if it is attached or no longer
+READY, then requests deletion and marks the opportunity resolved. Direct
+cleanup writes an insert-only <code>cost_actions</code> trail (<code>requested → applied</code>,
+<code>dry_run</code>, or <code>failed</code>) so resolved cloud-waste items remain visible after they
+leave the active opportunities list. Stopped VM, load balancer, and NAT cleanup
+remain PR-first until provider-specific safety checks are implemented.</p>
+<p>The IaC PR workflow is intentionally <strong>not exclusive to cloud waste</strong>.
+Normal rightsizing recommendations also support a PR delivery path:
+operators can either run a direct Consize apply for non-IaC workloads and
+convenience flows, or open a PR for teams whose repository is the source of
+truth. The MVP stores a planned branch/title/body/diff without requiring GitHub
+credentials. GitHub configuration is installation-wide, not recommendation-
+specific: admins configure a GitHub organization/account, token environment
+reference, and the repositories Consize may read/write. A monorepo is
+represented as one authorized repository with a root path; enterprise teams can
+add multiple repositories. Specific source file and resource selection happens
+in the PR workflow today and should later be inferred from annotations, repo
+scan, Terraform state, ArgoCD Application metadata, Helm release metadata, or
+ownership metadata — not from the GitHub connection page.</p>
+<p>When GitHub credentials are present, Consize can create a branch, commit the
+source change, and open a draft GitHub PR. Supported recommendation PR writers:</p>
+<ul>
+<li>Terraform files (<code>.tf</code>, <code>.tf.json</code>) patch the selected Terraform resource
+  address.</li>
+<li>Kubernetes YAML files (<code>.yaml</code>, <code>.yml</code>) patch the matching workload manifest
+  by kind/name/namespace.</li>
+<li>Kustomize/GitOps apps should target repo-owned patch files or overlays first.
+  If no overlay exists yet, they can target a vendored base manifest that is
+  committed to the team's repo. For example, a Google Online Boutique install
+  can vendor the upstream release, keep common overrides in
+  <code>kubernetes/boutique/overlays/dev/</code>, and still let Consize open PRs against
+  <code>kubernetes/boutique/base/kubernetes-manifests.yaml</code> for workloads that do
+  not have an overlay patch yet.</li>
+<li>Helm values are recognized as an IaC source type, but opening a Helm-values
+  PR requires an explicit values key mapping before Consize can safely edit it;
+  charts differ too much to infer this blindly.</li>
+</ul>
+<p>The source path must point at a concrete file, not a directory. For monorepos,
+configure the repository root path as the folder such as <code>infra/terraform</code> or
+<code>clusters/prod</code>, then use a file path such as <code>workloads.tf</code>,
+<code>apps/api/deployment.yaml</code>, or <code>values.yaml</code> in the PR workflow.</p>
+<p><strong>Where the code lives.</strong> <code>engine/internal/costscan/</code>, <code>engine/cmd/costscan/</code>,
+store migrations <code>0007_cost_opportunities.sql</code>,
+<code>0008_iac_plans_for_recommendations.sql</code>, and <code>0009_cost_actions.sql</code>, API routes in
+<code>engine/internal/api/cost.go</code>, deploy manifest
+<code>engine/deploy/costscan-cronjob.yaml</code>, and the Next.js <code>/cost</code> console page.
+API surface:</p>
+<ul>
+<li><code>GET /api/v1/cost-opportunities</code></li>
+<li><code>POST /api/v1/cost-opportunities/scan</code></li>
+<li><code>POST /api/v1/cost-opportunities/{id}/apply</code></li>
+<li><code>POST /api/v1/cost-opportunities/{id}/iac-pr</code></li>
+<li><code>POST /api/v1/recommendations/{id}/iac-pr</code></li>
+<li><code>GET /api/v1/integrations/github</code></li>
+<li><code>PUT /api/v1/integrations/github</code></li>
+</ul>
+<p>Current MVP scope: persisted findings, manual scan, daily GCP CronJob, and IaC
+PR generation for cloud waste and rightsizing recommendations. When the
+configured GitHub token is available, Consize creates a branch, updates the
+mapped source file, and opens a draft GitHub PR if the selected file can be
+patched safely. The GitHub integration stores metadata only; tokens stay outside
+Postgres as Kubernetes Secret-backed environment variables such as
+<code>CONSIZE_GITHUB_TOKEN</code>. Future hardening: traffic-backed idle load balancer and
+Cloud NAT detection, repository ownership discovery, ArgoCD/Helm/Kustomize
+resolvers, GitLab PR creation, and snooze/exempt policy before any automated
+cleanup.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

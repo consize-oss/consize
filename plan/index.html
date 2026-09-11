@@ -1,0 +1,1628 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Safe, Automated Action for Kubernetes">
+      
+      
+        <meta name="author" content="Consize OSS">
+      
+      
+        <link rel="canonical" href="https://docs.consizehq.com/plan/">
+      
+      
+        <link rel="prev" href="../reference/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Plan - Consize</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#consize-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Consize" class="md-header__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Consize
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../THE_SAFETY_NET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  The Safety Net
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../features/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interactive Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../customer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../testing/" class="md-tabs__link">
+          
+  
+  
+  Internal / Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Consize" class="md-nav__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Consize
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../THE_SAFETY_NET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Safety Net
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal / Dev
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal / Dev
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../e2e/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#m0-scaffold-ci-week-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M0 — Scaffold &amp; CI (Week 1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m1-compute-surface-analyze-weeks-23-done-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M1 — Compute Surface: Analyze (Weeks 2–3) — DONE 2026-08-24
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m2-compute-surface-apply-verify-rollback-weeks-45-done-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M2 — Compute Surface: Apply + Verify + Rollback (Weeks 4–5) — DONE 2026-08-24
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m3-data-surface-db-sizing-weeks-67" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M3 — Data Surface: DB Sizing (Weeks 6–7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m35-live-db-provider-cloudwatch-rds-adapter-2026-08-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M3.5 — Live DB Provider: CloudWatch RDS Adapter (2026-08-25)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m4-ui-reporting-weeks-89-ui-sprint-done-2026-08-25-image-apiconsize-m35-m42-product-ui-rewritten-in-nextjs-adr-036-reporting-tasks-remain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M4 — UI + Reporting (Weeks 8–9) — UI sprint DONE 2026-08-25 (image api:consize-m35-m4.2); product UI rewritten in Next.js (ADR-036); reporting tasks remain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m5-production-polish-week-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M5 — Production Polish (Week 10)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#milestone-dependency-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Milestone dependency map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#definition-of-done-project-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition of done (project-wide)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-polish-pass-2026-08-26-e16-branding-e17-navigation-e18-lightdark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UI polish pass (2026-08-26) — E1.6 branding, E1.7 navigation, E1.8 light/dark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e12-teams-and-on-call-assignment-done-2026-08-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1.2 — Teams and on-call assignment — DONE 2026-08-27
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e19-incident-routing-and-on-call-ownership-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1.9 — Incident routing and on-call ownership — IN PROGRESS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e110-self-observability-and-stale-data-detection-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1.10 — Self-observability and stale data detection — IN PROGRESS
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#m0-scaffold-ci-week-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M0 — Scaffold &amp; CI (Week 1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m1-compute-surface-analyze-weeks-23-done-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M1 — Compute Surface: Analyze (Weeks 2–3) — DONE 2026-08-24
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m2-compute-surface-apply-verify-rollback-weeks-45-done-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M2 — Compute Surface: Apply + Verify + Rollback (Weeks 4–5) — DONE 2026-08-24
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m3-data-surface-db-sizing-weeks-67" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M3 — Data Surface: DB Sizing (Weeks 6–7)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m35-live-db-provider-cloudwatch-rds-adapter-2026-08-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M3.5 — Live DB Provider: CloudWatch RDS Adapter (2026-08-25)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m4-ui-reporting-weeks-89-ui-sprint-done-2026-08-25-image-apiconsize-m35-m42-product-ui-rewritten-in-nextjs-adr-036-reporting-tasks-remain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M4 — UI + Reporting (Weeks 8–9) — UI sprint DONE 2026-08-25 (image api:consize-m35-m4.2); product UI rewritten in Next.js (ADR-036); reporting tasks remain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m5-production-polish-week-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M5 — Production Polish (Week 10)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#milestone-dependency-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Milestone dependency map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#definition-of-done-project-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition of done (project-wide)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-polish-pass-2026-08-26-e16-branding-e17-navigation-e18-lightdark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UI polish pass (2026-08-26) — E1.6 branding, E1.7 navigation, E1.8 light/dark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e12-teams-and-on-call-assignment-done-2026-08-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1.2 — Teams and on-call assignment — DONE 2026-08-27
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e19-incident-routing-and-on-call-ownership-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1.9 — Incident routing and on-call ownership — IN PROGRESS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e110-self-observability-and-stale-data-detection-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1.10 — Self-observability and stale data detection — IN PROGRESS
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="consize-implementation-plan">Consize — Implementation Plan</h1>
+<p>Milestones are ordered to ship a <strong>demoable vertical slice first</strong> (compute surface end-to-end), then the data surface, then production polish. Each milestone lists tasks and acceptance criteria (AC).</p>
+<p><strong>Timebox:</strong> 8–10 weekends of focused work. Each milestone is shippable and demoable on its own.</p>
+<hr />
+<h2 id="m0-scaffold-ci-week-1">M0 — Scaffold &amp; CI (Week 1)</h2>
+<p>The repo must look like a professional product before any feature exists.</p>
+<p><strong>Tasks</strong>
+- [ ] Monorepo layout (<code>infra/</code>, <code>engine/</code>, <code>ui/</code>, <code>deploy/</code>, <code>tests/</code>, <code>docs/</code>)
+- [ ] Go module + React app (Vite + Tailwind) scaffolding, lint configs (<code>golangci-lint</code>, ESLint)
+- [ ] GitHub Actions CI: lint → test → build → container build (multi-stage) → Trivy scan → cosign sign
+- [ ] Local dev: <code>docker compose</code> with engine + Postgres + kind cluster; <code>Makefile</code> targets (<code>make dev</code>, <code>make test</code>, <code>make e2e</code>)
+- [ ] Terraform bootstrap: provider config, remote state backend (S3/GCS + locking), a placeholder cluster module
+- [ ] README skeleton + <code>docs/</code> index (already drafted)
+- [ ] Changelog + semver discipline from commit 1 (conventional commits)</p>
+<p><strong>AC</strong>
+- <code>make test</code> green on a fresh clone; CI green on first push.
+- Build image passes Trivy with zero HIGH/CRITICAL findings.
+- Terraform <code>plan</code> runs cleanly against a real account (no resources yet).</p>
+<hr />
+<h2 id="m1-compute-surface-analyze-weeks-23-done-2026-08-24">M1 — Compute Surface: Analyze (Weeks 2–3) — <strong>DONE 2026-08-24</strong></h2>
+<p><strong>Tasks</strong>
+- [x] Collector: Prometheus range queries → <code>usage_buckets</code> (idempotent upsert; backfill = re-run, windows are upserted)
+- [x] Collector: workload metadata from k8s API (deployments, labels, bulk pod→RS→deployment owner resolution)
+- [x] Analysis engine: percentile math (14-day windows, p50/p95/p99/max) — pure functions, golden-tested
+- [x] Recommendation policy (request = p95×1.2, limit = max(2×, p99)) + skip conditions
+- [x] Pricing service: static defaults + AWS Price List client (SigV4, EC2 on-demand median, 24 h cache, resilient fallback). GCP catalog ingestion deferred — same <code>Service</code> interface when it lands.
+- [x] <code>engine-api</code> v0: chi router, <code>GET /workloads</code>, <code>GET /workloads/{id}</code>, <code>GET /recommendations</code>, <code>GET /savings</code>, <code>/healthz</code>, <code>/readyz</code>; OpenAPI spec deferred to M4 (UI contract)
+- [x] Postgres migrations (embedded, idempotent, <code>cmd/migrate</code> + auto-migrate on open)</p>
+<p><strong>AC (M1 status)</strong>
+- ✅ Golden fixtures: engine tests + <code>cmd/analyze</code> pipeline test match hand-computed values.
+- ⚠️ Savings within 2% of the <em>live</em> catalog: index parsing is unit-tested against synthetic data; live fetch requires AWS creds + network (CI gate) — the parse-to-math path is verified.
+- ✅ Skip conditions: excluded label, protected namespaces, data-loss-risk, &lt; 5 days, already-optimal — all tested.
+- ✅ API payloads correct (handler tests); OpenAPI spec moved to M4.
+- ✅ Extras shipped in M1: <code>cmd/collector</code>, <code>cmd/migrate</code>, <code>cmd/analyze</code>, <code>cmd/api</code> all build and run; in-memory store makes the whole pipeline demoable without a cluster; ADRs 011–016 record the M1 decisions.</p>
+<hr />
+<h2 id="m2-compute-surface-apply-verify-rollback-weeks-45-done-2026-08-24">M2 — Compute Surface: Apply + Verify + Rollback (Weeks 4–5) — <strong>DONE 2026-08-24</strong></h2>
+<p>The safety engine — the part that makes Consize a <em>platform</em>, not a report.</p>
+<p><strong>Tasks</strong>
+- [x] Apply engine: dry-run patch diff, guardrail evaluation (exclusions, step ≤ 30%, auto-apply labels, concurrency)
+- [x] k8s write ServiceAccount manifest (<code>deploy/rbac.yaml</code>, least-privilege per security.md), resourceVersion-guarded GET→mutate→UPDATE patches with 3× conflict retry
+- [x] Verifier: step-scaled baseline/post windows, SLI comparison (throttling, OOMKill, restarts, evictions; app-level error/p99 exprs opt-in)
+- [x] Auto-rollback on FAIL + alert (<code>internal/alert</code>: structured logs always, Slack webhook when <code>CONSIZE_SLACK_WEBHOOK</code> set)
+- [x] <code>apply_events</code> + <code>verification_runs</code> audit trail (migration 0002, INSERT-only events, derived in-flight state)
+- [x] <code>POST /api/v1/recommendations/{id}/apply</code> (modes: dry_run | approved | auto) + <code>GET /applies</code>, <code>GET /verification-runs</code>
+- [x] Rollout-aware apply: safe for Deployments, blocked for excluded workloads (exclude label, data-loss-risk, protected namespaces); step splits queue follow-up recommendations that apply only after the current step verifies</p>
+<p><strong>AC (M2 status)</strong>
+- ✅ Applying a 50%-reduction recommendation does <em>two</em> steps, not one (step limit enforced), and step 2 is blocked until step 1 verifies (apply → verify → apply rhythm).
+- ✅ A forced regression (sustained throttling / new OOM) triggers rollback with evidence attached (verifier tests: FAIL verdict → inverse patch → <code>reverted</code> event → <code>rolled_back</code> status; SLI evidence stored in the run).
+- ✅ Audit trail shows actor, mode, diff, and verdict for every apply — nothing applies silently (all three event kinds + verification runs round-trip through both store impls).
+- ✅ Guardrail matrix (excluded, no-data, protected ns, concurrent-apply rejection, global cap, store-down fail-safe) fully tested against the memory store; the <em>live-cluster</em> E2E ran 2026-08-24 on GKE <code>devops-portfolio</code> — full runbook and evidence in <a href="../e2e/">docs/e2e.md</a>: Track 1 PASS on <code>boutique/frontend</code> (apply #4 → verdict passed → no rollback), Track 2 FAIL → auto-rollback on <code>consize-canary</code> (applies #5/#8/#11 → <code>failed</code> verdicts with SLI evidence → <code>reverted</code> events #6/#9/#12 → byte-identical restore to pre-apply values), RBAC matrix 13/13 least-privilege, audit trail in the live Postgres store. The E2E found and fixed a real rollback drift bug (ADR-026), proved the no-baseline conservatism (ADR-027), and exposed the durable-SLI-storage requirement (ADR-028).
+- ✅ Extras shipped in M2: <code>cmd/verify</code> CronJob binary, verifier re-tries transient errors on the next tick, apply endpoints answer 503 (never silently pass) without a cluster write identity; ADRs 017–023 record the M2 decisions.
+- ✅ M2 debt closed 2026-08-25 (ADR-029): recommendations pagination (<code>?limit=</code>/<code>?offset=</code>, default 100 / cap 500, <code>pagination.total</code> in every response — exercised live, total 418 at rollout); superseded-row pruning after every analyze cycle (<code>CONSIZE_REC_RETENTION</code>, default 168 h — applied/verified/rolled_back/pending never pruned); and the first read-only dashboard (<code>engine/ui/</code>, vanilla static SPA) <strong>embedded in the API binary</strong> and rolled live (<code>api</code>/<code>analyze:e2e-v2</code>) — open <code>GET /</code> on the running API to see it. Both store impls verified for the new surface (memory + disposable Postgres in the suite).</p>
+<hr />
+<h2 id="m3-data-surface-db-sizing-weeks-67">M3 — Data Surface: DB Sizing (Weeks 6–7)</h2>
+<p><strong>Tasks</strong>
+- [x] Collector: DB metrics → <code>usage_buckets</code> (instance class, replicas, maintenance window) — <code>dbmetrics.Fixture</code> source + <code>CONSIZE_DBMETRICS</code> wiring shipped (ADR-033); live RDS/GCP adapters deferred</p>
+<ul>
+<li>[x] DB analysis: headroom-constraint candidate search (CPU &lt; 60%, IOPS &gt; 40%, mem &gt; 25%, conns &lt; 70%) — caps resolved in ADR-030 §9, <code>analysis/db.go</code></li>
+<li>[x] One-step-at-a-time rule + "keep with rationale" output — <code>dbapply.stepPlan</code> + <code>cmd/analyze</code> kept lines</li>
+<li>[x] Apply: maintenance-window enforcement, one class step, approval default (<code>auto-db</code> opt-in flag) — <code>internal/dbapply</code>, ADR-031</li>
+<li>[x] Verifier: DB SLIs (CPU saturation, connections, error counters); rollback restores previous class — <code>verifier/db.go</code>, ADR-032</li>
+<li>[x] UI: DB workloads in the same dashboard (unified surface filter) — workloads tab, class recs, apply modal with step plan + window state (2026-08-25, smoke-verified)</li>
+</ul>
+<p><strong>AC</strong>
+- Against a seeded RDS instance with known utilization, the recommended class matches hand-computed results; bottleneck attribution is correct when no candidate fits.
+- Apply is refused outside the maintenance window and without approval; evidence logged.
+- Rollback restores the previous instance class and marks the event.
+- Compute + data surfaces share one dashboard, one savings number.</p>
+<hr />
+<h2 id="m35-live-db-provider-cloudwatch-rds-adapter-2026-08-25">M3.5 — Live DB Provider: CloudWatch RDS Adapter (2026-08-25)</h2>
+<p>The fixture is the demo; the adapter is the product. <code>CONSIZE_DBMETRICS</code> gains a real provider before the M4 UI ships. Inserted after M3 because the fixture→live intake is the single biggest demo→product gap.</p>
+<p><strong>Tasks</strong> — DONE 2026-08-25 (ADR-034, image <code>api:consize-m35-m4.2</code> on devops-portfolio; GCP follow-up ADR-035, image tag <code>consize-gcp-1</code> 2026-08-25)
+- [x] <code>internal/dbmetrics/cloudwatch</code>: RDS <code>Source</code> adapter — ListInstances via <code>DescribeDBInstances</code> (paginated), Series via <code>GetMetricStatistics</code> (CPUUtilization, FreeableMemory→mem %, Read/WriteIOPS, DatabaseConnections); reuses pricing SigV4 (no new AWS SDK dep); <code>CONSIZE_DBMETRICS=cloudwatch</code> + region/filter env; <code>db_errors</code> has no CloudWatch equivalent → <strong>no-evidence, never FAIL</strong> (verifier semantics, tested both directions)
+- [x] Adapter unit tests against canned RDS/CloudWatch responses (httptest, hand-computed mem %); live-account E2E deferred as CI gate (needs AWS creds — same policy as the pricing live fetch, ADR-014)
+- [x] API: <code>GET /workloads/{id}/series</code> (daily percentile buckets, <strong>surface-aware</strong>: db_* metrics with units percent/iops/connections/errors, k8s raw metrics with millicores/bytes — compute-series gap found on the live cluster and fixed with tests); savings endpoint gains realized (latest apply event still applied + passed verification, reverted/failed/inconclusive never counted) + per-owner breakdown; recommendations gain risk + risk_reasons
+- [x] GCP Cloud Monitoring (Cloud SQL) adapter: same <code>Source</code> interface — shipped 2026-08-25 (ADR-035): <code>internal/dbmetrics/cloudmonitoring</code>, provider-scoped GCP tier catalog, live on the cluster (<code>consize-demo</code> → <code>db-g1-small</code> $29/mo, real Cloud Monitoring series); fixture retired from all live paths; maintenance-window Monday-first convention found + fixed + test-locked</p>
+<p><strong>AC</strong>
+- ✅ Collector with <code>CONSIZE_DBMETRICS=cloudwatch</code> ingests a real RDS instance end-to-end against a mocked CloudWatch/RDS API (unit + integration test).
+- ✅ Missing metric semantics documented and tested: no <code>db_errors</code> data → verifier treats as no-evidence, never FAIL (two tests, both directions).
+- ✅ Realized savings never conflated with projected — live cluster: projected $52.59/mo, realized $0.36/mo (the M2 E2E's one verified apply), distinct fields + distinct UI tiles.</p>
+<hr />
+<h2 id="m4-ui-reporting-weeks-89-ui-sprint-done-2026-08-25-image-apiconsize-m35-m42-product-ui-rewritten-in-nextjs-adr-036-reporting-tasks-remain">M4 — UI + Reporting (Weeks 8–9) — UI sprint DONE 2026-08-25 (image <code>api:consize-m35-m4.2</code>); product UI rewritten in Next.js (ADR-036); reporting tasks remain</h2>
+<p><strong>Tasks</strong>
+- [x] Savings overview: projected vs realized (distinct tiles, never conflated), per team (owner label — <code>by_owner</code> table); monthly <em>trend</em> chart deferred with the reporting tasks
+- [x] Recommendations list ranked by savings, with risk flags (low|medium|high pill + <code>risk_reasons</code> tooltip) and rationale
+- [x] Workload detail: 14-day percentile chart (canvas p50/p95/p99/max, per-surface metric toggles + units), current vs proposed, apply history timeline
+- [x] Apply audit view (timeline: diffs, actors, step numbers, verdicts, SLI evidence); settings deferred (policy/auto-apply changes remain config-side)
+- [x] <strong>Product UI rewrite in Next.js</strong> (<code>ui/</code>: App Router, TypeScript, Tailwind, Recharts; typed <code>lib/api.ts</code> client; <code>next.config.ts</code> rewrites <code>/api/v1</code> → <code>API_UPSTREAM</code>) — benchmarked to usage.ai-class dark FinOps consoles (ADR-036); the embedded SPA stays in the API binary as the single-binary fallback
+- [x] <strong>Authentication + server-side authorization (ADR-037)</strong>: local users with roles viewer/operator/admin, revocable Postgres sessions (hashed 32-byte tokens), <code>POST /auth/login</code> / <code>/auth/logout</code> / <code>GET /auth/me</code>, <code>CONSIZE_BOOTSTRAP_ADMIN</code> first-admin bootstrap, apply <code>actor</code> server-verified (<code>api:&lt;email&gt;</code>, client-supplied actor rejected). API: <code>api.New</code> variadic <code>Options{Auth, CookieSecure}</code> — nil = disabled, all pre-existing tests green. UI: <code>/login</code> page, auth context + route guard, sidebar session block + logout, role-gated Apply surface. Verified: engine handler matrix (401 no-cookie / 403 viewer apply / 200 operator), actor-forgery test, CDP smoke 10/10 on the live poke (guard, login, bad-password error, dashboard, logout), cluster API re-deployed with the new image (migration 0004 on the CNPG DB; <code>CONSIZE_AUTH_REQUIRED=false</code> keeps the embedded-SPA fallback and curl actor flows functional — flip to true + <code>consize-auth</code> Secret to enforce). <strong>First-run admin creation (ADR-037 §6 amendment, 2026-08-26)</strong>: <code>POST /auth/setup</code> creates the first admin while <code>users</code> is empty (409 forever after, 8-char minimum), <code>needs_setup</code> rides me()'s 401, and <code>/login</code> renders a wizard instead of the form when no user exists — no default credential, never open registration. Verified: <code>TestFirstAdminSetup</code> + CDP wizard smoke 10/10 on a fresh empty-users stack, poke rebuilt + regression 10/10)
+- [x] Weekly digest report MVP (CronJob → configured Slack route; admin toggle; JSON/PDF on-demand reports for 7/14/30 days; includes realized savings from verified applies, pending recommendations, rollbacks, verification issues, and telemetry freshness)
+- [ ] Grafana dashboards (see observability doc)</p>
+<p><strong>AC</strong>
+- Realized savings numbers come from verified applies only; projected vs realized never conflated.
+- ✅ UI read-only users cannot trigger applies; RBAC enforced server-side, not just hidden buttons (ADR-037: <code>RequireRole(operator)</code> on the apply route; viewer → 403 with <code>role_required</code>, actor server-verified; contract tests <code>TestAuthHandlerMatrix</code> + <code>TestActorIsServerVerified</code>).</p>
+<hr />
+<h2 id="m5-production-polish-week-10">M5 — Production Polish (Week 10)</h2>
+<p><strong>Tasks</strong>
+- [ ] Security hardening pass (see security doc): RBAC review, network policies, secrets, image signing, audit
+- [ ] Load test the engine (10k workloads) — analysis under 15 min nightly budget
+- [ ] Full documentation pass: README architecture diagram, quickstart, troubleshooting guide
+- [ ] Demo script rehearsal (see demo doc) — record the demo video
+- [ ] Cleanup: license, CONTRIBUTING, issue templates, release workflow</p>
+<p><strong>AC</strong>
+- Fresh-clone → working Consize in under 30 min (documented quickstart).
+- Security checklist (docs/security.md) fully green.
+- The recorded demo is the README's cover story.</p>
+<hr />
+<h2 id="milestone-dependency-map">Milestone dependency map</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>M0 ──► M1 ──► M2 ──► M3 ──► M3.5 ──► M4 ──► M5
+</code></pre></div>
+<p>M3 (DB) is independent of M2's apply engine. M3.5 (live DB provider) is the productization of M3's fixture seam; it must land before M4's charts can claim real-data credibility. M4's weekly digest + Grafana remain after the UI sprint.</p>
+<h2 id="definition-of-done-project-wide">Definition of done (project-wide)</h2>
+<ol>
+<li>Everything in this repo is reproducible: fresh cloud account + cluster → deployed Consize (Terraform + Helm).</li>
+<li>Every apply is verifiable and reversible; audit trail complete.</li>
+<li>Tests green locally and in CI; security scans clean.</li>
+<li>Docs read like a product, not a lab: architecture rationale, troubleshooting, demo script.</li>
+<li>The demo video shows projected savings → real savings with a rollback in the middle.</li>
+</ol>
+<hr />
+<h2 id="ui-polish-pass-2026-08-26-e16-branding-e17-navigation-e18-lightdark">UI polish pass (2026-08-26) — E1.6 branding, E1.7 navigation, E1.8 light/dark</h2>
+<p>Closed as one pass per the user's roadmap reorder (ADR-036's UI is the base;
+"improve on the UI and logo, then the improved navigation, then toggling of
+light and dark mode"). All three slices done 2026-08-26 — ADRs 038 (branding),
+039 (navigation), 040 (theming) in <code>docs/decisions.md</code>; feature descriptions in
+<code>docs/features.md</code> §7.</p>
+<ul>
+<li><strong>E1.6 Branding [x]</strong> — <code>ui/components/Brand.tsx</code> (single render path: gauge
+  brand tile + conSize wordmark, capital S in brand green), <code>ui/app/icon.svg</code>
+  gauge favicon, page title, brand tokens (<code>.brand-tile</code>). Applied to sidebar,
+  login page, loading/signing-in frames.</li>
+<li><strong>E1.7 Navigation [x]</strong> — grouped sections Overview/Optimize/Operations with
+  <code>aria-current</code> active marking; ⌘K command palette (routes + lazy workload
+  index, ↑↓/Enter/Esc, mobile-safe); off-canvas mobile drawer (sticky top bar,
+  backdrop close, close-on-route-change); <code>lg:pl-[232px]</code> content inset.</li>
+<li><strong>E1.8 Light/dark [x]</strong> — next-themes (<code>data-theme</code> attribute, dark default,
+  localStorage persistence); single <code>:root[data-theme="light"]</code> token block
+  re-themes everything incl. the brand tile; Dark/Light segmented control in
+  the sidebar footer + icon toggles on the mobile top bar and login page.</li>
+</ul>
+<p><strong>Verification (2026-08-26, poke stack :3000 → :18099, real GCP data):</strong>
+<code>npx next build</code> clean twice (per feature); polish smoke 33/33 — wordmark
+checks, favicon fetch, sections + active state, palette open/4 routes/real
+workload jump to <code>/workloads/1</code> (inference-api)/Esc, 390 px drawer open →
+navigate → close, dark default <code>rgb(11,15,20)</code> → Light seg <code>rgb(245,247,250)</code>
+→ reload persists → Dark back, login toggle both ways; auth-smoke regression
+re-run 10/10 (login flow, session block, apply surface, logout). Scripts:
+<code>/tmp/ui-smoke/polish-smoke.mjs</code>, <code>/tmp/ui-smoke/auth-smoke.mjs</code>.</p>
+<p>Next up per the roadmap: E1.2 Teams + on-call assignment.</p>
+<p><strong>Superseding note (same day):</strong> after review the look was rebuilt to the
+Zorveus standard the user set ("all you just did is very poor, look at
+Zorveus.com, I want that standard") — <strong>ADR-041</strong> restyles what ADRs 038–040
+structured: Geist for Inter, a pure-neutral black/white palette (dark canvas
+<code>#000000</code>, light <code>#f7f7f7</code>), <code>#141414</code> Vercel-shadow cards, pill badges,
+circular avatars, ghost/solid buttons, green as the single accent, and a hero
+login page with an ambient glow. The structural features above (single brand
+path, palette navigation, drawer, next-themes) are unchanged; only their
+rendering changed. Re-verified: build clean, polish smoke 33/33 with the new
+pixel assertions (<code>rgb(0,0,0)</code> / <code>rgb(247,247,247)</code>), auth smoke 10/10, and
+screenshots pixel-checked with Chrome's own decoder against the token values
+(decoder control-tested on the known-good Zorveus screenshot). Screenshots:
+<code>/tmp/ui-smoke/consize-new-{login,dashboard,dashboard-light}.png</code>.</p>
+<p><strong>Copy removal (same day, user directive — "it makes the whole thing look
+AI-generated"):</strong> the product UI no longer carries marketing/explainer copy —
+five blocks removed: the sidebar safety-engine card (incl. the ⌘K hint), the
+dashboard 5-step safety strip and its subtitle ("Rightsizing with a safety
+engine — every recommendation is applied, verified, and audited."), the login
+"Infrastructure rightsizing" hero pill, and the "Sessions are server-verified
+· roles viewer / operator / admin" footnote. <code>PageHead.sub</code> is optional now
+(the dashboard is title-only). The removed copy is <strong>backlog for a future
+landing page</strong> (when one exists): the "Safety engine — every change is
+analyzed, guarded, verified, and reversible. Analyze → Guarded apply → Verify
+→ Auto-rollback → Audit" explainer incl. the 5 step descriptions, plus the
+sessions/roles line and the hero pill. Re-verified: build clean, polish smoke
+33/33, auth smoke 10/10, screenshots re-captured + pixel-checked, live-DOM
+absence check clean. Tooling note: <code>Network.clearBrowserCookies</code> is
+unreliable on this Chrome (151) — the page-level helper
+<code>/tmp/ui-smoke/clear-session.mjs</code> (<code>Network.deleteCookies</code> for
+<code>consize_session</code>) is the reliable pre-smoke cleanup.</p>
+<p><strong>Premium-dashboard refinement (same day, frontend-redesign brief — ADR-042):</strong>
+applied the brief's constraints as a third pass over the Zorveus standard:
+flat ultra-dark cards (<code>#0a0a0a</code> + hairline white/5 border, no gradients/shadows),
+pitch-black canvas, muted <strong>emerald <code>#10b981</code></strong> <strong>reserved for the active
+sidebar item + positive financial metrics</strong> (the green primary button became
+solid white — the accent-reservation rule), single-line extrabold conSize
+lockup with a minimal emerald diamond mark (RIGHTSIZING sub-line and squircle
+tile gone; favicon matches), pure-white ink, zinc-500 uppercase tracking-widest
+micro-type, rounded-full white/10 neutral pills (semantic pass/fail tints
+kept), roomier right-aligned tables with emerald savings cells (<code>.money</code>),
+white login glow. Re-verified: build clean; polish smoke updated and green
+<strong>35/35</strong> (new checks: single-line lockup, white primary, emerald active nav +
+savings KPI, diamond favicon); auth smoke 10/10; screenshots re-captured and
+pixel-checked (<code>#000000</code> canvas, flat <code>#0a0a0a</code> cards dark / <code>#ffffff</code> light,
+disabled white primary sampled <code>#797979</code> at 45% opacity). Docs: ADR-042 in
+decisions.md, features.md §7 third-amendment paragraph.</p>
+<h2 id="e12-teams-and-on-call-assignment-done-2026-08-27">E1.2 — Teams and on-call assignment — DONE 2026-08-27</h2>
+<p>The first ownership vertical slice is closed (ADR-043): durable teams with a
+named owner and on-call contact; explicit admin-only team/contact and
+workload-assignment APIs; collector-safe ownership preservation; workload and
+Teams UI surfaces; and failed-verification/rollback alerts annotated with the
+responsible team and on-call target. Store and API tests cover the round trip,
+authorization boundary, assignment update, and collector-upsert invariant.
+Verified by the complete Go suite and the Next.js Webpack production build.</p>
+<p>The next product work remains the unclosed M4 operational reporting tasks:
+weekly digest delivery and Grafana dashboards. Per-team provider-specific
+notification routing is intentionally a later integration, not a replacement
+for the existing shared webhook.</p>
+<h2 id="e19-incident-routing-and-on-call-ownership-in-progress">E1.9 — Incident routing and on-call ownership — IN PROGRESS</h2>
+<p>Replace the current descriptive on-call contact with installation-scoped
+incident routing. Consize should emit one deduplicated incident for a failed
+verification or rollback failure, route it to the organization's incident
+management service, and publish a collaboration message in the configured
+Slack channel. The incident provider remains the source of truth for
+escalation, acknowledgement, assignment, and resolution; Slack is the
+responder-facing collaboration surface.</p>
+<p>Scope for the first slice:</p>
+<ul>
+<li>[x] Grafana-style alert event/router seam: alerts carry labels, notification
+  policies match labels, and matched policies send to named contact points.</li>
+<li>[x] Slack webhook contact-point integration with Block Kit payloads and
+  backwards-compatible <code>CONSIZE_SLACK_WEBHOOK</code> default routing.</li>
+<li>[x] Stable deduplication key per installation/workload/recommendation/failure
+  episode so retries and repeated verifier ticks do not page repeatedly.</li>
+<li>[ ] PagerDuty Events API/Jira Service Management adapters behind the same
+  event seam.</li>
+<li>[ ] Provider routing references (PagerDuty service/escalation policy, JSM team or
+  responder, Slack channel plus user/group ID) stored as installation config;
+  credentials are Kubernetes Secret references, never database values.</li>
+<li>[x] Block Kit alert containing the workload, namespace, proposed
+  change, rollback state, dashboard deep link, provider incident link, and an
+  explicit on-call mention where the provider supplies a Slack user/group ID.</li>
+<li>[ ] Durable local incident projection with provider ID, status, assignee,
+  acknowledgement/resolution timestamps, delivery attempts, and last error.
+  The dashboard shows who owns the incident and the next required change;
+  ownership does not bypass Consize's existing apply RBAC.</li>
+<li>[ ] Inbound provider webhook (with signed verification and replay protection) to
+  synchronize assignment, acknowledgement, escalation, and resolution. A
+  successful post-rollback verification may close the incident automatically;
+  all other closes are explicit and audited.</li>
+</ul>
+<p><strong>First implementation slice (2026-08-28):</strong> <code>internal/alert</code> now implements
+Grafana-style contact points and notification policies from
+<code>CONSIZE_ALERT_ROUTING</code>. Slack is the first contact-point integration and emits
+Block Kit messages. Legacy <code>CONSIZE_SLACK_WEBHOOK</code> still creates a default
+Slack contact point when no routing JSON is configured. The verifier now emits
+structured, labeled events for verification failure and rollback failure with
+stable deduplication keys.</p>
+<p><strong>Product configuration slice (2026-08-28):</strong> Alerting now has a console page
+and API (<code>/api/v1/alerting/config</code>, <code>/api/v1/alerting/test</code>). Configuration is
+stored in <code>app_settings</code> as routing metadata only; Slack webhook tokens remain
+Kubernetes Secret-backed environment variables. The API and verifier manifests
+mount <code>CONSIZE_SLACK_WEBHOOK</code> from the optional <code>consize-alerts/slack-webhook</code>
+Secret so the UI can save policy routing without ever seeing the secret value.</p>
+<p>Acceptance criteria: a single failed verification creates one provider
+incident and one Slack notification; retries update the same incident; the
+currently on-call responder is visible and tagged; acknowledgement and
+resolution appear in Consize; delivery failures are visible and retryable; no
+provider secret is stored in Postgres; and the apply endpoint still enforces
+the operator/admin role independently of incident ownership.</p>
+<p><strong>UI direction amendment (2026-08-27):</strong> the E1.2 manual team-creation surface
+was removed from the console. The current installation-per-team direction
+treats ownership and on-call routing as deployment/provider configuration; the
+UI exposes that context read-only until E1.9 is implemented.</p>
+<p><strong>Follow-up correction (2026-08-27):</strong> the interim read-only ownership page was
+also removed from navigation, and <code>/teams</code> redirects to the dashboard. The
+console will not expose an ownership page until installation onboarding has a
+real configuration and incident-routing contract to present.</p>
+<h2 id="e110-self-observability-and-stale-data-detection-in-progress">E1.10 — Self-observability and stale data detection — IN PROGRESS</h2>
+<p>Build Consize's own health signal before adding more optimization surfaces.
+The first slice adds a first-class <code>GET /api/v1/system/status</code> contract that
+reports store health, latest telemetry bucket, telemetry age, stale threshold,
+workload count, pending recommendation count, in-flight applies, and
+verification work due. The dashboard renders this as a pipeline status card so
+operators can immediately tell whether the collector/analyzer/verifier loop is
+fresh or degraded.</p>
+<p>Routing direction: use a Grafana-style model for Consize's own platform alerts
+— labels route to contact points/notification policies — instead of hardcoding
+one Slack channel as product logic. Deployment config may still provide the
+default Slack/contact-point reference, but routing should be policy-driven and
+provider-owned. Incident ownership remains E1.9's provider-backed workflow.</p>
+<p>Current priority order after this slice:</p>
+<ol>
+<li>Self-observability/stale data detection.</li>
+<li>Broader cloud-waste surfaces: unattached volumes, idle load balancers,
+   unused NAT gateways, stopped-but-billed instances, orphaned resources.
+   First MVP slice is implemented behind a <code>costscan.Source</code> seam with a
+   live GCP scanner for detached Persistent Disks and stopped VM disk cost,
+   persisted findings, API routes, and a <code>/cost</code> console page. Idle load
+   balancer and Cloud NAT detection require traffic-backed checks next.</li>
+<li>Snooze/exempt policy with required reasons, expiry, and audit.</li>
+<li>Terraform/IaC PR workflow to avoid configuration drift. First MVP slice
+   stores audited Terraform PR plans/diffs for cloud-waste opportunities and
+   rightsizing recommendations. The next slice now has an installation-wide
+   GitHub integration foundation: admins can configure a GitHub org/account,
+   token environment reference, and multiple repositories for monorepos or
+   team-owned repos. Rightsizing recommendations and cloud-waste opportunities
+   can now create a branch, update the mapped Terraform file, and open a draft
+   GitHub PR when a token is available and the file contains the expected
+   Terraform resource block/values. GitLab support, repository ownership
+   discovery, and broader Terraform patching remain next.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

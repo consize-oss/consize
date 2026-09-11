@@ -1,0 +1,2595 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Safe, Automated Action for Kubernetes">
+      
+      
+        <meta name="author" content="Consize OSS">
+      
+      
+        <link rel="canonical" href="https://docs.consizehq.com/decisions/">
+      
+      
+        <link rel="prev" href="../e2e/">
+      
+      
+        <link rel="next" href="../reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Decisions - Consize</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#consize-decision-log-adrs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Consize" class="md-header__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Consize
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Decisions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../THE_SAFETY_NET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  The Safety Net
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../features/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interactive Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../customer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../testing/" class="md-tabs__link">
+          
+  
+  
+  Internal / Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Consize" class="md-nav__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Consize
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../THE_SAFETY_NET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Safety Net
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal / Dev
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal / Dev
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../e2e/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adr-001-go-for-the-engine-react-for-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-001: Go for the engine, React for the UI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-002-percentile-based-sizing-over-averages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-002: Percentile-based sizing over averages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-003-downsize-only-in-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-003: Downsize-only in v1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-004-auto-apply-is-opt-in-per-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-004: Auto-apply is opt-in per namespace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-005-postgres-for-the-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-005: Postgres for the store
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-006-verification-via-sli-comparison-not-chaos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-006: Verification via SLI comparison, not chaos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-007-idempotent-bucketed-collection-backfill-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-007: Idempotent bucketed collection, backfill-first
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-008-apply-never-runs-without-an-audit-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-008: Apply never runs without an audit path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-009-one-repo-one-version-one-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-009: One repo, one version, one release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-010-self-hosted-on-the-cluster-it-manages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-010: Self-hosted on the cluster it manages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m1-decisions-recorded-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M1 decisions (recorded 2026-08-24)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-011-single-sample-15-minute-windows-in-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-011: Single-sample 15-minute windows in v1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-012-store-behind-an-interface-memory-impl-for-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-012: Store behind an interface, memory impl for tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-013-embedded-versioned-migrations-run-at-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-013: Embedded versioned migrations, run at startup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-014-pricing-degrades-never-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-014: Pricing degrades, never fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-015-bulk-poddeployment-resolution-not-per-pod-lookups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-015: Bulk pod→deployment resolution, not per-pod lookups
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-016-half-known-windows-are-dropped-in-bucket-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-016: Half-known windows are dropped in bucket merge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-017-limits-ride-with-recommendations-downsize-both-together" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-017: Limits ride with recommendations; downsize both together
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-018-the-verifier-is-a-one-shot-cronjob-binary-not-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-018: The verifier is a one-shot CronJob binary, not a service
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-019-workload-scoped-kubelet-native-slis-app-level-metrics-opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-019: Workload-scoped kubelet-native SLIs, app-level metrics opt-in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-020-step-splits-materialize-as-follow-up-pending-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-020: Step splits materialize as follow-up pending recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-021-proportional-patch-distribution-with-exact-sum-rounding-and-qos-preservation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-021: Proportional patch distribution with exact-sum rounding and QoS preservation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-022-inconclusive-never-rolls-back-nothing-measurable-is-inconclusive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-022: Inconclusive never rolls back; nothing-measurable is inconclusive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-023-append-only-apply-trail-in-flight-state-is-derived" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-023: Append-only apply trail; in-flight state is derived
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-024-the-data-minimum-is-a-configurable-confidence-gate-consize_min_data_days" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-024: The data-minimum is a configurable confidence gate (CONSIZE_MIN_DATA_DAYS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-025-collection-scoping-and-readwrite-rbac-split-consize_namespaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-025: Collection scoping and read/write RBAC split (CONSIZE_NAMESPACES)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-026-rollback-restores-pre-apply-values-absolutely-drift-proof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-026: Rollback restores pre-apply values absolutely (drift-proof)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-027-inconclusive-is-terminal-and-that-is-the-safe-failure-mode-live-e2e-data-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-027: Inconclusive is terminal, and that is the safe failure mode (live E2E data loss)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-028-verification-requires-durable-sli-history-live-e2e-data-loss-round-two" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-028: Verification requires durable SLI history (live E2E, data-loss round two)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-029-recommendations-pagination-superseded-pruning-and-an-embedded-read-only-dashboard-m2-debt-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-029: Recommendations pagination, superseded pruning, and an embedded read-only dashboard (M2 debt closure)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-030-m3-data-surface-databases-unify-into-the-existing-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-030: M3 data surface — databases unify into the existing model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-031-db-apply-guardrails-maintenance-windows-one-class-step-approval-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-031: DB apply guardrails — maintenance windows, one class step, approval default
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-032-db-verification-judges-against-absolute-caps-on-the-applied-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-032: DB verification judges against absolute caps on the applied class
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-033-db-metrics-fixture-and-collector-wiring-demo-seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-033: DB metrics fixture and collector wiring (demo seed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-034-live-db-provider-cloudwatch-rds-adapter-and-the-chartreporting-contract-m35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-034: Live DB provider — CloudWatch RDS adapter and the chart/reporting contract (M3.5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-035-live-db-provider-gcp-cloud-monitoring-cloud-sql-adapter-provider-scoped-catalogs-m35-6-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-035: Live DB provider — GCP Cloud Monitoring (Cloud SQL) adapter, provider-scoped catalogs (M3.5 §6 closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-036-nextjs-product-ui-m4-rewrite-product-standard-architecture-embedded-spa-retained-as-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-036: Next.js product UI (M4 rewrite) — product-standard architecture, embedded SPA retained as fallback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-037-authentication-and-server-side-authorization-local-users-revocable-sessions-role-gated-writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-037: Authentication and server-side authorization — local users, revocable sessions, role-gated writes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-038-branding-consize-wordmark-brand-mark-favicon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-038: Branding — conSize wordmark, brand mark, favicon
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-039-improved-navigation-grouped-sections-k-command-palette-mobile-off-canvas-drawer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-039: Improved navigation — grouped sections, ⌘K command palette, mobile off-canvas drawer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-040-lightdark-mode-next-themes-attribute-switched-token-palettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-040: Light/dark mode — next-themes, attribute-switched token palettes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-041-visual-standard-zorveus-standard-monochrome-restyle-geist-pure-black-one-accent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-041: Visual standard — Zorveus-standard monochrome restyle (Geist, pure black, one accent)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-042-premium-dashboard-refinement-flat-ultra-dark-surfaces-emerald-accent-reservation-new-brand-lockup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-042: Premium dashboard refinement — flat ultra-dark surfaces, emerald accent reservation, new brand lockup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-043-teams-and-on-call-ownership-durable-workload-stewardship" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-043: Teams and on-call ownership — durable workload stewardship
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-044-installation-scoped-incident-routing-and-on-call-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-044: Installation-scoped incident routing and on-call ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-045-ownership-ui-is-read-only-for-installation-scoped-deployments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-045: Ownership UI is read-only for installation-scoped deployments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-046-weekly-reports-use-the-alerting-route-and-on-demand-pdf-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-046: Weekly reports use the alerting route and on-demand PDF export
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-047-cloud-waste-scans-create-iac-change-plans-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-047: Cloud-waste scans create IaC change plans first
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-048-verification-windows-scale-by-apply-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-048: Verification windows scale by apply step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adr-001-go-for-the-engine-react-for-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-001: Go for the engine, React for the UI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-002-percentile-based-sizing-over-averages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-002: Percentile-based sizing over averages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-003-downsize-only-in-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-003: Downsize-only in v1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-004-auto-apply-is-opt-in-per-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-004: Auto-apply is opt-in per namespace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-005-postgres-for-the-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-005: Postgres for the store
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-006-verification-via-sli-comparison-not-chaos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-006: Verification via SLI comparison, not chaos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-007-idempotent-bucketed-collection-backfill-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-007: Idempotent bucketed collection, backfill-first
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-008-apply-never-runs-without-an-audit-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-008: Apply never runs without an audit path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-009-one-repo-one-version-one-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-009: One repo, one version, one release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-010-self-hosted-on-the-cluster-it-manages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-010: Self-hosted on the cluster it manages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m1-decisions-recorded-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M1 decisions (recorded 2026-08-24)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-011-single-sample-15-minute-windows-in-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-011: Single-sample 15-minute windows in v1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-012-store-behind-an-interface-memory-impl-for-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-012: Store behind an interface, memory impl for tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-013-embedded-versioned-migrations-run-at-startup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-013: Embedded versioned migrations, run at startup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-014-pricing-degrades-never-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-014: Pricing degrades, never fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-015-bulk-poddeployment-resolution-not-per-pod-lookups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-015: Bulk pod→deployment resolution, not per-pod lookups
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-016-half-known-windows-are-dropped-in-bucket-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-016: Half-known windows are dropped in bucket merge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-017-limits-ride-with-recommendations-downsize-both-together" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-017: Limits ride with recommendations; downsize both together
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-018-the-verifier-is-a-one-shot-cronjob-binary-not-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-018: The verifier is a one-shot CronJob binary, not a service
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-019-workload-scoped-kubelet-native-slis-app-level-metrics-opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-019: Workload-scoped kubelet-native SLIs, app-level metrics opt-in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-020-step-splits-materialize-as-follow-up-pending-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-020: Step splits materialize as follow-up pending recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-021-proportional-patch-distribution-with-exact-sum-rounding-and-qos-preservation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-021: Proportional patch distribution with exact-sum rounding and QoS preservation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-022-inconclusive-never-rolls-back-nothing-measurable-is-inconclusive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-022: Inconclusive never rolls back; nothing-measurable is inconclusive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-023-append-only-apply-trail-in-flight-state-is-derived" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-023: Append-only apply trail; in-flight state is derived
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-024-the-data-minimum-is-a-configurable-confidence-gate-consize_min_data_days" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-024: The data-minimum is a configurable confidence gate (CONSIZE_MIN_DATA_DAYS)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-025-collection-scoping-and-readwrite-rbac-split-consize_namespaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-025: Collection scoping and read/write RBAC split (CONSIZE_NAMESPACES)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-026-rollback-restores-pre-apply-values-absolutely-drift-proof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-026: Rollback restores pre-apply values absolutely (drift-proof)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-027-inconclusive-is-terminal-and-that-is-the-safe-failure-mode-live-e2e-data-loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-027: Inconclusive is terminal, and that is the safe failure mode (live E2E data loss)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-028-verification-requires-durable-sli-history-live-e2e-data-loss-round-two" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-028: Verification requires durable SLI history (live E2E, data-loss round two)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-029-recommendations-pagination-superseded-pruning-and-an-embedded-read-only-dashboard-m2-debt-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-029: Recommendations pagination, superseded pruning, and an embedded read-only dashboard (M2 debt closure)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-030-m3-data-surface-databases-unify-into-the-existing-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-030: M3 data surface — databases unify into the existing model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-031-db-apply-guardrails-maintenance-windows-one-class-step-approval-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-031: DB apply guardrails — maintenance windows, one class step, approval default
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-032-db-verification-judges-against-absolute-caps-on-the-applied-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-032: DB verification judges against absolute caps on the applied class
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-033-db-metrics-fixture-and-collector-wiring-demo-seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-033: DB metrics fixture and collector wiring (demo seed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-034-live-db-provider-cloudwatch-rds-adapter-and-the-chartreporting-contract-m35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-034: Live DB provider — CloudWatch RDS adapter and the chart/reporting contract (M3.5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-035-live-db-provider-gcp-cloud-monitoring-cloud-sql-adapter-provider-scoped-catalogs-m35-6-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-035: Live DB provider — GCP Cloud Monitoring (Cloud SQL) adapter, provider-scoped catalogs (M3.5 §6 closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-036-nextjs-product-ui-m4-rewrite-product-standard-architecture-embedded-spa-retained-as-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-036: Next.js product UI (M4 rewrite) — product-standard architecture, embedded SPA retained as fallback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-037-authentication-and-server-side-authorization-local-users-revocable-sessions-role-gated-writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-037: Authentication and server-side authorization — local users, revocable sessions, role-gated writes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-038-branding-consize-wordmark-brand-mark-favicon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-038: Branding — conSize wordmark, brand mark, favicon
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-039-improved-navigation-grouped-sections-k-command-palette-mobile-off-canvas-drawer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-039: Improved navigation — grouped sections, ⌘K command palette, mobile off-canvas drawer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-040-lightdark-mode-next-themes-attribute-switched-token-palettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-040: Light/dark mode — next-themes, attribute-switched token palettes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-041-visual-standard-zorveus-standard-monochrome-restyle-geist-pure-black-one-accent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-041: Visual standard — Zorveus-standard monochrome restyle (Geist, pure black, one accent)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-042-premium-dashboard-refinement-flat-ultra-dark-surfaces-emerald-accent-reservation-new-brand-lockup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-042: Premium dashboard refinement — flat ultra-dark surfaces, emerald accent reservation, new brand lockup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-043-teams-and-on-call-ownership-durable-workload-stewardship" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-043: Teams and on-call ownership — durable workload stewardship
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-044-installation-scoped-incident-routing-and-on-call-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-044: Installation-scoped incident routing and on-call ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-045-ownership-ui-is-read-only-for-installation-scoped-deployments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-045: Ownership UI is read-only for installation-scoped deployments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-046-weekly-reports-use-the-alerting-route-and-on-demand-pdf-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-046: Weekly reports use the alerting route and on-demand PDF export
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-047-cloud-waste-scans-create-iac-change-plans-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-047: Cloud-waste scans create IaC change plans first
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-048-verification-windows-scale-by-apply-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-048: Verification windows scale by apply step
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="consize-decision-log-adrs">Consize — Decision Log (ADRs)</h1>
+<h2 id="adr-001-go-for-the-engine-react-for-the-ui">ADR-001: Go for the engine, React for the UI</h2>
+<p><strong>Status:</strong> Accepted · <strong>Date:</strong> 2026-08-23</p>
+<p><strong>Context:</strong> One binary family (collector, analysis, apply, verifier, API) touching k8s and cloud SDKs; a dashboard for charts and audit views.</p>
+<p><strong>Decision:</strong> Engine in Go (single module, vertical-slice packages, <code>cmd/</code> per binary). UI in React + Vite + Tailwind, served as static assets behind the API.</p>
+<p><strong>Consequences:</strong> Great k8s/cloud SDK ecosystem (<code>client-go</code>, AWS SDK), easy static binary + distroless images, single language for the team of one. Trading away TypeScript end-to-end — acceptable: the API contract (OpenAPI) is the shared type boundary.</p>
+<h2 id="adr-002-percentile-based-sizing-over-averages">ADR-002: Percentile-based sizing over averages</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Average usage hides bursts; max usage recommends the wrong size.</p>
+<p><strong>Decision:</strong> Recommendations derive from p95 (request sizing) and p99 (limit sizing) over 14 days of 15-min buckets, with explicit headroom multipliers. No averages, ever.</p>
+<p><strong>Consequences:</strong> Robust to spikes and weekends; produces slightly larger requests than an average-based approach — correct tradeoff: Consize's job is <em>safe</em> savings, not maximal savings.</p>
+<h2 id="adr-003-downsize-only-in-v1">ADR-003: Downsize-only in v1</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Upsizing recommendations (e.g., a workload is throttling) are valuable but expand the safety surface significantly.</p>
+<p><strong>Decision:</strong> v1 recommends only reductions; upsizing is an explicit future toggle. Throttling/OOM detection still reports the evidence — visibility without action.</p>
+<p><strong>Consequences:</strong> Smaller blast radius, clearer demo story. The "find throttling" signal is preserved for the roadmap.</p>
+<h2 id="adr-004-auto-apply-is-opt-in-per-namespace">ADR-004: Auto-apply is opt-in per namespace</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Auto-apply is the differentiator ("platform, not report") but unconditional auto-apply is how trust dies in one incident.</p>
+<p><strong>Decision:</strong> Auto-apply runs only in namespaces labeled <code>consize.savings.dev/auto-apply=enabled</code>; everything else requires explicit approval. Exclusions always win. Step limit ≤ 30% per apply.</p>
+<p><strong>Consequences:</strong> Safe default, trust-by-config. The demo shows both paths (approved apply + auto-apply namespace).</p>
+<h2 id="adr-005-postgres-for-the-store">ADR-005: Postgres for the store</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Needs: audit trail with INSERT-only tables, range queries over time buckets, FK integrity, simple operations for one person.</p>
+<p><strong>Decision:</strong> Managed Postgres (RDS/Cloud SQL) outside the managed cluster — Consize never right-sizes its own database.</p>
+<p><strong>Consequences:</strong> Battle-tested, familiar, trivially backed up. Trade-off: not columnar like ClickHouse — fine at v1 scale (10k workloads × buckets/day); revisit if we ingest at fleet scale.</p>
+<h2 id="adr-006-verification-via-sli-comparison-not-chaos">ADR-006: Verification via SLI comparison, not chaos</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Rollback decision needs a signal that is <em>measured from the system</em>, cheap, and defensible.</p>
+<p><strong>Decision:</strong> Baseline 24 h pre-apply vs 24 h post-apply on error rate, p99, throttling, OOM/evictions (k8s) and CPU saturation/connections (DB); threshold breaches sustained 5 min → FAIL → automatic rollback.</p>
+<p><strong>Consequences:</strong> No traffic injection or synthetic probing needed in v1; rollback evidence is charts a skeptic accepts. Weakness (accepted): quiet systems may yield INCONCLUSIVE — handled by explicit verdict, never silence.</p>
+<h2 id="adr-007-idempotent-bucketed-collection-backfill-first">ADR-007: Idempotent bucketed collection, backfill-first</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Collectors crash, windows overlap, Prometheus retention varies.</p>
+<p><strong>Decision:</strong> Upsert by <code>(workload, metric, window_start)</code>; bucketing keyed on source timestamp; explicit backfill flag replays history.</p>
+<p><strong>Consequences:</strong> Safe re-runs, no dupes, easy recovery. Confidence scoring uses data volume so sparse windows degrade recommendations, not crash them.</p>
+<h2 id="adr-008-apply-never-runs-without-an-audit-path">ADR-008: Apply never runs without an audit path</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The store (audit trail) is the source of truth for "what did Consize do and why."</p>
+<p><strong>Decision:</strong> Any apply requires a prior <code>apply_event</code> row; if the store is unhealthy (<code>readyz</code> fails), applies are blocked regardless of cluster health.</p>
+<p><strong>Consequences:</strong> Fail-safe by construction; audit is a hard dependency, not a feature.</p>
+<h2 id="adr-009-one-repo-one-version-one-release">ADR-009: One repo, one version, one release</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Solo build; versions across engine/UI/infra/charts must move together.</p>
+<p><strong>Decision:</strong> Monorepo, semver from commit 1, single release workflow (tag → CI → scan → sign → chart + image).</p>
+<p><strong>Consequences:</strong> Simple mental model, atomic releases. Trade-off: infra and engine version-locked — accepted at this scale; revisit at fleet mode.</p>
+<h2 id="adr-010-self-hosted-on-the-cluster-it-manages">ADR-010: Self-hosted on the cluster it manages</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The product's own story is "run Consize like you'd run Consize-managed workloads."</p>
+<p><strong>Decision:</strong> Consize deploys into the cluster it analyzes (separate namespace, network-isolated), with its own Postgres managed separately.</p>
+<p><strong>Consequences:</strong> The demo is dogfooding: Consize's own manifests are rightsized by Consize (after an exclusion for safety in early milestones). Honest production story, real maintenance pressure — that's the point.</p>
+<hr />
+<h2 id="m1-decisions-recorded-2026-08-24">M1 decisions (recorded 2026-08-24)</h2>
+<h2 id="adr-011-single-sample-15-minute-windows-in-v1">ADR-011: Single-sample 15-minute windows in v1</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The engine's day = 96 buckets math assumes one value per 15-minute window. Sampling inside the window (e.g. 1-minute resolution aggregated into p50/p95/p99/max per window) costs 15× the Prometheus load for percentile precision that daily-p95 aggregation barely uses.</p>
+<p><strong>Decision:</strong> The collector queries Prometheus once per metric at 15-minute steps. Every window stores P50=P95=P99=Max = the sampled point; sub-window sampling is a future refinement that can land without schema or policy changes (the columns exist).</p>
+<p><strong>Consequences:</strong> One query per metric per cycle; the policy (per-day p95 → window percentiles) still smooths intra-day variation. Consequence of the simplification: a single bad scrape skews one window — bounded because a window is 1/96 of a day's p95.</p>
+<h2 id="adr-012-store-behind-an-interface-memory-impl-for-tests">ADR-012: Store behind an interface, memory impl for tests</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Every component (collector, analyze, API) needs persistence; tests must not require a database; Postgres and in-memory must never drift semantically.</p>
+<p><strong>Decision:</strong> All engine code depends on the <code>store.Store</code> interface only. <code>Memory</code> and <code>Postgres</code> implement identical semantics (idempotent upserts, supersede-on-create, denormalized reads). The behavior suite runs against both; Postgres integration is gated by <code>CONSIZE_TEST_POSTGRES</code> and skipped by default.</p>
+<p><strong>Consequences:</strong> Tests are fast and hermetic; a schema bug can hide in Postgres-only paths until CI runs the gated suite (CI runs it against an ephemeral Postgres). <code>store.Open</code> falls back to memory when <code>DATABASE_URL</code> is unset so every binary demos zero-config.</p>
+<h2 id="adr-013-embedded-versioned-migrations-run-at-startup">ADR-013: Embedded versioned migrations, run at startup</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Schema must evolve with the code, from a single source, without a separate toolchain.</p>
+<p><strong>Decision:</strong> SQL files are embedded (<code>//go:embed</code>), applied in filename order inside a transaction, tracked in <code>schema_migrations</code> (idempotent). <code>store.Open</code> migrates on startup; <code>cmd/migrate</code> exists for initContainers/CI.</p>
+<p><strong>Consequences:</strong> Fresh and existing deployments both work; migration correctness is testable via the gated Postgres suite. Trade-off: no down-migrations — the audit-trail principle (see ADR-008) makes destructive down-migrations undesirable anyway.</p>
+<h2 id="adr-014-pricing-degrades-never-fails">ADR-014: Pricing degrades, never fails</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Savings math needs a rate table; the AWS Price List API can be unreachable, slow, or rate-limited — and analysis must still run.</p>
+<p><strong>Decision:</strong> Three layers: <code>Static</code> (shipped GKE-style defaults), <code>AWS</code> (SigV4 fetch of the EC2 on-demand index, median $/vcpu-hr and $/GiB-hr × 730h, TTL-cached 24 h), and <code>Resilient</code> (falls back to static on any primary error, with a warning log). The API exposes the active price table alongside savings.</p>
+<p><strong>Consequences:</strong> Recommendations and savings always compute; a fallen-back table is visible in the payload rather than silently wrong. Trade-off: median-across-instances rates are approximations of a specific fleet — acceptable for projections, and the table is data the API can later refine per instance family.</p>
+<h2 id="adr-015-bulk-poddeployment-resolution-not-per-pod-lookups">ADR-015: Bulk pod→deployment resolution, not per-pod lookups</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Mapping Prometheus pod series to workloads requires pod→deployment ownership. Per-pod GETs are N+1 queries; ownerReferences only point pod→ReplicaSet.</p>
+<p><strong>Decision:</strong> Three bulk list calls per cycle: ReplicaSets (map RS→Deployment), Pods (map pod→RS), and Deployments (metadata). Series whose owner doesn't resolve to a listed deployment are dropped with a log line — never attributed to a wrong workload.</p>
+<p><strong>Consequences:</strong> O(3) API calls regardless of fleet size; unknown series degrade to "not managed" silently. Trade-off: ownership changes mid-window are resolved at collection time, matching the deployment metadata snapshot — consistent because both come from the same cycle.</p>
+<h2 id="adr-016-half-known-windows-are-dropped-in-bucket-merge">ADR-016: Half-known windows are dropped in bucket merge</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> CPU and memory arrive as separate bucket rows. A window present in only one series (one query failed, retention gap) would supply a zero for the other metric — dragging daily p95s toward zero and fabricating "already optimal" recommendations.</p>
+<p><strong>Decision:</strong> <code>cmd/analyze</code> merges the two series on <code>window_start</code> and drops windows missing either metric. Both queries run at identical steps, so real windows virtually always match.</p>
+<p><strong>Consequences:</strong> Input hygiene is conservative by construction: a recommendation is never made on half-truths. Cost: a partial window's data is wasted — negligible, and re-collection (ADR-007) restores it.</p>
+<h2 id="adr-017-limits-ride-with-recommendations-downsize-both-together">ADR-017: Limits ride with recommendations; downsize both together</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> M1 recommendations sized requests only. A CPU request cut without a matching limit cut does nothing (the limit still gates the pod); memory limits unedited keep the OOM risk unchanged. The apply engine needs the full pair to make a safe, meaningful change.</p>
+<p><strong>Decision:</strong> The analysis engine carries <code>current_limit</code>/<code>proposed_limit</code> alongside the request values on every recommendation (equal values = unchanged). The patcher always writes both, per the same step policy. Request-only granularity was considered and rejected: it halves the savings claim while leaving risk-bearing limits untouched.</p>
+<p><strong>Consequences:</strong> Sizing math grows one dimension (limit = max(2×request, p99) as before, just carried through). Follow-up steps (ADR-020) carry both values, and the verifier's rollback restores both.</p>
+<h2 id="adr-018-the-verifier-is-a-one-shot-cronjob-binary-not-a-service">ADR-018: The verifier is a one-shot CronJob binary, not a service</h2>
+<p><strong>Status:</strong> Accepted; fixed 24 h window superseded by ADR-048</p>
+<p><strong>Context:</strong> Verification needs a full 24 h post-apply window, then runs for a few seconds per event. A long-lived daemon would idle between verdicts, hold credentials continuously, and need its own liveness story.</p>
+<p><strong>Decision:</strong> <code>cmd/verify</code> is a batch binary: <code>AppliedEventsUnverified()</code> → for each event whose window is due → compare SLIs → record the verdict → roll back + alert on FAIL → exit. Runs on a CronJob every minute, so due applies are processed automatically as soon as their safety window opens. Each tick costs almost nothing when idle. Concurrency is safe by construction: in-flight applies are excluded from new applies by the store's derived state, and <code>CreateVerificationRun</code> upserts per apply event so a retried tick overwrites rather than duplicates.</p>
+<p><strong>Consequences:</strong> Verdict latency is bounded by the schedule plus the window.
+ADR-048 later replaced the fixed 24 h window with a 1 h step-scaled base
+window. If real-time verification is ever wanted, the same <code>verifier.Service</code>
+slots into a daemon unchanged.</p>
+<h2 id="adr-019-workload-scoped-kubelet-native-slis-app-level-metrics-opt-in">ADR-019: Workload-scoped kubelet-native SLIs, app-level metrics opt-in</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Per-service SLIs need application instrumentation, which most clusters don't have. The verifier must still tell a good downsize from a regression using signals that exist in any standard cluster.</p>
+<p><strong>Decision:</strong> v1 verifies four kubelet/cadvisor/kube-state-metrics signals scoped to the Deployment that changed — throttling (<code>container_cpu_cfs_throttled_seconds_total</code>), OOM kills, restarts, evictions — with 1-minute resolution so "sustained ≥ 5 min" is measurable. Deployment scoping uses the workload's namespace plus its generated pod-name shape (<code>&lt;deployment&gt;-&lt;pod-template-hash&gt;-&lt;pod-id&gt;</code>) so a noisy sibling workload cannot trigger a rollback for a healthy apply. Error-rate and p99 expressions are configurable via <code>CONSIZE_SLI_ERROR_EXPR</code>/<code>CONSIZE_SLI_P99_EXPR</code> (rate-wrapped, <code>sum by (namespace)</code>), default off until teams provide app-level labels.</p>
+<p><strong>Consequences:</strong> Zero-instrumentation verification covers the whole fleet without blaming one workload for another workload's restarts or OOMs. A workload with no SLI data at all is <em>inconclusive</em>, never a pass (ADR-022). App-level SLIs ride in when teams provide expressions; the evidence schema doesn't change.</p>
+<h2 id="adr-020-step-splits-materialize-as-follow-up-pending-recommendations">ADR-020: Step splits materialize as follow-up pending recommendations</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> A 70% reduction needs several 30% applies. The remainder must be <em>actionable</em>, not just logged, or the savings never land. But inserting it must not trigger the "new analysis supersedes old" rule — the follow-up <em>is</em> the step plan, not fresh analysis output.</p>
+<p><strong>Decision:</strong> After a real apply, the remainder is inserted as a pending follow-up recommendation via <code>CreateFollowUpRecommendation</code> — which does NOT supersede existing pending recommendations. Its savings scale by the request-reduction share of the remaining step. The follow-up cannot apply until the current step verifies: the in-flight guardrail blocks it, producing the apply → verify → apply rhythm by construction.</p>
+<p><strong>Consequences:</strong> Overlap with fresh nightly analysis output is possible (both may hold pending recommendations for the same workload); a nightly analyze run clears it when the step finishes. Recoverable and visible in the API, never silent.</p>
+<h2 id="adr-021-proportional-patch-distribution-with-exact-sum-rounding-and-qos-preservation">ADR-021: Proportional patch distribution with exact-sum rounding and QoS preservation</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> A deployment's containers share one request/limit budget. Distributing a delta naively (equal shares, or per-container percentiles) over- or undershoots and can break QoS classes.</p>
+<p><strong>Decision:</strong> <code>K8sPatcher</code> distributes each resource's step across containers proportionally to each container's current request share; the last container absorbs rounding so the containers' totals land <em>exactly</em> on the proposed values. QoS rule: a container keeps exactly the request/limit fields it already declared — never add a field it lacks (that would change its QoS class), never remove one; containers with neither field are untouched. Writes go through GET → mutate → <code>Update</code> guarded by resourceVersion, with up to 3 conflict retries on a fresh read.</p>
+<p><strong>Consequences:</strong> Multi-container workloads stay internally consistent and QoS-stable. The write path is one surface shared by apply and rollback (the verifier never touches the cluster itself).</p>
+<h2 id="adr-022-inconclusive-never-rolls-back-nothing-measurable-is-inconclusive">ADR-022: Inconclusive never rolls back; nothing-measurable is inconclusive</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> A FAIL verdict triggers an automatic, cluster-touching rollback — the highest-stakes decision in the system. The inverse (missing data) must not be able to trigger it, and must not be papered over as a pass.</p>
+<p><strong>Decision:</strong> Verdicts are three-valued: <code>passed</code> | <code>failed</code> | <code>inconclusive</code>. Rollback fires only on <code>failed</code>. A signal with data in one window but not the other is inconclusive; a verification where <em>no</em> signal could be judged at all is also inconclusive — "never silence" (ADR-006). Inconclusive runs are recorded as rows so they're visible, and the CronJob re-tries them on later ticks only when the window was premature — a genuinely unverifiable event stays inconclusive forever, blocking further applies in its namespace until a human looks (safe default: no silent regressions, no silent savings).</p>
+<p><strong>Consequences:</strong> Quiet clusters get flagged, not auto-approved. The trade-off is operational: an inconclusive namespace needs human attention before the next apply — which is exactly the safety posture v1 wants.</p>
+<h2 id="adr-023-append-only-apply-trail-in-flight-state-is-derived">ADR-023: Append-only apply trail; in-flight state is derived</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The audit trail (ADR-008) must be immutable evidence — but "is an apply in flight?" is a state question that changes as verification completes. Storing state alongside events would invite UPDATEs and lies.</p>
+<p><strong>Decision:</strong> <code>apply_events</code> is INSERT-only (results are new rows: planned → applied → reverted). In-flight state is <em>derived</em>: an <code>applied</code> event with no row in <code>verification_runs</code>. A crash between patch and verification row leaves a retryable state, not a corrupted record; the verifier's upsert (<code>ON CONFLICT (apply_event_id)</code>) keeps one row per event while allowing a re-run to overwrite a premature inconclusive.</p>
+<p><strong>Consequences:</strong> Every claim about the trail is provable from the row sequence; the fail-safe (ADR-008) keeps the store's health as a hard gate on applies. The store's DB role is INSERT-only on these tables per security.md.</p>
+<h2 id="adr-024-the-data-minimum-is-a-configurable-confidence-gate-consize_min_data_days">ADR-024: The data-minimum is a configurable confidence gate (CONSIZE_MIN_DATA_DAYS)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Analysis skips workloads with fewer than 5 days of data (<code>MinDataDays</code>) — a statistical-confidence rule. But it is not a <em>safety</em> rule: the verifier independently protects every apply, whatever data it was based on. A hard-coded 5 blocked legitimate use cases (new fleets, ephemeral environments) and made the live-cluster E2E impossible — the test cluster's Prometheus is ephemeral (no PVC) and no workload carries 5 days of history.</p>
+<p><strong>Decision:</strong> <code>MinDataDays</code> becomes <code>analysis.Config.MinDataDays</code> (float, "distinct days with data"), shipped default 5; <code>Analyze</code> keeps its signature and delegates to <code>AnalyzeCfg</code> with the default so existing behavior is byte-identical. <code>cmd/analyze</code> reads <code>CONSIZE_MIN_DATA_DAYS</code> (default 5) via a new <code>config.Float</code> helper. The confidence score still scales with data volume, so a lowered minimum never inflates confidence.</p>
+<p><strong>Consequences:</strong> Operators can trade statistical confidence for cycle speed on new fleets; the shipped default is unchanged. The live E2E uses 0.1 ("any data within the window") because no workload has meaningful history on this cluster — the verifier remains the safety gate.</p>
+<h2 id="adr-025-collection-scoping-and-readwrite-rbac-split-consize_namespaces">ADR-025: Collection scoping and read/write RBAC split (CONSIZE_NAMESPACES)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The collector lists deployments, replica sets, and pods — historically cluster-wide. Early E2E runs proved the namespace-scoped read model by binding <code>consize-reader</code> only in analyzed namespaces; a cluster-scope list correctly failed under that Role. The production architecture now needs a broader enterprise mode: discover the whole cluster without broadening the write surface.</p>
+<p><strong>Decision:</strong> <code>CONSIZE_NAMESPACES</code> ("ns1,ns2") scopes workload listing to the named namespaces. Empty keeps cluster-wide discovery and is paired in production with a read-only <code>consize-reader</code> ClusterRoleBinding. The write identity remains separate: <code>consize-writer</code> is bound only by namespaced <code>consize-apply</code> RoleBindings where Direct apply is explicitly allowed. <code>mode=auto</code> additionally requires <code>consize.savings.dev/auto-apply=enabled</code>. IaC PR mode does not require Kubernetes write RBAC. Implemented as <code>NewK8sMetadata(kubeconfig, namespaces)</code> with <code>listNS()</code> returning the configured set or <code>NamespaceAll</code>; <code>ListDeployments</code> and <code>PodOwners</code> loop the resolved set.</p>
+<p><strong>Consequences:</strong> Operators can choose namespace-scoped collection for a team install or cluster-wide discovery for an enterprise install without granting cluster-wide write. Direct runtime changes stay namespace opt-in; source-of-truth changes go through the GitHub/IaC PR workflow. A RoleBinding's RoleRef resolves in the binding's namespace only, so the write Role must exist in every namespace that explicitly enables Direct apply.</p>
+<h2 id="adr-026-rollback-restores-pre-apply-values-absolutely-drift-proof">ADR-026: Rollback restores pre-apply values absolutely (drift-proof)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> A FAIL verdict rolls back by re-patching the workload. The original implementation inverted the apply diff (<code>Current ↔ Proposed</code> swap) and handed it to the patcher, which distributes <code>Proposed − Current</code> over the containers' <em>live</em> requests. That is correct only while the live state still equals the state the apply left behind. The live-cluster E2E proved the assumption wrong: the verifier catches exactly the case where an external actor (a bad release) drifts the workload <em>during</em> the window — a swapped-diff rollback then landed on <code>live + (preApply − applied)</code> (64 MiB + 23 MiB = 87 MiB), restoring nothing and leaving the workload still below its allocator footprint.</p>
+<p><strong>Decision:</strong> <code>Rollback</code> now reads the live totals (<code>Patcher.ReadResources</code>) and patches with an honest <code>live → pre-apply</code> diff. The patcher's proportional distribution then lands the totals <em>exactly</em> on the recorded pre-apply values regardless of drift; the recorded <code>reverted</code> event carries that diff, so the audit trail shows the actual restore. Pre-apply restore — not re-applying the recommendation's values — because a FAIL means the change was harmful, and "undo our change" is the only semantic that is safe both when the recommendation itself caused the regression and when an external actor did.</p>
+<p><strong>Consequences:</strong> Rollback is drift-proof by construction, unit-tested with a stateful fake patcher (<code>TestRollbackAfterDrift</code> mirrors the live failure: apply → external drift → rollback lands on pre-apply). The patcher interface gains one read method; no store/API changes — the <code>reverted</code> event still records the inverse intent.</p>
+<h2 id="adr-027-inconclusive-is-terminal-and-that-is-the-safe-failure-mode-live-e2e-data-loss">ADR-027: Inconclusive is terminal, and that is the safe failure mode (live E2E data loss)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> During the live E2E, the ephemeral monitoring Prometheus (no PVC) was recreated mid-run; all pre-16:40Z history vanished. A canary apply whose verification was already due then evaluated with an empty baseline window: every SLI returned "data missing in one window", the verdict was recorded <code>inconclusive</code>, and — correctly — no rollback fired. The event is unverifiable forever (baseline data cannot be reconstructed), so the run could not be salvaged; it had to be re-run on a fresh apply with intact baseline data.</p>
+<p><strong>Decision:</strong> <code>inconclusive</code> stays terminal for the event it names, and never rolls back: without baseline evidence, Consize cannot distinguish "the change harmed the workload" from "the data disappeared". Rolling back on absent data would let an infrastructure failure (or a compromised metrics path) veto a good change. The verdict's purpose is to force <em>human</em> attention, not automated action. If an operator restores the baseline (or the metrics path returns), the verifier's upsert (<code>ON CONFLICT (apply_event_id)</code>, ADR-023) lets a manual re-run overwrite the inconclusive row.</p>
+<p><strong>Consequences:</strong> The audit trail keeps honest "unknown" rows instead of fabricating failures; the E2E re-ran the FAIL scenario on a fresh apply rather than force-fitting the lost event. Operationally, teams that run Consize with ephemeral Prometheus storage must expect occasional inconclusive verdicts and treat them as "re-run after data returns" — the shipped default window (24 h, ADR-018) makes data loss inside a window the exception, not the rule. The plan's pre-existing caveat ("no PVC → history resets") was updated in docs/e2e.md to say this actually happened, not just that it could.</p>
+<h2 id="adr-028-verification-requires-durable-sli-history-live-e2e-data-loss-round-two">ADR-028: Verification requires durable SLI history (live E2E, data-loss round two)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The live E2E's monitoring Prometheus (kube-prometheus-stack, no PVC) lost its entire history twice during the run. First ~16:40Z (pod recreated; pre-16:40Z data gone → the due verification returned inconclusive, ADR-027). Second ~21:26Z — this time root-caused: the cluster's <code>application-pool</code> has node autoscaling enabled, and scale-downs replace nodes; the monitoring Prometheus (a StatefulSet with an emptyDir) reschedules to a fresh node and its WAL dies with the old one. Three nodes were created in a single hour (20:48Z, 21:12Z, 21:26Z); each replacement wiped every series the pod had scraped. The canary's run-4 verify window (apply 20:39Z, wipe 21:26Z) lost baseline <em>and</em> post data — the event became unverifiable and had to be superseded a second time.</p>
+<p><strong>Decision:</strong> Durable SLI storage is a prerequisite for verification, not an optimization. The monitoring Prometheus received a 10 Gi <code>standard-rwo</code> PVC via its Prometheus CR (<code>spec.storage.volumeClaimTemplate</code>), so pod/node churn no longer erases history. Consize itself cannot repair this — the verifier is only as sound as the metrics path it reads, and <code>inconclusive</code> (ADR-027) is the honest symptom of a broken one. The verify window (shipped default 24 h, ADR-018) is effectively an SLA on the metrics path: fleets that run Consize against ephemeral Prometheus storage must expect terminal inconclusive events whenever node/pod churn lands inside a window.</p>
+<p><strong>Consequences:</strong> The E2E's fresh canary cycle runs on durable storage; the environment caveat in docs/e2e.md now reads "fixed with a PVC" instead of "history resets". Operational guidance for Consize operators: persist and size the SLI store so it outlives node churn, or treat inconclusive verdicts as a scheduled maintenance artifact rather than a signal.</p>
+<h2 id="adr-029-recommendations-pagination-superseded-pruning-and-an-embedded-read-only-dashboard-m2-debt-closure">ADR-029: Recommendations pagination, superseded pruning, and an embedded read-only dashboard (M2 debt closure)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Two debts accumulated as M2 landed. (1) <code>GET /api/v1/recommendations</code> returned every matching row unbounded — on the live cluster that is 400+ rows (~69 KB unfiltered), too much for a page and for the collector/analyze cycles that keep adding superseded rows. (2) The product had no surface to show anything: the first read-only dashboard was built by a separate frontend agent (<code>engine/ui/</code>, vanilla JS + hand-rolled SVG, no external assets) and needed a home. The live recommendations table at handover time held 418 rows — pending rows are the plan's work queue, but each analyze cycle supersedes the previous pending batch and the superseded rows are pure history with no read path and no bound.</p>
+<p><strong>Decision:</strong> Three coupled decisions, shipped as one work package:</p>
+<ol>
+<li><strong>Pagination is server-side and total-aware.</strong> <code>ListRecommendations</code> gains <code>limit, offset</code> (limit ≤ 0 = no limit; offset slices before limit) and returns the matching <code>total</code> before slicing. The handler defaults <code>limit=100</code>, caps at 500, rejects <code>limit &lt; 1</code> / <code>offset &lt; 0</code> with 400 (never silently defaulted), and every response carries <code>"pagination": {"limit", "offset", "total"}</code> so clients can render "N of M" and know when to stop fetching. Sorting (savings descending) happens before slicing, so pages compose into a stable global order.</li>
+<li><strong>Only superseded rows are ever pruned, and only by age.</strong> <code>PruneRecommendations(status, cutoff)</code> runs at the end of every analyze cycle with <code>CONSIZE_REC_RETENTION</code> (default 168 h). Applied/verified/rolled_back/pending are never pruned: the audit of what was <em>applied</em> lives in <code>apply_events</code> and <code>verification_runs</code> (never pruned, ADR-023), and pending rows are the live plan. Superseded rows are replaceable by construction, so pruning them loses nothing but bytes.</li>
+<li><strong>The dashboard is embedded in the API binary</strong> (<code>package ui</code>, <code>engine/ui/</code> — moved from repo root because <code>go:embed</code> cannot cross the module root). One Deployment serves the JSON API and the page on the same origin: no CORS, and the UI versions atomically with the backend it consumes. The app is hash-routed; the only server paths are <code>/</code> and asset requests, so any other non-API path falls back to <code>index.html</code>. Unknown <code>/api/*</code> paths stay honest 404s — the SPA fallback never masks a wrong endpoint.</li>
+</ol>
+<p><strong>Consequences:</strong> The live cluster now runs <code>api:e2e-v2</code> / <code>analyze:e2e-v2</code> (amd64, rebuilt cross-arch after docker.io proved unreachable from the dev machine) and serves the dashboard at <code>/</code> with pagination live (<code>pagination.total</code> = 418 at rollout). Known v1 wart, deliberately not fixed now: wire field names are PascalCase Go struct fields (no json tags) — the UI was built against that; introducing snake_case tags is a contract change that belongs with the M4 API freeze, not the debt pass. Charts were skipped because no usage-buckets endpoint exists yet — that lands with M3's data surface.</p>
+<h2 id="adr-030-m3-data-surface-databases-unify-into-the-existing-model">ADR-030: M3 data surface — databases unify into the existing model</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> M3 adds a second surface — cloud databases (RDS/Cloud SQL) — to an engine built around one shape: workloads → buckets → recommendations → apply events → verification runs. The acceptance criteria demand "one dashboard, one savings number" (AC A4), so a parallel DB surface (separate tables, separate recommendations, separate savings) would fail the milestone by construction. The <code>workloads</code> table already anticipated this: its <code>source</code> column's comment reads "k8s | db (the M3 surface)". The design question was how much machinery DBs can ride without lying about their differences.</p>
+<p><strong>Decision:</strong> Databases are first-class members of the existing model, distinguished by source, not by new tables:</p>
+<ol>
+<li><strong>DB instances are Workloads</strong> (<code>Source="db"</code>, <code>Kind="database"</code>, <code>Namespace</code> = provider namespace like "rds" or the k8s namespace of the pod). <code>Workload</code> gains four DB-only fields, empty for k8s workloads: <code>DBClass</code> (e.g. <code>db.t3.medium</code>), <code>DBReplicas</code>, <code>DBMaintenanceWindow</code> (UTC <code>ddd:hh:mm-ddd:hh:mm</code>), <code>DBProvider</code> (<code>aws</code> | <code>gcp</code> | <code>fixture</code>).</li>
+<li><strong>DB metrics ride usage_buckets</strong> with new metric names: <code>db_cpu_percent</code>, <code>db_iops</code> (absolute count), <code>db_connections</code> (absolute), <code>db_mem_percent</code>, <code>db_errors</code> (counter for the verifier). IOPS and connections are stored absolute, not as percentages: the denominator is the candidate class's catalog baseline, so percent must be computed per-class, not baked into the store.</li>
+<li><strong>DB recommendations are Recommendations with <code>Resource="class"</code></strong> plus <code>ClassCurrent</code>/<code>ClassProposed</code> (empty for cpu/memory recs). Savings, status lifecycle, supersede-on-reanalysis, and <code>SavingsSummary</code> all work unchanged — one savings number falls out for free (AC A4).</li>
+<li><strong>Class diffs ride <code>Diff</code></strong> (new <code>current_class</code>/<code>proposed_class</code> JSON fields); <code>apply_events.diff</code> is JSONB, so no schema change beyond the Go struct.</li>
+<li><strong>Class catalog + analysis live in <code>internal/analysis</code></strong> (<code>db.go</code>), pure and golden-tested like the k8s policy. The shipped catalog is RDS-style classes with documented default rates (mirroring <code>DefaultPrices</code>); overridable via config.</li>
+<li><strong>DB apply is its own service (<code>internal/dbapply</code>)</strong> with the same guardrail philosophy as the k8s apply engine: store health, pending-only, exclusions win, mode policy, concurrency, audit-first. It adds two DB-specific guardrails — <strong>maintenance-window enforcement</strong> (the current UTC time must fall inside the instance's window; <code>now</code> is injected for tests) and <strong>one-class-step</strong> (the proposal must be an adjacent class; larger moves become follow-up recommendations, the same stepping philosophy as the k8s ≤30% rule). <strong>Approval is the default</strong>: <code>mode=auto</code> requires the instance label <code>consize.savings.dev/auto-db=enabled</code> (the plan's "auto-db opt-in flag"); everything else needs an explicit actor.</li>
+<li><strong>DB verification reads the store, not a live provider.</strong> DB metrics are ingested by the collector (CloudWatch/Cloud Monitoring → usage_buckets), so the verifier's DB path reads buckets from the store — one durable source of truth, same verdict semantics (passed/failed/inconclusive, ADR-006/027), with DB SLIs: CPU saturation, connections, error counters. Rollback restores the previous instance class via the same admin interface.</li>
+<li><strong>Provider access is a seam, not a dependency.</strong> <code>internal/dbmetrics</code> defines the collector-side <code>Source</code> interface (<code>ListInstances</code>, <code>Series</code>) with a deterministic fixture implementation for tests and the live-cluster demo. Live CloudWatch (RDS) and Cloud Monitoring (Cloud SQL) collectors are deferred — the exact precedent of M1, which deferred GCP pricing behind <code>pricing.Service</code>. The verifier needs no provider interface at all (decision 7).</li>
+<li><strong>The plan's headroom thresholds are resolved by interpretation</strong> (the bullet "CPU &lt; 60%, IOPS &gt; 40%, mem &gt; 25%, conns &lt; 70%" mixes ceiling and floor phrasing). Resolution, as utilization CAPS on the projected (p95) utilization of the candidate class: CPU &lt; 60%, IOPS &lt; 60% ("IOPS headroom above 40%"), memory &lt; 75% ("free memory above 25%"), connections &lt; 70%. All four are constants in the DB analysis config, so the exact numbers are a policy knob, not code. The golden fixtures are hand-computed against these values.</li>
+</ol>
+<p><strong>Consequences:</strong> The M3 surface is a superset of the M2 shapes — no new tables, no parallel API (DB recommendations appear in the existing lists with <code>Resource="class"</code>), and the dashboard's unified surface filter falls out of the existing data. The cost is that <code>Workload</code>, <code>Recommendation</code>, and <code>Diff</code> carry fields that are meaningless for k8s workloads (documented as such in the structs). The maintenance-window guardrail and the approval default are enforced in the DB apply path only — k8s applies keep their existing auto-apply label policy (ADR-018). Live provider collectors land as thin <code>dbmetrics.Source</code> implementations later, like GCP pricing did.</p>
+<h2 id="adr-031-db-apply-guardrails-maintenance-windows-one-class-step-approval-default">ADR-031: DB apply guardrails — maintenance windows, one class step, approval default</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> ADR-030 unified databases into the existing model but left the DB write surface's safety semantics to the apply engine. The k8s apply engine's guardrail philosophy (store health, pending-only, exclusions win, mode policy, concurrency, audit-first) carries over unchanged; the DB surface adds its own failure modes that k8s doesn't have: instance changes are provider operations with their own timing constraints, and class changes are absolute writes (the target class names the full target state — unlike k8s diffs, which are relative to live).</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>Maintenance window (weekly, UTC, <code>ddd:hh:mm-ddd:hh:mm</code>), enforced on every real apply.</strong> <code>end &lt; start</code> wraps past midnight (<code>sun:23:00-mon:01:00</code>); <code>end == start</code> is malformed; an empty or malformed window is <strong>fail-closed for every mode</strong> — an instance with no configured window can never be changed. Dry-runs are exempt from the <em>timing</em> guard (planning ahead is the point of a dry-run) but still report the window state (<code>InWindow</code>/<code>Window</code>) in the response, and still fail closed when the window is unconfigured or malformed.</li>
+<li><strong>One class step per apply.</strong> A recommendation may span several catalog classes (e.g. xlarge → micro); each apply moves exactly one adjacent catalog step and queues the remainder as a follow-up pending recommendation (the follow-up's current class is the class just applied, its savings the price difference it will close). Same stepping philosophy as the k8s ≤30% rule — every change is a small, verifiable increment. Downsize-only, like the k8s policy.</li>
+<li><strong>Approval is the default.</strong> <code>mode=auto</code> on the DB surface requires the instance label <code>consize.savings.dev/auto-db=enabled</code> (the plan's opt-in flag); <code>mode=approved</code> requires an explicit actor; <code>mode=dry_run</code> records a planned event and touches nothing. A dry-run never queues follow-ups — it must not mutate the recommendation set.</li>
+<li><strong>The store row is not written by the apply engine.</strong> The k8s engine doesn't update the workload row either — the collector's next sync converges live state into the store. The DB engine mirrors this exactly: the follow-up recommendation carries the applied class forward, and the store's <code>DBClass</code> converges when the DB collector (ADR-030 §8) lands. Rollback therefore needs no live read: the pre-apply class in the apply event is the rollback target (ADR-032).</li>
+<li><strong><code>ClassChanger</code> is the provider seam, <code>StubChanger</code> the shipped placeholder.</strong> The API (<code>cmd/api</code>) and verifier (<code>cmd/verify</code>) both construct the DB engine with the stub, which fails every real write with an explicit "manual class change required" message — a FAIL verdict then escalates to manual intervention instead of silently doing nothing. Dry-runs and guardrail outcomes work end to end without a provider.</li>
+<li><strong>The API routes on the recommendation's resource</strong> — <code>Resource="class"</code> → DB engine, cpu/memory → k8s engine — one write surface per kind, decided at the same point the engines enforce it. A fully read-only API (neither engine) answers 503 for the whole apply surface; a missing engine answers 503 for its kind. Guardrail blocks come back as structured 422 <code>{"error":"apply blocked","reasons":[...]}</code>.</li>
+</ol>
+<p><strong>Consequences:</strong> The DB surface cannot be applied accidentally: no window → blocked; outside the window → blocked; automatic mode → blocked without the label; a multi-step move → one step at a time with an audit trail per step. The maintenance-window rule is the DB counterpart of the k8s auto-apply label policy (ADR-018) — enforced in the DB path only. The stub provider keeps the endpoint honest until a live CloudWatch/Cloud Monitoring integration lands.</p>
+<h2 id="adr-032-db-verification-judges-against-absolute-caps-on-the-applied-class">ADR-032: DB verification judges against absolute caps on the applied class</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> ADR-030 §7 says the DB verifier reads store buckets, not a live provider — but left the judgment semantics open. The k8s verifier compares the post window against a baseline-relative multiplier (e.g. 1.5× baseline). That design would be wrong for DB downsizes: a class downsize <em>legitimately</em> raises utilization (same demand, fewer resources), so a relative threshold would false-positive on every healthy downsize.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>Judgment is against the analysis caps, absolutely</strong> (CPU &lt; 60%, connections &lt; 70% of the applied class's baseline, sustained per the shipped 5-minute rule, measured in 15-minute collector steps — DB buckets are 15 minutes, so one bucket at/above a cap is a 15-minute breach). The threshold is the cap, not baseline × multiplier; the baseline window still provides evidence (medians) and the one-window-missing inconclusive rule (ADR-006/027) still applies.</li>
+<li><strong><code>≥</code> semantics at the cap.</strong> The analysis promise is "projected p95 <em>below</em> the cap", so a bucket exactly at the cap is a breach (<code>dbLongestRun</code> uses ≥, where the k8s path uses strictly-greater).</li>
+<li><strong>Connections are projected onto the class that was actually applied</strong>, not the recommended one: values are absolute counts in the store (ADR-030 §2), so the verifier divides by the applied class's catalog baseline. Judging against the wrong class would pass a regression (1800 connections = 75% of a <code>db.t3.large</code> baseline but 56% of <code>xlarge</code>).</li>
+<li><strong>The error counter is judged per-bucket median, not window totals.</strong> Windows have different lengths (24 h baseline vs a fresh post window); summing would compare apples to oranges. A sustained rise in errors-per-bucket is the regression signature (<code>post median &gt; baseline median</code> fails).</li>
+<li><strong><code>Verify</code> dispatches internally</strong>: a class event can never be judged by the k8s path (it would query container metrics and roll back through the deployment patcher) and vice versa — the resource tag on the event is the decision.</li>
+<li><strong>Rollback restores the absolute pre-apply class from the apply event</strong> — never a delta, never a live read. Class writes are absolute, so the recorded <code>ClassCurrent</code> is the complete rollback target even if the live class drifted during the window (same rationale as ADR-026). The reverted event records the inverted class pair.</li>
+</ol>
+<p><strong>Consequences:</strong> A healthy downsize passes (utilization rises but stays under the caps it was sized for); a real regression — sustained saturation at or above a cap, connections past the applied class's capacity, or more errors per bucket — fails and auto-rolls-back. With no store metrics at all the verdict is inconclusive, never a pass (ADR-006). The DB path needs no Prometheus client: its only data source is the store, so the verifier's DB tests run with a nil client.</p>
+<h2 id="adr-033-db-metrics-fixture-and-collector-wiring-demo-seed">ADR-033: DB metrics fixture and collector wiring (demo seed)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> ADR-030 §8 defined the collector-side <code>dbmetrics.Source</code> seam and deferred live cloud adapters. For tests and the live-cluster demo the seam needs a shipped implementation, and the collector needs a defined way to ingest a database surface alongside the k8s one — without forcing every deployment to configure one.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong><code>internal/dbmetrics</code> ships a deterministic <code>Fixture</code> source.</strong> It owns one RDS-style instance (<code>payments-prod</code>, <code>db.t3.large</code>, namespace <code>rds</code>, provider <code>fixture</code>) running the hand-computed golden demand — 10% CPU, 12.5% memory, 200 IOPS, 300 connections — modulated by daily (±10%) and weekly (±5%) sinusoids evaluated from the Unix clock. The modulation keeps the dashboard charts alive while the projected p95 stays within a few percent of the base, so the golden recommendation (<code>db.t3.medium</code>, $50/mo) holds exactly and remains hand-verifiable. Errors are a constant 2 per bucket so the verifier's error SLI passes on a healthy downsize (ADR-032 §4).</li>
+<li><strong>The fixture's maintenance window is <code>sun:00:00-sat:00:00</code> UTC</strong> — in-window for every moment except Saturday UTC, so live demo applies work whenever they're run while the guardrail stays demonstrable. Its <code>consize.savings.dev/auto-db=enabled</code> label is set, so the approval-default guardrail's auto path is demonstrable too.</li>
+<li><strong>The collector gains an optional DB surface</strong> (<code>Collector.DB</code>, nil = k8s only), ingested after the k8s path in <code>Run</code>: instances upsert as <code>Source="db"</code> workloads, and their series land in <code>usage_buckets</code> under the five <code>db_*</code> metric names — the same idempotent upsert semantics as the k8s path, so re-collecting a window is cheap and duplicate-free.</li>
+<li><strong><code>CONSIZE_DBMETRICS</code> selects the source in <code>cmd/collector</code></strong>: unset/<code>none</code> = k8s only (the shipped default, no behavior change); <code>fixture</code> = the demo fixture. Unknown values fail at startup — a misconfigured surface reports itself instead of silently collecting nothing. Live CloudWatch/Cloud Monitoring adapters land as new cases of this switch later (ADR-030 §8).</li>
+</ol>
+<p><strong>Consequences:</strong> The full DB loop is exercisable end to end without any cloud account: collector (fixture) → analysis (<code>db.t3.medium</code> recommendation) → apply (guardrails, one class step, window) → verify (store-bucket SLIs, absolute caps). The live cluster's collector CronJob sets <code>CONSIZE_DBMETRICS=fixture</code> (commented as the demo-seed value in <code>engine/deploy/collector-cronjob.yaml</code>); production deployments leave it unset until a real adapter exists. The verifier never touches this seam — it reads the store, as ADR-030 §7 requires.</p>
+<h2 id="adr-034-live-db-provider-cloudwatch-rds-adapter-and-the-chartreporting-contract-m35">ADR-034: Live DB provider — CloudWatch RDS adapter and the chart/reporting contract (M3.5)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> ADR-030 §8 and ADR-033 deferred live DB providers behind the <code>dbmetrics.Source</code> seam; the only shipped implementation was the deterministic fixture. That was the single biggest demo→product gap: a production deployment pointed at a real fleet would ingest <strong>zero</strong> databases. M4's UI also needed a per-workload chart contract and honest savings reporting. This ADR ships the AWS adapter (the market wedge — RDS is the rightsizing target, the class catalog and DB math are RDS-modeled) and the API contract the M4 UI consumes.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong><code>internal/dbmetrics/cloudwatch</code> implements <code>Source</code> against the RDS/CloudWatch APIs</strong>, hand-rolled with the existing SigV4 (exported from <code>internal/pricing</code> as <code>AWSSigner</code> — no AWS SDK dependency, matching the repo's dependency-light policy). <code>ListInstances</code> pages <code>DescribeDBInstances</code> (query protocol, XML); <code>Series</code> folds <code>GetMetricStatistics</code> (AWS JSON 1.1) into step-aligned <code>[start,end)</code> buckets, chunking windows into ≤24 h slices for the 1,440-datapoint API cap. Env config: <code>CONSIZE_DBMETRICS=cloudwatch</code>, <code>CONSIZE_AWS_REGION</code> (default us-east-1), optional <code>CONSIZE_DB_FILTER</code> (comma-separated identifiers), standard AWS credential env vars. Instance fields without a <code>Workload</code> home (region, engine, storage) ride as <code>consize.savings.dev/*</code> labels; MultiAZ → <code>DBReplicas=2</code>.</li>
+<li><strong>Metric mapping is honest about CloudWatch's surface</strong>: <code>db_cpu_percent</code> ← CPUUtilization, <code>db_mem_percent</code> ← 100×(1−FreeableMemory/(catalog GiB×2³⁰)) clamped at 0 (FreeableMemory dips negative on small instances), <code>db_iops</code> ← ReadIOPS+WriteIOPS, <code>db_connections</code> ← DatabaseConnections. <strong><code>db_errors</code> has no CloudWatch equivalent → the adapter returns no data for it, and the verifier's missing-metric semantics are locked by tests in both directions</strong>: a healthy verification passes with the errors SLI "unavailable", and a CPU-saturation regression still FAILs and rolls back without it. No data is never evidence of health (ADR-006).</li>
+<li><strong><code>GET /api/v1/workloads/{id}/series?metric=&amp;days=</code> is the chart contract.</strong> Five metric names regardless of surface (<code>cpu_percent, mem_percent, iops, connections, errors</code>; anything else 400; unknown workload 404; <code>days</code> positive int, default 14). Resolution is <strong>surface-aware</strong>: DB workloads read the <code>db_*</code> store metrics with units percent/iops/connections/errors; compute workloads read the k8s raw metrics (<code>cpu_used_milli</code>, <code>mem_used_bytes</code>) with units millicores/bytes. A contract-valid name with no store metric on the surface (e.g. iops for a compute workload) is <strong>200 with empty points — no-data, not an error</strong>, like a source that doesn't emit it. The response carries <code>unit</code> so the UI labels axes honestly. The initial implementation mapped only DB metrics (found on the live cluster: compute series came back empty while analysis clearly had the buckets); the fix is the surface-aware resolution above, with tests for both surfaces.</li>
+<li><strong><code>GET /api/v1/savings</code> gains realized numbers, additive to the existing projected fields</strong> (existing consumers unchanged): <code>realized_monthly</code>/<code>realized_yearly</code> = sum of <code>SavingsMonthly</code> over recommendations whose <strong>latest</strong> apply event is still <code>applied</code> <strong>and</strong> whose latest apply has a <code>passed</code> verification verdict. A later <code>reverted</code> event, dry-run, failed verification, or inconclusive verification excludes it; projected and realized are never mixed. <code>by_owner</code> gives the same two numbers per owner label (unassigned when absent). This keeps the M4 AC literal: realized means verified, not merely attempted.</li>
+<li><strong>Recommendations gain <code>risk</code> (low|medium|high) + <code>risk_reasons</code></strong>, computed at the API from existing data (no schema change): low data days, saturation near headroom constraints, step distance &gt; 1 class, maintenance window not open, follow-up pending, data-loss-risk flags. The UI renders a risk pill with the reasons as tooltip, and ranks by savings.</li>
+<li><strong>GCP Cloud Monitoring (Cloud SQL) is the documented follow-up on the same <code>Source</code> seam</strong> — one interface, a second implementation (same shape as M1's GCP-pricing deferral). The live-account AWS E2E is a CI gate like the pricing live fetch (ADR-014): the adapter is unit-tested against canned RDS/CloudWatch responses (httptest, hand-computed values); a real account is required for the live gate, and the demo cluster keeps <code>CONSIZE_DBMETRICS=fixture</code>.</li>
+</ol>
+<p><strong>Consequences:</strong> A production deployment with AWS credentials now ingests a real RDS fleet end to end — collect → analyze → guarded apply → verify → rollback — with the same safety semantics as the fixture. The M4 UI's charts work for both surfaces with honest units; the savings story is provable ("projected $52.59/mo, realized $0.36/mo from the one verified apply" on the live cluster as of 2026-08-25). The <code>db_errors</code> gap is documented, not silent. The compute-series fix is regression-tested. Remaining: the GCP adapter, live-account E2E, and the M4 weekly digest + Grafana tasks (plan.md).</p>
+<h2 id="adr-035-live-db-provider-gcp-cloud-monitoring-cloud-sql-adapter-provider-scoped-catalogs-m35-6-closed">ADR-035: Live DB provider — GCP Cloud Monitoring (Cloud SQL) adapter, provider-scoped catalogs (M3.5 §6 closed)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> ADR-034 §6 recorded the GCP adapter as the follow-up on the <code>dbmetrics.Source</code> seam. The user's product focus moved to their real GCP account (2026-08-25 mandate: "don't use seeded data again, I want to focus on the GCP account"), so the adapter shipped before the live-account AWS gate — the fixture demo path is retired from the live cluster entirely. Two facts drove decisions: Cloud SQL only accepts <code>db-custom-*</code> or shared-core tiers for Postgres (legacy <code>db-n1-standard-*</code> is rejected with HTTPError 400 — learned live), and the Admin API's maintenance-window day convention is <strong>1 = Monday … 7 = Sunday</strong> (verified against <code>gcloud sql instances describe</code> on the live instance: a Sunday window returns <code>day: 7</code>).</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong><code>internal/dbmetrics/cloudmonitoring</code> implements <code>Source</code> against the Cloud SQL Admin API and Cloud Monitoring.</strong> <code>ListInstances</code> pages <code>sql/v1beta4/projects/{p}/instances</code> (JSON, state RUNNABLE only); <code>Series</code> queries <code>v3/projects/{p}/timeSeries</code> with the metric descriptors below, mapped to the five <code>db_*</code> store metrics. Auth is hand-rolled: an RS256 JWT minted from the <code>GOOGLE_APPLICATION_CREDENTIALS</code> service-account key (RFC 7523, <code>token_uri</code>), with the GCE metadata-server fallback for in-cluster runs; <code>tokenFunc</code> is injectable for tests. Env: <code>CONSIZE_DBMETRICS=gcp</code>, <code>CONSIZE_GCP_PROJECT</code> (default: key's <code>project_id</code>, then metadata), optional <code>CONSIZE_DB_FILTER</code>.</li>
+<li><strong>Metric mapping follows Cloud Monitoring's surface</strong>: <code>db_cpu_percent</code> ← <code>cloudsql.googleapis.com/database/cpu/utilization</code> ×100 clamped 0..100, <code>db_mem_percent</code> ← <code>database/memory/utilization</code> ×100, <code>db_connections</code> ← <code>database/network/connections</code>; <code>db_iops</code> and <code>db_errors</code> have <strong>no Cloud Monitoring equivalent → no-evidence, never FAIL</strong> (same semantics as ADR-034 §2's <code>db_errors</code>; the verifier's no-evidence tests cover both adapters). Series requests carry the RUNNABLE filter, paginate with <code>nextPageToken</code>, and map days-to-window with the verified Monday-first convention (<code>gcpDays</code>); the initial Monday-first bug (shipped mapping 1=Sunday → a Sunday window rendered <code>sat:03:00</code>) was found live on consize-demo, fixed, and the mapping table now encodes the real convention. ZONAL→1 / REGIONAL→2 replicas; userLabels + derived <code>consize.savings.dev/{region,tier,storage}</code> labels, derived set last so they cannot be clobbered.</li>
+<li><strong>DB class catalogs are provider-scoped.</strong> <code>analysis.DBCatalog</code> (RDS) and the new <code>GCPDBCatalog</code> (price-ordered: db-f1-micro $11, db-g1-small $43, db-custom-1-3840 $72, db-custom-2-7680 $144, db-custom-4-15360 $288, db-custom-8-30720 $575 — documented us-central1 defaults, <code>VCPU</code>/<code>MemGiB</code> now float64 for GCP's fractional shapes) are <strong>never merged</strong>: a single ladder would let RDS propose GCP classes and vice versa. <code>DBClassStep</code>, <code>dbapply.stepPlan</code>/<code>classPrice</code>, the verifier's <code>dbClassFor</code>, and <code>dbSizing</code> all resolve within the workload's own provider's catalog; golden tests lock both directions (RDS must not propose GCP tiers; a GCP instance must step within GCP tiers).</li>
+<li><strong>The collector's <code>CONSIZE_DBMETRICS</code> switch gains <code>gcp</code></strong> (<code>dbSourceFor</code> refactor makes the switch unit-testable: fixture/cloudwatch/gcp/unknown). The live cluster's collector CronJob now runs <code>CONSIZE_DBMETRICS=gcp</code> with the service-account key mounted from a <code>consize-gcp</code> Secret (<code>GOOGLE_APPLICATION_CREDENTIALS=/etc/consize-gcp/key.json</code>); <code>consize-analyze</code> runs <code>CONSIZE_MIN_DATA_DAYS=0.1</code> as a documented bootstrap value for the fresh instance (restore the default 5 once it holds 5 days of data). The fixture workload was deleted from the live store — the demo seed no longer exists in any live path (poke and cluster).</li>
+</ol>
+<p><strong>Consequences:</strong> The live cluster ingests the user's real Cloud SQL instance end to end: consize-demo (<code>db-custom-1-3840</code>, ZONAL, window sun 03:00–04:00, us-central1) → real Cloud Monitoring series → recommendation <code>db-g1-small</code> $29/mo with honest risk (medium: low data days, window not yet open). Projected savings on the cluster are now 100% real: $31.59/mo projected (incl. the $29 GCP rec) + $0.36 realized from the verified M2 apply. The Monday-first convention is locked by tests; a wrong window would have let applies through on the wrong day. Remaining on this seam: the live-account AWS E2E as CI gate (unchanged, ADR-034 §6).</p>
+<h2 id="adr-036-nextjs-product-ui-m4-rewrite-product-standard-architecture-embedded-spa-retained-as-fallback">ADR-036: Next.js product UI (M4 rewrite) — product-standard architecture, embedded SPA retained as fallback</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The M4 UI shipped as a vanilla static SPA embedded in the API binary (ADR-034 §4 area) — demoable, but not product-standard: no component model, no SSR, no typed API layer, hard to extend. The user's 2026-08-25 mandate: "why are we not using nextjs? … make the UI standard, have you seen usage.ai?" — benchmark is a dark FinOps console (near-black canvas, sidebar navigation, KPI cards with dollar deltas, status pills, uppercase micro-labels). The engine API is already a clean <code>/api/v1</code> contract (ADR-034 §3), so a modern frontend can sit on it without engine changes.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong><code>ui/</code> is a Next.js (App Router, TypeScript, Tailwind) application</strong> at the repo root, replacing the embedded SPA as the product UI: <code>lib/api.ts</code> typed client against relative <code>/api/v1</code>, <code>lib/types.ts</code> API types, <code>lib/format.ts</code> currency/number formatting, <code>components/</code> (Sidebar, ApplyModal, ApplyTimeline, UsageChart, ui primitives), <code>app/</code> routes (dashboard, workloads, workload detail, recommendations, audit, apply). Charts: Recharts; icons: lucide-react.</li>
+<li><strong><code>next.config.ts</code> rewrites <code>/api/v1/:path*</code> → <code>API_UPSTREAM</code></strong> (default <code>http://127.0.0.1:18099</code>) so the same build runs against the local poke, the cluster, or a cloud-deployed API — the frontend never hardcodes a backend origin; <code>NEXT_PUBLIC_API_BASE</code> remains the escape hatch. CORS is avoided entirely by same-origin proxying.</li>
+<li><strong>The embedded SPA stays in the API binary untouched</strong> as the single-binary fallback (zero-dependency demo: one image, one port). It is not developed further; new UI work lands in <code>ui/</code>.</li>
+<li><strong>Deploy story</strong> (ADR-035 §4 context): <code>ui/</code> builds to a static export or Node server image alongside the engine images; the cluster serves it through the same <code>consize-api</code> Service (route <code>/</code> → UI, <code>/api/v1</code> → engine) once the rollout lands. Until then the poke runs <code>next dev</code>/<code>next start</code> against the local API.</li>
+</ol>
+<p><strong>Consequences:</strong> The product UI has a standard stack a hiring-team reviewer would expect (Next.js 16, App Router, typed API client), matches the usage.ai-class visual benchmark, and shares one API contract with the embedded SPA. Cost: a second deployable and a build step the single binary didn't have; the engine remains the single source of truth for all data and safety decisions (the UI stays a read-mostly client; applies still require the engine's guardrails).</p>
+<h2 id="adr-037-authentication-and-server-side-authorization-local-users-revocable-sessions-role-gated-writes">ADR-037: Authentication and server-side authorization — local users, revocable sessions, role-gated writes</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Until now the API had no identity layer at all: the apply endpoint's <code>actor</code> was a client-supplied JSON body string validated only for non-emptiness, <code>mode=auto</code> needed no identity, and every read was open. That is the documented M4 acceptance-criterion gap ("UI read-only users cannot trigger applies; RBAC enforced server-side, not just hidden buttons"), and security.md §2/§8 already promised the target model (OIDC, roles consize:view / consize:operator / consize:admin, server-side enforcement contract). This ADR delivers the local-user version of that contract with a provider seam that OIDC can implement later.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>Local users with three roles</strong> (<code>viewer</code> read-only, <code>operator</code> can approve and apply, <code>admin</code> everything), stored in a <code>users</code> table (email unique, bcrypt password hash, role CHECK). Roles map one-to-one to security.md §2's consize:view / consize:operator / consize:admin; <code>roleAtLeast</code> orders viewer &lt; operator &lt; admin so <code>RequireRole("operator")</code> admits admins too.</li>
+<li><strong>Postgres-backed, revocable sessions</strong> (<code>sessions</code> table): the client gets a 32-byte token exactly once; only its SHA-256 hash is stored, expiry is a table column (7-day TTL), and logout is a row delete. The sessions table is therefore not a credential store and a leak cannot be replayed. No JWT dependency — matches the repo's zero-dependency hand-rolled style; bcrypt comes from <code>golang.org/x/crypto</code> (the first new direct dependency since the stack was built).</li>
+<li><strong><code>internal/auth</code> package with an <code>Authenticator</code> seam.</strong> <code>Service</code> (LocalUsers) implements <code>Authenticate(ctx, token) → user</code>; the API and the chi middleware depend only on the interface, so an OIDC provider slots in as a second implementation without touching the API (the repo's seam-first pattern, cf. <code>dbmetrics.Source</code> ADR-030 §8, <code>ClassChanger</code> ADR-031 §5). Middleware: <code>RequireUser</code> (resolves the <code>consize_session</code> httpOnly cookie into the request context; 401 <code>{"error":"unauthorized"}</code>) and <code>RequireRole</code> (403 <code>{"error":"forbidden","role_required":…}</code>), composed per route group.</li>
+<li><strong>Wire contract:</strong> <code>POST /api/v1/auth/login</code> (one 401 for both an unknown email and a wrong password — the endpoint must not reveal which), <code>POST /auth/logout</code> (idempotent, clears the cookie), <code>GET /auth/me</code> (<code>{"auth_enabled":…,"user":…}</code> — <code>auth_enabled:false</code> explicitly distinguishes "auth not enforced" from "not logged in" for the client). Reads require a session; applies require operator+; login/logout are public. <strong>The apply <code>actor</code> is server-verified</strong>: with auth enabled the handler overwrites any client-supplied actor with <code>api:&lt;session email&gt;</code> — the audit-trail comment <code>Actor string // operator | auto | api:&lt;user&gt;</code> is now literally true.</li>
+<li><strong>Auth is an opt-in additive option.</strong> <code>api.New</code> gains a variadic <code>Options{Auth *auth.Service, CookieSecure bool}</code>; zero options = auth disabled = the exact pre-ADR-037 behavior, so every existing test and the embedded-SPA fallback keep working. Middleware receives the nil-interface explicitly (a nil <code>*auth.Service</code> boxed into the <code>Authenticator</code> interface is not nil — a real bug the existing test suite caught).</li>
+<li><strong>Bootstrap admin:</strong> <code>CONSIZE_BOOTSTRAP_ADMIN="email:password"</code> creates the first admin only while <code>users</code> is empty, then is ignored forever (one-time out-of-band fact). <code>CONSIZE_AUTH_REQUIRED</code> defaults <strong>true</strong> (enterprise posture); the demo builds (embedded SPA fallback, curl actor flows) opt out explicitly. <code>CONSIZE_COOKIE_SECURE</code> marks the cookie Secure behind TLS.</li>
+<li><strong>UI:</strong> a <code>/login</code> page (dark FinOps shell), an auth context probing <code>/auth/me</code> on load, a route guard bouncing unauthenticated sessions to <code>/login</code> and rendering <code>/login</code> without the sidebar, a sidebar session block (email, role, logout), and role-aware apply gating — viewer hides the Apply button <em>and</em> the server rejects the call (the AC's "not just hidden buttons"). The ApplyModal hides its actor field when auth is enforced (the server derives it).</li>
+</ol>
+<p><strong>Consequences:</strong> Nobody can trigger an apply without a server-verified identity and role; the audit trail records who the server knows acted. The poke runs auth-enforced with a bootstrap admin; the live cluster runs the new image with <code>CONSIZE_AUTH_REQUIRED=false</code> for now (embedded-SPA fallback and curl actor flows stay functional) — flipping to true plus a <code>consize-auth</code> Secret (bootstrap-admin) turns enforcement on; the migration is already applied on the cluster DB. M4's auth AC is closed; the security.md §8 contract test shape (read-only token cannot POST apply) is covered by <code>TestAuthHandlerMatrix</code> and <code>TestActorIsServerVerified</code>. Remaining on this seam: OIDC SSO (E1.5 onboarding), rate limiting and approval tokens (§7 backlog), and the API-key/agent identity story for Terraform-PR applies (E2.4).</p>
+<p><strong>Amendment (2026-08-26, §6): first-run admin creation.</strong> Ad-hoc deployments (the poke, any future self-hosted install) get an interactive equivalent of the bootstrap env var: <code>POST /api/v1/auth/setup</code> creates the first admin while <code>users</code> is empty (409 forever after), gated by the same <code>CountUsers</code> one-admin-ever rule as <code>CreateBootstrapAdmin</code> — the first to run wins. The <code>/auth/me</code> 401 body now carries <code>needs_setup:true</code> while the table is empty, so the UI renders a first-run wizard on <code>/login</code> ("Create admin &amp; sign in") instead of the login form; the wizard enforces a minimum 8-character password server-side (422). There is deliberately <strong>no default credential anywhere</strong> (Grafana-style admin/admin was rejected for a production-mutating tool) and no open registration: once one admin exists, the wizard is gone and the only way in is a session. Covered by <code>TestFirstAdminSetup</code> (advertise → 422 weak → 200 admin → 409 → login) and a 10/10 CDP smoke against a fresh empty-users stack. Deploy note: an env-var bootstrap still wins for scripted deploys (the wizard only appears when both are absent); the cluster currently needs neither because auth is disabled there.</p>
+<h2 id="adr-038-branding-consize-wordmark-brand-mark-favicon">ADR-038: Branding — conSize wordmark, brand mark, favicon</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The UI shipped with a generic app icon and a plain text sidebar header ("consize" all-lowercase). As the product polish pass began (E1.6, user's 2026-08-26 reorder: "let's do the branding now … improve on the UI and logo"), the brand needed a consistent, token-driven identity: one logo component every surface renders from, a distinctive favicon, and the wordmark's marketing spelling ("conSize", capital S) carried through the product name in title and chrome.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>A single <code>components/Brand.tsx</code> is the only brand renderer</strong> (sizes <code>md</code> sidebar / <code>lg</code> login, optional "Rightsizing" micro subtitle). It composes the <strong>brand tile</strong> — a rounded square with a radial green wash, a panel-2→bg-soft gradient, a 1px green ring and inset highlight, carrying the Gauge icon in the brand green — with the wordmark <code>conSize</code> (capital S in <code>text-green</code>, the brand color token). Every surface (sidebar, login page, loading/signing-in frames) renders this one component, so logo variants cannot drift.</li>
+<li><strong>The brand tile derives from palette tokens</strong> (<code>.brand-tile</code> in globals.css), so light mode (ADR-040) re-themes it with the same tokens — no separate light logo.</li>
+<li><strong>Favicon is a gauge mark</strong> (<code>app/icon.svg</code>, 64×64: dark rounded square, green ring arc, green needle — the same gauge motif as the brand tile). <code>favicon.ico</code> is removed; Next serves <code>/icon.svg</code> automatically and the page metadata title is "conSize — infrastructure rightsizing".</li>
+<li><strong>No asset pipeline</strong>: the logo is markup + one inline SVG, zero image downloads, crisp at any density — consistent with the dependency-light product policy.</li>
+</ol>
+<p><strong>Consequences:</strong> The product identity is a single render path (no pixel drift), theme-aware by construction, and the gauge motif now runs through tile, favicon, and wordmark. Verified by the polish smoke (33/33): wordmark + green capital S on login and sidebar, RIGHTSIZING micro, <code>link[rel=icon]</code> → <code>/icon.svg</code>, and the SVG's gauge path fetched and asserted.</p>
+<h2 id="adr-039-improved-navigation-grouped-sections-k-command-palette-mobile-off-canvas-drawer">ADR-039: Improved navigation — grouped sections, ⌘K command palette, mobile off-canvas drawer</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The first-product sidebar was a flat link list with no hierarchy, no keyboard path, and no mobile story (it pinned left at every width). E1.7 (user's reorder: "then the improved navigation") upgrades the frame to a product-standard shell: grouped sections, a keyboard-first jump-to-anything palette, and a proper mobile drawer.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>Grouped navigation</strong> — three sections with uppercase kickers: Overview (Dashboard), Optimize (Recommendations, Workloads), Operations (Audit). The active route is marked with <code>aria-current="page"</code> plus the existing green inset bar; <code>onClick</code> closes the drawer.</li>
+<li><strong>⌘K command palette</strong> (<code>components/CommandPalette.tsx</code>, mounted once in Shell so it exists on every page): ⌘K / Ctrl+K toggles, ↑/↓ move the selection, Enter jumps, Esc or backdrop click closes. Static routes always listed; the <strong>workload index is fetched once, lazily, on first open</strong> (<code>api.workloads()</code>, failures degrade to routes-only) and typed queries surface up to 8 workloads by name with source hints (<code>compute · namespace</code> / <code>database · provider</code>) and small provider-colored avatars — jump to any workload detail from anywhere. Empty query = routes only, so the palette is never noisy.</li>
+<li><strong>Mobile off-canvas drawer</strong> — below <code>lg</code>, the sidebar is <code>-translate-x-full</code> (transform-transitioned, <code>z-40</code>), toggled from a new sticky top bar (<code>lg:hidden</code>, hamburger + compact brand + theme toggle) and closed by tapping the backdrop (<code>z-30</code>), by clicking a nav link, or automatically on route change (Shell owns the <code>navOpen</code> state). Content area gains <code>lg:pl-[232px]</code> to match the fixed sidebar.</li>
+<li><strong>Footer affordances</strong> — the safety-engine card now carries a <code>&lt;kbd&gt;⌘K&lt;/kbd&gt; jump to anything</code> hint; the session block is unchanged.</li>
+</ol>
+<p><strong>Consequences:</strong> Navigation is sectioned and scannable on desktop, keyboard-complete (⌘K for anything, incl. live workloads), and the app is usable on a phone-width viewport. The palette's workload surface rides the existing typed API client — no new endpoint. Verified by the polish smoke: sections rendered, active state marked, palette opens with 4 routes, a real workload name typed in-page surfaces its row and Enter lands on <code>/workloads/&lt;id&gt;</code> (inference-api on the live poke), Esc closes, and at 390 px the hamburger opens the drawer, a link click navigates and closes it.</p>
+<h2 id="adr-040-lightdark-mode-next-themes-attribute-switched-token-palettes">ADR-040: Light/dark mode — next-themes, attribute-switched token palettes</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The console shipped dark-only (color-scheme: dark, all palette tokens in <code>:root</code>). E1.8 (user's reorder: "then toggling of light and dark mode etc.") adds an explicit user-facing toggle; the entire UI already flows from CSS variables, so theming is a token problem, not a restyle problem.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong><code>next-themes</code> with <code>attribute="data-theme"</code></strong>, default <code>dark</code>, <code>enableSystem={false}</code> — the console is dark-first by design (usage.ai-class FinOps look); the user's choice persists in localStorage and the pre-hydration script stamps the attribute so there is no flash. <code>suppressHydrationWarning</code> on <code>&lt;html&gt;</code>.</li>
+<li><strong>One light palette block, zero component changes</strong>: <code>:root[data-theme="light"]</code> redefines every raw token (backgrounds <code>#f5f7fa</code> canvas / white panels, near-black ink, slate borders) and re-tints the accent set for contrast on white (<code>--green #059669</code>, <code>--red #dc2626</code>, <code>--amber #b45309</code>, <code>--blue #2563eb</code>, <code>--teal #0d9488</code>, dims re-derived at low alpha). Because <code>@theme inline</code> maps utilities through the vars, panels, charts, pills, the brand tile, and scrollbars all re-theme together.</li>
+<li><strong>Three toggle surfaces, two shapes</strong> (one <code>ThemeToggle</code> component): a labeled Dark/Light segmented control in the sidebar footer; icon buttons (Sun in dark / Moon in light) on the mobile top bar and the login page top-right — reachable before signing in. SSR-safe: <code>resolvedTheme === undefined</code> treats as dark until hydration.</li>
+</ol>
+<p><strong>Consequences:</strong> The entire console is light-capable with a single token block; the brand tile re-themes without a second logo (ADR-038 §2); charts and pills keep contrast on white. Verified by the polish smoke: dark default body <code>rgb(11,15,20)</code>, Light seg flips to <code>rgb(245,247,250)</code> + persists across reload, Dark flips back, and the login-page icon toggle flips both ways.</p>
+<h2 id="adr-041-visual-standard-zorveus-standard-monochrome-restyle-geist-pure-black-one-accent">ADR-041: Visual standard — Zorveus-standard monochrome restyle (Geist, pure black, one accent)</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> The first polish pass (ADRs 038–040) shipped the wordmark, the command palette, the mobile drawer, and theming — but the look itself was judged substandard against the reference the user set: <em>"all you just did is very poor, look at Zorveus.com, I want that standard."</em> Zorveus (a Vercel-school SaaS site) was therefore <strong>measured, not guessed</strong>: full-page screenshots plus computed-style extraction established the concrete standard this ADR encodes. The structural decisions of ADRs 038–040 (single Brand render path, palette-driven chrome, ⌘K navigation, next-themes switching) all stand; this ADR replaces the <em>look</em> those components render.</p>
+<p><strong>Measured reference (zorveus.com, 2026-08-26).</strong> Geist-style grotesque type; near-black canvas with #0e0e0e–#0a0a0a surfaces on pure black; white text ≈ #fafafa and muted grays ≈ #a1a1a1; hero H1 60px/600 with −1.5px tracking; card bg ≈ #141414, radius 14–18 px, 1px white/10% borders; layered shadows <code>0 2px 2px rgba(0,0,0,0.04), 0 24px 48px -12px rgba(0,0,0,0.08)</code>; solid primary buttons with ghost secondary; pill badges (translucent, 12px); circular letter avatars; monochrome with exactly one restrained accent.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>Geist replaces Inter</strong> — Vercel's grotesque, the family Zorveus renders in. Loaded via <code>next/font/google</code> as <code>--font-geist</code> (layout.tsx comment notes the metrics-compatible Inter fallback if the fetch fails at build) and wired into the <code>--sans</code> token; the whole console's type follows the token, so nothing else changes.</li>
+<li><strong>Pure-neutral palette.</strong> Dark: canvas <code>#000000</code>, surfaces <code>#0a0a0a</code>, panels <code>#141414</code>/<code>#1d1d1d</code>, ink <code>#fafafa</code>/<code>#d4d4d4</code>, muted <code>#a1a1a1</code>, faint <code>#737373</code>; borders are white-alpha (<code>rgba(255,255,255,0.08)</code> / <code>0.16</code>). Light (<strong>superseding</strong> ADR-040's slate <code>#f5f7fa</code> palette): canvas <code>#f7f7f7</code>, white panels, ink <code>#111111</code>, muted <code>#565656</code>, black-alpha borders. All colors flow through <code>:root</code> / <code>:root[data-theme="light"]</code> tokens → <code>@theme inline</code>, so every surface re-themes from one block.</li>
+<li><strong>One accent.</strong> Green <code>#34d399</code> is the single brand accent — primary buttons, active states, brand tile, focus/selection tints — in both themes. The data-semantics accents (red <code>#ff5c5c</code>, amber <code>#ffb224</code>, blue <code>#6ba7ff</code>, teal <code>#3ee0c4</code>) are re-brightened for black and dimmed at 0.14 alpha.</li>
+<li><strong>Vercel-style cards.</strong> <code>.card</code> is <code>linear-gradient(180deg, var(--raise), var(--panel))</code>, radius 14 px, with the layered Vercel shadow. The gradient top is a <strong>new <code>--raise</code> token</strong> (<code>#181818</code> dark / <code>#ffffff</code> light) so card faces re-theme with everything else instead of a hard-coded dark-only highlight. <code>.stat</code> KPI cards carry the same treatment with 34 px values at −0.025em.</li>
+<li><strong>Buttons.</strong> Ghost is the default (transparent, white/12% border, radius 10); <code>.primary</code> is solid green with a <code>#052e21</code> label and green glow (<code>0 4px 20px rgba(52,211,153,0.22)</code>), hover brightening — Zorveus's solid-primary / ghost-secondary pairing in the brand color.</li>
+<li><strong>Zorveus chrome details.</strong> Avatars become circular (<code>border-radius: 999px</code>); kickers become pill badges (translucent fill + 0.22-alpha tinted border); body type 14.5 px / 1.55; H1 28 px / 700 / −0.02em; section kickers keep 0.12em tracking; selection color green at 0.3 alpha. The login page gains the Zorveus hero treatment — a pill kicker ("Infrastructure rightsizing") and an ambient green radial glow behind the brand.</li>
+<li><strong>Scope discipline.</strong> Presentational only: Geist wiring in layout.tsx, the login hero, two hover-class fixes (<code>hover:bg-white/10</code> where slate-alpha had been hard-coded), the KPI-grid gap, and the token block. No layout, behavior, or data changes.</li>
+</ol>
+<p><strong>Consequences:</strong> The console now renders the measured Zorveus standard — pure-black canvas, #141414 cards with Vercel shadows, white-alpha borders, one green accent, Geist type — in both themes from the token system alone. ADR-040's light palette values are superseded by §2 (the switching <em>mechanism</em> stands); ADR-038's brand components are unchanged and simply re-render. Verified at the pixel level, not only by computed styles: screenshots captured with the theme pinned in-page (<code>data-theme</code> plus body <code>rgb(0,0,0)</code> / <code>rgb(247,247,247)</code> asserted before every shot) were decoded with Chrome's own canvas decoder — control-tested against the known-good Zorveus screenshot (samples <code>#0e0e0e</code>) — and sample exactly the token values (<code>#000000</code> canvas, <code>#0a0a0a</code> sidebar, <code>#141414</code> card edge, <code>#ffffff</code> light panels). Screenshots: <code>/tmp/ui-smoke/consize-new-{login,dashboard,dashboard-light}.png</code>. Smokes re-run with the new pixel assertions: polish 33/33, auth 10/10.</p>
+<p><strong>Amendment 1 (2026-08-26, user clarification): "I didn't say copy it exactly, just make it like that standard."</strong> The standard is a quality bar, not pixel parity. Same-day course-corrections from a live re-measurement of zorveus.com: the primary CTA was briefly switched to Zorveus's solid white (measured lab(98.26)/lab(4.06), radius 10, flat) and <strong>reverted to the brand green the same day</strong> — the green primary is the product identity (ADR-038), the white CTA was copying, not standard-making. <code>--radius</code> moved 14 → <strong>18 px</strong> (Zorveus's measured card radius, inside the announced 14–18 range), and the modal/palette/safety radii were wired to the token so the whole card language is one knob. Also per user directive, <strong>53 unnecessary comments were removed from the UI source</strong> (narrative header blocks, ADR citations, self-evident inline notes); the ~50 kept carry information the code cannot show — enum value lists, wire-format notes, race-guard and server-contract explanations. Verification re-run after both changes: build clean, polish smoke 33/33, auth smoke 10/10, screenshots re-captured with pinned themes and pixel-checked (<code>#000000</code> canvas, <code>#0a0a0a</code> sidebar, <code>#141414</code> card edge, <code>#ffffff</code> light panels, button computed <code>rgb(52,211,153)</code>).</p>
+<p><strong>Amendment 2 (2026-08-26, user directive — "it makes the whole thing look AI-generated"):</strong> five marketing/explainer copy blocks were removed from the product UI; the copy is reserved for the future landing page (noted in plan.md backlog): (1) the sidebar safety-engine card ("Safety engine / Every change is analyzed, guarded, verified — and reversible. Analyze → Guarded apply → Verify → Auto-rollback → Audit" + the ⌘K hint), (2) the dashboard's 5-step safety strip and (3) its subtitle ("Rightsizing with a safety engine — every recommendation is applied, verified, and audited."), (4) the login hero pill ("Infrastructure rightsizing") and (5) the login footnote ("Sessions are server-verified · roles viewer / operator / admin"). The functional first-run wizard message ("No accounts exist yet — the first account becomes the workspace admin") stays. Dead CSS followed the copy: the <code>.safety*</code> strip block and the sidebar-only <code>.kbd</code> block were removed from globals.css, and <code>PageHead.sub</code> became optional — the dashboard renders title-only; the data speaks. Re-verified after the edit: build clean; polish smoke 33/33 and auth smoke 10/10 re-run; screenshots re-captured with pinned themes and pixel-checked against the token values; and a live-DOM absence check confirms none of the five strings render on the login page or the dashboard.</p>
+<h2 id="adr-042-premium-dashboard-refinement-flat-ultra-dark-surfaces-emerald-accent-reservation-new-brand-lockup">ADR-042: Premium dashboard refinement — flat ultra-dark surfaces, emerald accent reservation, new brand lockup</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> A frontend-redesign brief (2026-08-26) targeting "default component-library aesthetics and heavy vibe-coded dark-mode tropes" supersedes specific ADR-041 choices. The brief's constraints, applied faithfully: pitch-black app background, ultra-dark cards separated by hairline borders instead of heavy fills, a muted emerald reserved for the active sidebar item and positive financial metrics only, pure white for primary data, zinc-500 uppercase micro-type, fully-rounded translucent pills, roomier right-aligned tables, and a clean single-line brand mark. Where the brief is silent, ADR-041 stands (Geist, 18 px radius, token architecture, light theme).</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>Brand lockup (supersedes ADR-038 §2 + ADR-041 §6's tile).</strong> The squircle gauge tile, the stacked RIGHTSIZING sub-line, and the green capital S are gone. The mark is now a single-line <strong>conSize in Geist extrabold</strong> preceded by a minimal <strong>emerald diamond</strong> vector (18 px sidebar / 26 px login). The favicon (<code>/icon.svg</code>) matches — emerald diamond on pure black (was the gauge-in-squircle).</li>
+<li><strong>Surfaces.</strong> <code>--panel</code> and <code>--raise</code> drop to <code>#0a0a0a</code> (cards, palette, modal, timeline), <code>--border</code> to white/5% — cards are flat ultra-dark surfaces separated by a hairline, <strong>no gradients, no layered shadows</strong> (<code>--shadow-card: none</code>; supersedes ADR-041 §4's <code>#141414</code> + Vercel shadow). <code>--panel-2</code> → <code>#141414</code> (interactive thumbs only). Light theme mirrors: white panels, black-alpha hairlines, shadows off.</li>
+<li><strong>Palette.</strong> <code>--green</code> #34d399 → <strong>muted emerald <code>#10b981</code></strong> (light keeps #059669). <code>--ink</code> #fafafa → <strong>pure white <code>#ffffff</code></strong>; <code>--faint</code> → <code>#71717a</code> (zinc-500); <code>--muted</code> stays #a1a1a1 (zinc-400).</li>
+<li><strong>Accent reservation (supersedes ADR-041 §5 + Amendment 1's green-primary identity).</strong> Emerald appears <strong>only</strong> on: the active sidebar item, positive financial metrics (projected/realized KPI values, savings-by-owner cells, recommendation SavingsMonthly cells — <code>.money</code>), and the brand mark. The <strong>primary CTA is solid white</strong> (near-black text; black in light theme) — the green primary button is gone. Decorative green was swept: login ambient glow → white-alpha, sidebar avatar circle → white/10, link hovers → white, palette selection → white/10 + white inset bar, spinner → white, input caret → ink. <strong>Functional/status colors kept</strong> (these are interaction feedback and M2 safety semantics, not decoration): input focus border, selection tint, semantic pill tints, timeline dots, maintenance-window text, modal success/error.</li>
+<li><strong>Micro-typography.</strong> <code>.micro</code> (stat labels, section titles) and table headers: uppercase, <strong>10 px, tracking 0.1em (tracking-widest), zinc-500</strong>. Applied via <code>--faint</code>; <code>.nav-section</code> aligned to the same tracking.</li>
+<li><strong>Pills.</strong> Neutral pills (planned, pending, superseded, n/a) are <strong>rounded-full, <code>rgba(255,255,255,0.10)</code> background, pure white text</strong> — the gray fill is banned. Semantic pills (applied/verified/passed → emerald tint, failed/rolled_back → red tint, risk low/med/high → emerald/amber/red) keep their translucent tints: pass/fail must stay legible at a glance (the M2 safety-engine contract), so the ban applies to neutral gray fills, not status color.</li>
+<li><strong>Tables.</strong> Headers: 10 px zinc-500 uppercase, padding 12/16/10. Cells: padding 14/16, body text muted (zinc-400), <strong>numeric cells right-aligned, tabular, pure white</strong>, savings cells emerald (<code>.money</code>). Hover stays white/3%.</li>
+<li><strong>Typography stack.</strong> Geist was already in place (ADR-041 §1) — the brief's "Inter, Geist, or system-ui" was already satisfied; no change.</li>
+</ol>
+<p><strong>Consequences:</strong> The console reads as a flat, monochrome, emerald-accrued instrument: pure-black canvas, hairline-separated ultra-dark cards, white primary data, emerald only where money and the active route live. Verified: build clean; polish smoke updated to the new contract and green — <strong>35/35</strong> (single-line lockup with no RIGHTSIZING sub-text, solid-white primary button, emerald active-nav and savings-KPI computed styles, diamond favicon, plus the pre-existing 32 checks); auth smoke re-run <strong>10/10</strong>; screenshots re-captured with pinned themes and pixel-checked with Chrome's own decoder: login canvas <code>#000000</code>, white-alpha glow, disabled (45%) white primary = <code>#797979</code> over the card, flat card surfaces <code>#0a0a0a</code> (dark) / <code>#ffffff</code> (light), sidebar <code>#0a0a0a</code>/<code>#ffffff</code>. The removal of ADR-041's green-primary identity and card shadow is intentional per the brief's accent-reservation rule; both are token-level changes if the direction ever needs revisiting.</p>
+<h2 id="adr-043-teams-and-on-call-ownership-durable-workload-stewardship">ADR-043: Teams and on-call ownership — durable workload stewardship</h2>
+<p><strong>Status:</strong> Accepted</p>
+<p><strong>Context:</strong> Consize can safely recommend, apply, verify, and roll back changes, but a failed verification previously named only the workload. A production tool needs to show who owns that workload and which escalation target should act. Labels are collector-owned and can drift; ownership therefore cannot live only in Kubernetes metadata.</p>
+<p><strong>Decision:</strong></p>
+<ol>
+<li><strong>A team is the ownership boundary.</strong> The new <code>teams</code> table has a stable, generated slug plus a display name, required named owner, and required on-call contact. Contacts are intentionally opaque strings: an email, <code>#slack-channel</code>, or incident-management schedule can work without binding the engine to a single external provider.</li>
+<li><strong>A workload has zero or one team.</strong> <code>workloads.team_id</code> is nullable (<code>ON DELETE SET NULL</code>). Assignments are made only through explicit admin APIs: <code>POST /teams</code>, <code>PATCH /teams/{id}</code>, <code>PUT /workloads/{id}/team</code>, and <code>DELETE /workloads/{id}/team</code>. Team identity is immutable in this first slice; only owner/on-call contacts change.</li>
+<li><strong>Collector safety wins.</strong> The collector's workload upsert never writes <code>team_id</code>; both stores preserve an operator-assigned team through every metadata refresh. This avoids an ownership outage caused by a normal collection run.</li>
+<li><strong>Visibility is broad; configuration is admin-only.</strong> Any signed-in user can read <code>/teams</code> and workload ownership fields. Creating teams, changing contacts, or assigning workloads requires the existing <code>admin</code> role; those operations are governance configuration, not routine applies.</li>
+<li><strong>Alerts carry ownership, not a new delivery system.</strong> Failed-verification and rollback-failed messages include team and on-call information. The configured Slack webhook remains the delivery path; provider-specific per-team routing is deferred until a PagerDuty/Slack-router integration exists.</li>
+</ol>
+<p><strong>Consequences:</strong> Workloads, their detail page, and a Teams operations view now show the responsible team and escalation target. Admins can create and edit teams and assign/unassign workloads in the UI. Failed verification alerts tell the receiver who should respond. The complete Go suite passes and the Next.js Webpack production build passes; store/API tests specifically cover authorization, assignment, contact updates, and collector-upsert preservation.</p>
+<h2 id="adr-044-installation-scoped-incident-routing-and-on-call-ownership">ADR-044: Installation-scoped incident routing and on-call ownership</h2>
+<p><strong>Status:</strong> Accepted for backlog (2026-08-27)</p>
+<p><strong>Context:</strong> Consize installations are owned and scoped by one team. A free-form
+on-call string is useful context but cannot resolve schedules, page the current
+responder, deduplicate repeated failures, or show acknowledgement and
+assignment state. A manually managed in-product team directory would duplicate
+the organization's incident-management system and drift from its schedules.</p>
+<p><strong>Decision:</strong> Treat the external incident-management service as the source of
+truth for incident lifecycle and the Slack channel as the collaboration
+surface. Consize emits a provider-neutral incident event through an
+<code>IncidentSink</code> seam. The first adapters are Slack webhook delivery plus
+PagerDuty Events API and Jira Service Management operations alerts. Each
+installation configures a provider routing reference and a Slack channel;
+provider credentials are mounted by Kubernetes Secret references. Slack
+mentions use stable Slack user/group IDs, never display names. Events carry a
+stable installation/workload/failure-episode deduplication key and are
+idempotent on retries.</p>
+<p>Consize stores a local incident projection (provider ID, status, assignee,
+timestamps, links, delivery attempts, and errors) for dashboard visibility.
+Signed provider webhooks synchronize acknowledgement, assignment, escalation,
+and resolution with replay protection. A successful post-rollback verification
+may resolve the incident; all other resolution paths are explicit and audited.
+The dashboard surfaces the current owner and required change, but incident
+ownership never grants apply permission: existing server-side operator/admin
+RBAC remains authoritative.</p>
+<p><strong>Consequences:</strong> On-call routing follows the organization's real escalation
+policies instead of a stale Consize contact field. PagerDuty can route an
+event to its escalation policy and synchronize incident actions into Slack;
+Jira Service Management exposes equivalent alert assignment, responder,
+acknowledge, and close operations. Slack-only installations still receive
+rich, tagged messages, but schedule resolution is intentionally delegated to
+the configured provider. This replaces the E1.2 manual team directory for
+single-team installations; the existing <code>teams</code> slice remains provisional
+until the installation model is implemented.</p>
+<p><strong>Amendment (2026-08-28, first slice):</strong> The alert layer now follows the
+Grafana Alerting shape directly: Consize emits labeled alert events,
+notification policies match those labels, and matched policies deliver to
+named contact points. Slack webhook delivery is the first contact-point
+integration and uses Block Kit with stable Slack user/group mentions when
+configured. <code>CONSIZE_SLACK_WEBHOOK</code> remains a backwards-compatible default
+contact point; <code>CONSIZE_ALERT_ROUTING</code> is the policy-driven path. PagerDuty,
+Jira Service Management, durable incident projection, and signed inbound
+provider webhooks remain the next E1.9 slices.</p>
+<p><strong>Amendment (2026-08-28, product configuration):</strong> Alert routing metadata is
+now UI/API configurable through <code>/api/v1/alerting/config</code> and the <code>/alerting</code>
+console page. The config is stored in <code>app_settings</code>; raw webhook URLs are
+rejected so provider secrets remain Kubernetes Secret-backed environment
+variables. <code>/api/v1/alerting/test</code> exercises the active policy/contact-point
+path with a synthetic notification.</p>
+<h2 id="adr-045-ownership-ui-is-read-only-for-installation-scoped-deployments">ADR-045: Ownership UI is read-only for installation-scoped deployments</h2>
+<p><strong>Status:</strong> Accepted (2026-08-27)</p>
+<p><strong>Context:</strong> The initial E1.2 slice exposed a Teams page where an administrator
+could create teams, edit contacts, and assign workloads. That assumes one
+Consize instance is a shared multi-team control plane. The intended deployment
+model is one team per installation, with collector scope and on-call routing
+defined at install time.</p>
+<p><strong>Decision:</strong> Remove team creation, contact-editing, and manual assignment
+controls from the UI. Keep the ownership route as a read-only installation
+view while the deployment configuration and E1.9 incident-routing work land.
+The existing API/store compatibility remains temporarily so current data is
+not discarded; new installation onboarding will replace it with deployment
+metadata and provider references.</p>
+<p><strong>Consequences:</strong> The UI no longer suggests that operators should maintain a
+second team directory inside Consize. Ownership context remains visible, but
+changes are made through installation configuration and the organization's
+incident-management system. The revised route uses tighter, flatter console
+surfaces and a C/S monogram lockup rather than the previous generic diamond
+mark.</p>
+<p><strong>Follow-up correction (2026-08-27):</strong> the interim ownership page was judged
+unnecessary and was removed from product navigation; <code>/teams</code> redirects to the
+dashboard and workload detail has no manual ownership controls. The C/S
+monogram and split <code>conSize</code> wordmark are the active brand treatment.</p>
+<h2 id="adr-046-weekly-reports-use-the-alerting-route-and-on-demand-pdf-export">ADR-046: Weekly reports use the alerting route and on-demand PDF export</h2>
+<p><strong>Status:</strong> Accepted (2026-08-28)</p>
+<p><strong>Context:</strong> M4 left the weekly digest open after the dashboard rewrite. The
+MVP now has working Slack contact points, verified-apply savings, and a live
+audit trail, so weekly reporting can be useful without adding PagerDuty/JSM
+incident ownership yet.</p>
+<p><strong>Decision:</strong> Add a report builder over the existing store contract rather
+than a second reporting database. A report covers 7, 14, or 30 days and
+includes realized monthly savings from passed verifications in that period,
+current pending monthly opportunity, top pending recommendations, rollbacks,
+verification failures/inconclusive runs, and telemetry freshness. Admins can
+enable the scheduled weekly digest from the <code>/reports</code> page; the CronJob runs
+weekly and exits cleanly while disabled. Manual generation is always available
+through JSON and a simple PDF export. Slack delivery reuses the Alerting
+contact-point/policy path so webhook secrets remain Kubernetes Secret-backed.</p>
+<p><strong>Consequences:</strong> Reporting is an operations pulse, not a competing source of
+truth. The first implementation is enough for stakeholder visibility and demo
+proof: generate report, download PDF, send to Slack, and toggle weekly
+delivery. Email delivery, richer PDF layout, attached PDFs in Slack, and
+month-over-month trend charts remain future reporting polish.</p>
+<h2 id="adr-047-cloud-waste-scans-create-iac-change-plans-first">ADR-047: Cloud-waste scans create IaC change plans first</h2>
+<p><strong>Status:</strong> Accepted (2026-08-28)</p>
+<p><strong>Context:</strong> The next feature list calls for Consize to find non-workload
+resources that still accrue cost — unattached storage volumes, idle load
+balancers, unused NAT gateways, and stopped instances — and to avoid
+configuration drift by changing source-controlled infrastructure where possible.</p>
+<p><strong>Decision:</strong> Add a broader <code>costscan.Source</code> seam and persist findings as
+cost opportunities. The live GKE deployment uses a GCP source backed by the
+Compute Engine API and the existing <code>consize-gcp</code> service-account key. The
+fixture source remains only for tests and explicit local demos. The first live GCP
+implementation emits high-signal findings for detached Persistent Disks and
+stopped VMs whose Persistent Disks still accrue cost; idle load balancer and
+unused Cloud NAT findings require traffic evidence and remain the next
+monitoring-backed scan extensions. Each opportunity records provider, account,
+region, resource identity, estimated monthly cost, evidence, risk, recommended
+action, and optional Terraform metadata. Operators can prepare an audited IaC
+PR, and the GitHub integration can create the branch/commit/draft PR when
+credentials are configured. Direct cleanup is deliberately narrower: v1 supports
+only GCP unattached Persistent Disks, and revalidates the disk is still detached
+immediately before requesting deletion.</p>
+<p><strong>Consequences:</strong> The UI now has a Cloud waste section where admins/operators
+can run the scan, review evidence, open an IaC PR, or use Direct cleanup for
+supported low-ambiguity resources. Direct cleanup records an insert-only
+<code>cost_actions</code> trail before and after the provider call, so cleanup does not
+vanish when an opportunity is marked resolved. This keeps the safe Consize
+pattern intact: observe → recommend → reviewable source change by default;
+direct provider mutation only where the provider can be re-checked at execution
+time.</p>
+<h2 id="adr-048-verification-windows-scale-by-apply-step">ADR-048: Verification windows scale by apply step</h2>
+<p><strong>Status:</strong> Accepted (2026-08-31)</p>
+<p><strong>Context:</strong> The original 24 h verification window was safe but too slow for
+the normal rightsizing loop. A first step in Consize is deliberately modest,
+because the apply engine already limits Kubernetes changes to 30% per step and
+database changes to one adjacent class. Waiting a full day after every small
+step makes the product feel stuck, while using a flat short window for every
+step would under-observe deeper reductions.</p>
+<p><strong>Decision:</strong> Replace the fixed 24 h shipped default with a 1 h base window
+that scales by apply step number. Step 1 uses 1 h, step 2 uses 2 h, step 3 uses
+3 h, and so on. The verifier uses the effective step window for both the
+pre-apply baseline and the post-apply observation period, so comparisons remain
+balanced. The dashboard status endpoint computes the same due time from the
+insert-only apply event's stored <code>step_number</code>.</p>
+<p><strong>Consequences:</strong> First-step feedback is much faster, follow-up steps still get
+progressively more evidence, and no namespace/workload labeling policy is
+needed for the MVP. <code>CONSIZE_VERIFY_WINDOW</code> remains configurable, but it now
+means the base window, not a flat window for every apply. Installations that
+need a more conservative posture can raise the base duration.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

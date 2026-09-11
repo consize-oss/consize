@@ -1,0 +1,2436 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Safe, Automated Action for Kubernetes">
+      
+      
+        <meta name="author" content="Consize OSS">
+      
+      
+        <link rel="canonical" href="https://docs.consizehq.com/customer-guide/">
+      
+      
+        <link rel="prev" href="../demo/">
+      
+      
+        <link rel="next" href="../observability/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Customer Guide - Consize</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#consize" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Consize" class="md-header__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Consize
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Customer Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Welcome
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../THE_SAFETY_NET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  The Safety Net
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../features/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../demo/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Interactive Demo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../testing/" class="md-tabs__link">
+          
+  
+  
+  Internal / Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Consize" class="md-nav__button md-logo" aria-label="Consize" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Consize
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/consize-oss/consize" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    consize-oss/consize
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../THE_SAFETY_NET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Safety Net
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-teams-use-consize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why teams use Consize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-consize-optimizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Consize optimizes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Consize optimizes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-workload-rightsizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes workload rightsizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-rightsizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database rightsizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloud-waste-opportunities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloud-waste opportunities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure-as-code-pull-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure-as-Code pull requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-safety-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The safety engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apply-stepping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Apply stepping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-graphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage graphs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alerting-and-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alerting and notifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime components
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-create-the-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Create the namespace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-create-required-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Create required secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-configure-collection-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configure collection scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-apply-read-rbac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Apply read RBAC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-enable-direct-apply-only-where-allowed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Enable direct apply only where allowed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-deploy-consize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Deploy Consize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-verify-the-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Verify the installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operating-model-for-teams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operating model for teams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-consize-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Consize is not
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-scope-and-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current scope and roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-short-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The short version
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal / Dev
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal / Dev
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../e2e/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E2E Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-teams-use-consize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why teams use Consize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-consize-optimizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Consize optimizes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Consize optimizes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-workload-rightsizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes workload rightsizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-rightsizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database rightsizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloud-waste-opportunities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloud-waste opportunities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#infrastructure-as-code-pull-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Infrastructure-as-Code pull requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-safety-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The safety engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apply-stepping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Apply stepping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-graphs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage graphs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reports
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alerting-and-notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alerting and notifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#github-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime components
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-create-the-namespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Create the namespace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-create-required-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Create required secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-configure-collection-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configure collection scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-apply-read-rbac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Apply read RBAC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-enable-direct-apply-only-where-allowed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Enable direct apply only where allowed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-deploy-consize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Deploy Consize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-verify-the-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Verify the installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operating-model-for-teams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operating model for teams
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-consize-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Consize is not
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-scope-and-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current scope and roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-short-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The short version
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="consize">Consize</h1>
+<p>Consize helps engineering teams reduce infrastructure waste without turning cost optimization into a production risk.</p>
+<p>It analyzes real usage from Kubernetes workloads and cloud database instances, recommends safer sizes, and gives teams two ways to act: open a reviewable Infrastructure-as-Code pull request, or apply a guarded runtime change directly. Every change is recorded, verified, and reversible.</p>
+<blockquote>
+<p>Image placeholder: product dashboard showing savings, open recommendations, system health, and recent verification results.</p>
+</blockquote>
+<h2 id="why-teams-use-consize">Why teams use Consize</h2>
+<p>Most infrastructure waste is obvious only after it becomes expensive. A service requests 8 GiB and uses 400 MiB. A database runs one class too large for months. A detached disk keeps accruing cost after an environment is deleted. Engineers usually know these problems exist, but they hesitate to change production resources without evidence, review, and rollback.</p>
+<p>Consize closes that execution gap.</p>
+<p>It is not just a scanner that says “you could save money.” It is a safety system for acting on that information:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>collect telemetry → analyze usage → recommend changes → apply safely or open an IaC PR
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                 → verify health → rollback on regression → keep an audit trail
+</code></pre></div>
+<p>The result is a product engineers can trust: recommendations are backed by usage data, changes move in controlled steps, risky workloads are blocked, and realized savings are counted only after verification.</p>
+<h2 id="what-consize-optimizes">What Consize optimizes</h2>
+<h3 id="kubernetes-workload-rightsizing">Kubernetes workload rightsizing</h3>
+<p>Consize reads Kubernetes workload metadata and Prometheus usage metrics, then recommends lower CPU and memory requests/limits where the current allocation is higher than observed usage.</p>
+<p>For each workload, Consize shows:</p>
+<ul>
+<li>current CPU and memory requests/limits;</li>
+<li>p50, p95, p99, and max usage over time;</li>
+<li>the proposed request and limit;</li>
+<li>estimated monthly savings;</li>
+<li>confidence and risk;</li>
+<li>apply history and verification results.</li>
+</ul>
+<blockquote>
+<p>Image placeholder: workload detail page with the 14-day usage graph and the current-versus-recommended panel.</p>
+</blockquote>
+<h3 id="database-rightsizing">Database rightsizing</h3>
+<p>Consize also treats database instances as managed workloads. Database recommendations use provider-scoped class catalogs, utilization caps, and maintenance-window guardrails.</p>
+<p>For databases, Consize can recommend moving from an oversized instance class to a smaller class when CPU, memory, IOPS, and connection headroom remain within policy. Database changes move one adjacent class at a time, not multiple classes in one jump.</p>
+<h3 id="cloud-waste-opportunities">Cloud-waste opportunities</h3>
+<p>Consize scans for non-workload resources that still accrue cost, such as:</p>
+<ul>
+<li>unattached storage volumes;</li>
+<li>stopped instances whose attached disks still cost money;</li>
+<li>idle load balancers;</li>
+<li>unused NAT gateways.</li>
+</ul>
+<p>The current live cloud-waste scanner supports GCP Persistent Disk findings. Direct cleanup is intentionally narrow: Consize only requests deletion for a GCP unattached disk after re-reading the live resource and confirming it is still detached. Other cloud-waste findings should go through an IaC PR until provider-specific safety checks are implemented.</p>
+<h3 id="infrastructure-as-code-pull-requests">Infrastructure-as-Code pull requests</h3>
+<p>For teams that manage infrastructure with Terraform, Kubernetes YAML, Helm, Kustomize, or GitOps, Consize should not create drift by patching the live environment behind the source of truth.</p>
+<p>Consize therefore supports an IaC PR workflow:</p>
+<ol>
+<li>Select a recommendation.</li>
+<li>Choose “Open IaC PR.”</li>
+<li>Consize updates the mapped source file in the configured GitHub repository.</li>
+<li>Consize opens a draft pull request with the proposed change.</li>
+<li>The team reviews, approves, merges, and lets its normal delivery system reconcile the cluster.</li>
+</ol>
+<p>Terraform and Kubernetes YAML PRs are supported today. Helm values and richer GitOps mapping are planned next because charts and overlays need explicit mapping to be edited safely.</p>
+<blockquote>
+<p>Image placeholder: GitHub pull request created by Consize with a small resource request diff.</p>
+</blockquote>
+<h2 id="the-safety-engine">The safety engine</h2>
+<p>Consize is designed around one principle: optimization should fail safe.</p>
+<p>Before any direct apply, Consize checks guardrails. If a guardrail fails, the apply is blocked before anything is changed.</p>
+<table>
+<thead>
+<tr>
+<th>Guardrail</th>
+<th>What it protects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Store health</td>
+<td>Consize will not apply when the audit store is unavailable.</td>
+</tr>
+<tr>
+<td>Pending-only</td>
+<td>Already applied, rejected, superseded, or resolved changes cannot be applied again by mistake.</td>
+</tr>
+<tr>
+<td>Exclusions</td>
+<td>Workloads labeled <code>consize.savings.dev/exclude=true</code> are skipped.</td>
+</tr>
+<tr>
+<td>Protected namespaces</td>
+<td>System namespaces such as <code>kube-system</code> and <code>consize-system</code> are protected.</td>
+</tr>
+<tr>
+<td>Stateful/data-risk workloads</td>
+<td>Workloads marked with data-loss risk are skipped.</td>
+</tr>
+<tr>
+<td>Approval mode</td>
+<td>Direct apply requires an authenticated operator unless the namespace explicitly allows auto-apply.</td>
+</tr>
+<tr>
+<td>Step limit</td>
+<td>Kubernetes resources move by at most 30% per apply.</td>
+</tr>
+<tr>
+<td>DB class step</td>
+<td>Databases move one adjacent class per apply.</td>
+</tr>
+<tr>
+<td>Concurrency</td>
+<td>Consize prevents overlapping applies against the same namespace.</td>
+</tr>
+<tr>
+<td>Maintenance window</td>
+<td>Database applies are blocked outside the configured window.</td>
+</tr>
+</tbody>
+</table>
+<p>Blocked applies return structured reasons so operators can see exactly why a change did not run.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="s2">"apply blocked"</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">"reasons"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="s2">"namespace is not auto-apply enabled"</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="s2">"recommendation has an in-flight verification"</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="apply-stepping">Apply stepping</h2>
+<p>Consize does not jump from a large allocation to a much smaller one in a single apply.</p>
+<p>For Kubernetes CPU and memory recommendations, each direct apply moves at most 30% from the current value. The next recommendation is created only after the previous step verifies.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>1000m → 100m
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>step 1: 1000m → 700m
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>step 2: 700m  → 490m
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>step 3: 490m  → 343m
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>step 4: 343m  → 241m
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>step 5: 241m  → 169m
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>step 6: 169m  → 119m
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>step 7: 119m  → 100m
+</code></pre></div>
+<p>This creates a deliberate rhythm:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>apply one step → verify health → apply next step
+</code></pre></div>
+<p>When a step passes verification, Consize surfaces the queued continuation in
+the apply history as the next safe action. The product can still reach the final
+target, but it earns trust along the way.</p>
+<h2 id="verification">Verification</h2>
+<p>Verification is the safety check after a direct apply.</p>
+<p>Consize compares health signals before and after the change. It is not used to decide what to recommend; it is used to prove whether a change that already happened was safe.</p>
+<p>For Kubernetes workloads, Consize checks signals on the changed workload, not the whole namespace:</p>
+<ul>
+<li>restarts;</li>
+<li>OOM kills;</li>
+<li>evictions;</li>
+<li>CPU throttling;</li>
+<li>optional application-level latency or error-rate metrics.</li>
+</ul>
+<p>For databases, Consize checks provider metrics such as CPU saturation, memory utilization, connections, IOPS, and available error signals.</p>
+<p>Verification returns one of three verdicts:</p>
+<table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>passed</code></td>
+<td>The change looks safe. Consize can count the saving as realized.</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>The change likely caused a regression. Consize rolls back and records evidence.</td>
+</tr>
+<tr>
+<td><code>inconclusive</code></td>
+<td>Consize does not have enough data to prove safety. It does not roll back automatically, but it requires human attention.</td>
+</tr>
+</tbody>
+</table>
+<p>The production default verification window starts at 1 hour and scales with
+the apply step. Step 1 verifies after 1 hour, step 2 after 2 hours, step 3
+after 3 hours, and so on. This keeps the first feedback loop fast while giving
+deeper reductions more observation time.</p>
+<p>The verifier runs every minute by default. It never verifies early; it simply
+picks up applies automatically as soon as their safety window opens.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">verification</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">baseWindow</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1h</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">stepScaled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">sustainedMinutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">signals</span><span class="p">:</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nt">restarts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">oomKills</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">evictions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">throttling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<h2 id="usage-graphs">Usage graphs</h2>
+<p>The workload usage graph is where engineers build confidence in a recommendation.</p>
+<p>Consize shows observed percentiles over the analysis window, usually 14 days. The graph makes it easy to compare what the workload requested against what it actually used.</p>
+<p>Typical interpretation:</p>
+<ul>
+<li>p50 shows normal usage;</li>
+<li>p95 shows the high-but-normal operating range;</li>
+<li>p99 and max show bursts;</li>
+<li>the recommendation uses headroom above observed usage rather than cutting to the exact line.</li>
+</ul>
+<blockquote>
+<p>Image placeholder: usage graph with CPU selected, showing p50/p95/p99/max and the recommendation panel beside it.</p>
+</blockquote>
+<h2 id="reports">Reports</h2>
+<p>Consize can generate savings reports for a selected time range.</p>
+<p>Reports are useful for engineering managers, platform teams, and FinOps stakeholders who want a periodic summary without logging into the dashboard.</p>
+<p>Current report views include:</p>
+<ul>
+<li>projected monthly savings;</li>
+<li>realized savings from verified applies;</li>
+<li>pending recommendations;</li>
+<li>verification outcomes;</li>
+<li>rollbacks;</li>
+<li>top open recommendations;</li>
+<li>recent cleanup activity.</li>
+</ul>
+<p>Admins can generate a report on demand for ranges such as 7 days, 14 days, or 30 days. Weekly Slack delivery can be enabled so teams receive the report in the same channel where operational notifications are sent.</p>
+<blockquote>
+<p>Image placeholder: polished PDF report cover and executive summary.</p>
+</blockquote>
+<h2 id="alerting-and-notifications">Alerting and notifications</h2>
+<p>Consize uses a contact-point and policy model for notifications.</p>
+<p>Contact points define where alerts go, such as a Slack webhook. Policies decide which alerts are routed to which contact point. This keeps routing flexible without hard-coding one Slack channel into the deployment.</p>
+<p>The MVP supports Slack webhook delivery for Consize events such as verification failures, rollbacks, and report delivery. Deeper incident-management features — on-call tagging, escalation schedules, Jira, ServiceNow, PagerDuty, and ownership assignment — are future integrations.</p>
+<p>Example Slack contact point:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">alerting</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">contactPoints</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">platform-slack</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">slack</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="nt">webhookEnv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CONSIZE_SLACK_WEBHOOK</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nt">channelLabel</span><span class="p">:</span><span class="w"> </span><span class="s">"#platform-alerts"</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nt">policies</span><span class="p">:</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">verification-failures</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">      </span><span class="nt">match</span><span class="p">:</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="nt">alertname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ConsizeVerificationFailed</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">      </span><span class="nt">contactPoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">platform-slack</span>
+</code></pre></div>
+<p>The webhook secret should stay in Kubernetes or your secret manager. Consize stores the environment-variable reference and routing metadata, not the webhook value.</p>
+<h2 id="github-integration">GitHub integration</h2>
+<p>The GitHub integration lets Consize open reviewable source changes instead of forcing operators to patch live infrastructure manually.</p>
+<p>At installation time, admins configure:</p>
+<ul>
+<li>the GitHub account or organization;</li>
+<li>one or more allowed repositories;</li>
+<li>the default branch for each repository;</li>
+<li>optional monorepo root paths;</li>
+<li>the environment variable that exposes the GitHub token.</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">integrations</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">github</span><span class="p">:</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">tokenEnv</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CONSIZE_GITHUB_TOKEN</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">repositories</span><span class="p">:</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cluster</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">        </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-oss/Enterprise-grade-GKE-Project</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">        </span><span class="nt">baseBranch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">        </span><span class="nt">rootPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubernetes/boutique</span>
+</code></pre></div>
+<p>The token should have only the permissions required to read repository contents, create branches, write commits, and open pull requests in the configured repositories.</p>
+<p>Consize does not need GitHub access to analyze workloads. GitHub is only required when operators want the IaC PR workflow.</p>
+<h2 id="runtime-components">Runtime components</h2>
+<p>Consize is self-hosted and runs close to the infrastructure it manages.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UI</td>
+<td>The operator console for dashboards, recommendations, reports, alerting, and integrations.</td>
+</tr>
+<tr>
+<td>API</td>
+<td>The control plane for reads, applies, settings, auth, reports, and GitHub PR creation.</td>
+</tr>
+<tr>
+<td>Postgres</td>
+<td>The durable store for workloads, usage buckets, recommendations, applies, verification runs, cloud-waste findings, and audit history.</td>
+</tr>
+<tr>
+<td>Collector</td>
+<td>Reads Kubernetes metadata and Prometheus usage into 15-minute buckets.</td>
+</tr>
+<tr>
+<td>Analyzer</td>
+<td>Turns telemetry into recommendations.</td>
+</tr>
+<tr>
+<td>Verifier</td>
+<td>Checks applied changes and rolls back failed ones.</td>
+</tr>
+<tr>
+<td>Cost scanner</td>
+<td>Finds cloud-waste opportunities through cloud provider APIs.</td>
+</tr>
+<tr>
+<td>Report job</td>
+<td>Generates scheduled and on-demand savings reports.</td>
+</tr>
+<tr>
+<td>Prometheus</td>
+<td>Supplies workload usage and health signals.</td>
+</tr>
+<tr>
+<td>Cloud APIs</td>
+<td>Supply database metrics, cloud-waste inventory, and optional cleanup operations.</td>
+</tr>
+<tr>
+<td>GitHub</td>
+<td>Receives IaC pull requests when that workflow is enabled.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="runtime-topology">Runtime topology</h2>
+<p>Typical production topology:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Kubernetes cluster
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├─ consize-ui
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├─ consize-api
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├─ consize-collector CronJob
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├─ consize-analyze CronJob
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├─ consize-verify CronJob
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>├─ consize-costscan CronJob
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>└─ consize-report CronJob
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>External or managed dependencies
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>├─ Postgres
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>├─ Prometheus or compatible query endpoint
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>├─ cloud provider APIs
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>└─ GitHub / Slack integrations
+</code></pre></div>
+<p>Consize can be installed per team, per namespace group, or cluster-wide.</p>
+<p>For a team-scoped installation, set <code>CONSIZE_NAMESPACES</code> to the namespaces that team owns. For a cluster-wide read installation, leave it empty and bind the read-only service account cluster-wide. Direct write access remains separately scoped by namespace RoleBindings.</p>
+<h2 id="installation">Installation</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>You need:</p>
+<ul>
+<li>a Kubernetes cluster;</li>
+<li>
+<p>Prometheus or a compatible query endpoint with workload metrics;</p>
+</li>
+<li>
+<p>optional cloud provider credentials for database metrics and cloud-waste scanning;</p>
+</li>
+<li>optional GitHub and Slack secrets.</li>
+</ul>
+<h3 id="1-create-the-namespace">1. Create the namespace</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>consize-system
+</code></pre></div>
+<h3 id="2-create-required-secrets">2. Create required secrets</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>consize-store<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>--from-literal<span class="o">=</span>prometheus-url<span class="o">=</span><span class="s1">'http://prometheus-operated.monitoring:9090'</span>
+</code></pre></div>
+<blockquote>
+<p>Consize provisions a lightweight Postgres database automatically. To use an external Postgres database, set <code>postgresql.enabled=false</code> in your values and provide a <code>database-url</code> in the secret.</p>
+</blockquote>
+<p>Optional Slack webhook:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>consize-alerts<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>--from-literal<span class="o">=</span>slack-webhook<span class="o">=</span><span class="s1">'https://hooks.slack.com/services/...'</span>
+</code></pre></div>
+<p>Optional GitHub token:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>consize-github<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>--from-literal<span class="o">=</span><span class="nv">token</span><span class="o">=</span><span class="s1">'github_pat_...'</span>
+</code></pre></div>
+<p>Optional Cloud IAM credentials for Cloud SQL metrics and cloud-waste scanning:</p>
+<blockquote>
+<p>Even though Consize runs inside your cluster, Kubernetes pods only have cluster-level permissions by default. You still need cloud-level IAM permissions to scan out-of-cluster infrastructure like unattached EBS volumes or managed databases.</p>
+</blockquote>
+<p>The most secure and preferred method is to use <strong>Workload Identity (GCP)</strong> or <strong>IRSA (AWS)</strong>. The Consize Helm chart automatically creates the Kubernetes ServiceAccounts for you. You simply annotate them in your <code>values.yaml</code> to bind them to your Cloud IAM roles:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">serviceAccounts</span><span class="p">:</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">reader</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">      </span><span class="nt">iam.gke.io/gcp-service-account</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-scanner@PROJECT_ID.iam.gserviceaccount.com</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">      </span><span class="c1"># or for AWS:</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">      </span><span class="c1"># eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/consize-scanner</span>
+</code></pre></div>
+<details>
+<summary><strong>How to create the GCP Workload Identity Role (CLI)</strong></summary>
+
+If you haven't created the Cloud IAM role yet, you can do so quickly using the `gcloud` CLI. This creates the role, grants the exact read-only permissions Consize needs, and binds it to the Kubernetes ServiceAccount that Helm will create (`consize-system/consize-reader`).
+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 1. Create the Google Cloud Service Account (GSA)</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>gcloud<span class="w"> </span>iam<span class="w"> </span>service-accounts<span class="w"> </span>create<span class="w"> </span>consize-scanner<span class="w"> </span>--project<span class="o">=</span>PROJECT_ID
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># 2. Grant the GSA the specific read-only permissions for Cloud Waste and Cloud SQL</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>gcloud<span class="w"> </span>projects<span class="w"> </span>add-iam-policy-binding<span class="w"> </span>PROJECT_ID<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span>--member<span class="o">=</span><span class="s2">"serviceAccount:consize-scanner@PROJECT_ID.iam.gserviceaccount.com"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span>--role<span class="o">=</span><span class="s2">"roles/compute.viewer"</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>gcloud<span class="w"> </span>projects<span class="w"> </span>add-iam-policy-binding<span class="w"> </span>PROJECT_ID<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">    </span>--member<span class="o">=</span><span class="s2">"serviceAccount:consize-scanner@PROJECT_ID.iam.gserviceaccount.com"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span>--role<span class="o">=</span><span class="s2">"roles/cloudsql.viewer"</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="c1"># 3. Bind the GSA to the Kubernetes ServiceAccount (KSA)</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>gcloud<span class="w"> </span>iam<span class="w"> </span>service-accounts<span class="w"> </span>add-iam-policy-binding<span class="w"> </span>consize-scanner@PROJECT_ID.iam.gserviceaccount.com<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">    </span>--role<span class="w"> </span>roles/iam.workloadIdentityUser<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">    </span>--member<span class="w"> </span><span class="s2">"serviceAccount:PROJECT_ID.svc.id.goog[consize-system/consize-reader]"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">    </span>--project<span class="o">=</span>PROJECT_ID
+</code></pre></div>
+</details>
+
+<details>
+<summary><strong>How to create the AWS IRSA Role (CLI)</strong></summary>
+
+If you are running on EKS, you can use the `aws` and `eksctl` CLIs to create an IAM role with the exact read-only permissions required, without conflicting with the Helm chart.
+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># 1. Create the IAM policy with required read-only permissions</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>cat<span class="w"> </span><span class="s">&lt;&lt;POLICY &gt; consize-policy.json</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="s">{</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="s">    "Version": "2012-10-17",</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="s">    "Statement": [</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="s">        {</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="s">            "Effect": "Allow",</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="s">            "Action": [</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="s">                "ec2:DescribeInstances",</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="s">                "ec2:DescribeVolumes",</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="s">                "ec2:DescribeAddresses",</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="s">                "rds:DescribeDBInstances"</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="s">            ],</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="s">            "Resource": "*"</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="s">        }</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="s">    ]</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="s">}</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="s">POLICY</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>aws<span class="w"> </span>iam<span class="w"> </span>create-policy<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">    </span>--policy-name<span class="w"> </span>ConsizeCloudScannerPolicy<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="w">    </span>--policy-document<span class="w"> </span>file://consize-policy.json
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="c1"># 2. Create the IAM Role tied to the Consize ServiceAccount (using --role-only to let Helm manage the K8s SA)</span>
+<a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a>eksctl<span class="w"> </span>create<span class="w"> </span>iamserviceaccount<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="w">    </span>--name<span class="w"> </span>consize-reader<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a><span class="w">    </span>--namespace<span class="w"> </span>consize-system<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="w">    </span>--cluster<span class="w"> </span>YOUR_CLUSTER_NAME<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="w">    </span>--attach-policy-arn<span class="w"> </span>arn:aws:iam::YOUR_ACCOUNT_ID:policy/ConsizeCloudScannerPolicy<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="w">    </span>--approve<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a><span class="w">    </span>--role-only
+</code></pre></div>
+</details>
+
+<p>Alternatively, if you do not use Workload Identity, you can provide a static JSON key file via a secret:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>consize-gcp<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>--from-file<span class="o">=</span>key.json<span class="o">=</span>./consize-gcp-service-account.json
+</code></pre></div>
+<h3 id="3-configure-collection-scope">3. Configure collection scope</h3>
+<p><code>CONSIZE_NAMESPACES</code> tells the collector which Kubernetes namespaces this installation should read and analyze.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">env</span><span class="p">:</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">CONSIZE_NAMESPACES</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boutique,payments,checkout</span>
+</code></pre></div>
+<p>That configuration means Consize only collects workloads and usage for those namespaces. It ignores the rest of the cluster.</p>
+<p>Leave it empty for cluster-wide discovery:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">env</span><span class="p">:</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">CONSIZE_NAMESPACES</span><span class="p">:</span><span class="w"> </span><span class="s">""</span>
+</code></pre></div>
+<p>Cluster-wide discovery is read-only. It does not mean cluster-wide write access. Direct apply still requires namespace-specific write RBAC.</p>
+<h3 id="4-apply-read-rbac">4. Apply read RBAC</h3>
+<p>For cluster-wide discovery:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-reader</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-system</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="nn">---</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-read</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="nt">rules</span><span class="p">:</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">""</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"namespaces"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"pods"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"get"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"list"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"watch"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"apps"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"deployments"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"statefulsets"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"daemonsets"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"replicasets"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"get"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"list"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"watch"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"batch"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a><span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"jobs"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"cronjobs"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a><span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"get"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"list"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"watch"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="nn">---</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRoleBinding</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-read</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="nt">roleRef</span><span class="p">:</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+<a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-read</span>
+<a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a><span class="nt">subjects</span><span class="p">:</span>
+<a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-reader</span>
+<a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-system</span>
+</code></pre></div>
+<p>For namespace-scoped installations, bind equivalent read permissions only in the selected namespaces.</p>
+<h3 id="5-enable-direct-apply-only-where-allowed">5. Enable direct apply only where allowed</h3>
+<p>Direct apply uses a separate write identity. Bind it only in namespaces where operators are allowed to patch workloads.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-writer</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-system</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="nn">---</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-apply</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boutique</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="nt">rules</span><span class="p">:</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"apps"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">    </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"deployments"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="w">    </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"get"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"list"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"watch"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"update"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="nn">---</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RoleBinding</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-apply</span>
+<a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boutique</span>
+<a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="nt">roleRef</span><span class="p">:</span>
+<a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Role</span>
+<a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-apply</span>
+<a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a><span class="nt">subjects</span><span class="p">:</span>
+<a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-writer</span>
+<a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="w">    </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consize-system</span>
+</code></pre></div>
+<p>To allow automatic apply in that namespace, add the namespace label:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>kubectl<span class="w"> </span>label<span class="w"> </span>namespace<span class="w"> </span>boutique<span class="w"> </span>consize.savings.dev/auto-apply<span class="o">=</span>enabled
+</code></pre></div>
+<p>Without that label, Consize can still do approved direct applies, but not automatic applies.</p>
+<h3 id="6-deploy-consize">6. Deploy Consize</h3>
+<p>Helm is the recommended production installation path. The chart renders the API, service accounts, least-privilege RBAC, migration job, and CronJobs for collection, analysis, verification, cloud-waste scanning, and reporting.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>helm<span class="w"> </span>upgrade<span class="w"> </span>--install<span class="w"> </span>consize<span class="w"> </span>./charts/consize<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span>--namespace<span class="w"> </span>consize-system<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span>--create-namespace<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span>-f<span class="w"> </span>./charts/consize/examples/values-prod.yaml
+</code></pre></div>
+<p>Production values should reference existing Kubernetes Secrets. Do not put raw tokens, database passwords, Slack webhooks, or service-account JSON in <code>values.yaml</code>.</p>
+<p>Cluster-wide read-only discovery with direct apply allowed only in <code>boutique</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nt">collector</span><span class="p">:</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="nt">namespaces</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="nt">rbac</span><span class="p">:</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">  </span><span class="nt">writer</span><span class="p">:</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">    </span><span class="nt">namespaces</span><span class="p">:</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boutique</span>
+</code></pre></div>
+<p>Team-scoped installation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">collector</span><span class="p">:</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">namespaces</span><span class="p">:</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boutique</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">checkout</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="nt">rbac</span><span class="p">:</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="w">  </span><span class="nt">writer</span><span class="p">:</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="w">    </span><span class="nt">namespaces</span><span class="p">:</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boutique</span>
+</code></pre></div>
+<h3 id="7-verify-the-installation">7. Verify the installation</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>get<span class="w"> </span>pods
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>get<span class="w"> </span>cronjobs
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>consize-system<span class="w"> </span>port-forward<span class="w"> </span>svc/consize-api<span class="w"> </span><span class="m">18099</span>:8080
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>curl<span class="w"> </span>http://127.0.0.1:18099/readyz
+</code></pre></div>
+<p>Expected response:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span><span class="nt">"status"</span><span class="p">:</span><span class="s2">"ready"</span><span class="p">}</span>
+</code></pre></div>
+<h2 id="configuration-reference">Configuration reference</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td><code>postgres://...</code></td>
+<td>Postgres store for telemetry, recommendations, settings, and audit history.</td>
+</tr>
+<tr>
+<td><code>PROMETHEUS_URL</code></td>
+<td><code>http://prometheus:9090</code></td>
+<td>Prometheus query endpoint for usage and health signals.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_NAMESPACES</code></td>
+<td><code>boutique,payments</code></td>
+<td>Namespace scope for collection. Empty means cluster-wide read discovery.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_VERIFY_WINDOW</code></td>
+<td><code>1h</code></td>
+<td>Base post-apply verification window. Effective window is <code>base × step number</code>.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_SUSTAINED_MINUTES</code></td>
+<td><code>5</code></td>
+<td>How long a regression signal must persist before it is treated as failed.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_MIN_DATA_DAYS</code></td>
+<td><code>5</code></td>
+<td>Minimum telemetry history before generating recommendations.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_PRICING</code></td>
+<td><code>static</code></td>
+<td>Pricing source.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_DBMETRICS</code></td>
+<td><code>gcp</code></td>
+<td>Database metrics source.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_COSTSCAN</code></td>
+<td><code>gcp</code></td>
+<td>Cloud-waste scanner source. Use <code>none</code> to disable.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_GCP_PROJECT</code></td>
+<td><code>my-project</code></td>
+<td>GCP project for Cloud SQL metrics and cloud-waste scanning.</td>
+</tr>
+<tr>
+<td><code>GOOGLE_APPLICATION_CREDENTIALS</code></td>
+<td><code>/etc/consize-gcp/key.json</code></td>
+<td>Mounted service-account key path.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_AUTH_REQUIRED</code></td>
+<td><code>true</code></td>
+<td>Enables server-side user authentication and role enforcement.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_GITHUB_TOKEN</code></td>
+<td>secret env var</td>
+<td>Token used to open GitHub IaC pull requests.</td>
+</tr>
+<tr>
+<td><code>CONSIZE_SLACK_WEBHOOK</code></td>
+<td>secret env var</td>
+<td>Slack webhook used by contact points and reports.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="security-model">Security model</h2>
+<p>Consize separates read, write, and integration permissions.</p>
+<ul>
+<li>The reader service account discovers workloads and usage metadata.</li>
+<li>The writer service account is only bound in namespaces where direct apply is allowed.</li>
+<li>GitHub permissions are used only for source-control PRs.</li>
+<li>Slack webhooks and provider credentials stay in Kubernetes Secrets or a secret manager.</li>
+<li>Authentication and role checks are enforced on the server.</li>
+<li>Every direct apply writes an audit record.</li>
+<li>Cloud-waste direct cleanup writes its own action history.</li>
+<li>Verification failures trigger rollback and evidence capture.</li>
+</ul>
+<p>This gives teams a practical operating model: review by default, direct apply where explicitly allowed, and no silent mutation.</p>
+<h2 id="operating-model-for-teams">Operating model for teams</h2>
+<p>Most teams start in review-only mode:</p>
+<ol>
+<li>Install Consize with read-only Kubernetes permissions.</li>
+<li>Let it collect enough telemetry.</li>
+<li>Review recommendations in the dashboard.</li>
+<li>Connect GitHub.</li>
+<li>Open IaC PRs for safe, reviewable source changes.</li>
+</ol>
+<p>After trust is established, teams can enable direct apply in selected namespaces:</p>
+<ol>
+<li>Add the <code>consize-apply</code> RoleBinding only to approved namespaces.</li>
+<li>Keep auto-apply disabled at first.</li>
+<li>Use approved direct applies for low-risk recommendations.</li>
+<li>Review verification results and rollback behavior.</li>
+<li>Enable <code>consize.savings.dev/auto-apply=enabled</code> only where the team is comfortable with policy-driven changes.</li>
+</ol>
+<h2 id="what-consize-is-not">What Consize is not</h2>
+<p>Consize is not a general autoscaler replacement. It does not tune HPA behavior, schedule pods, or replace your deployment system.</p>
+<p>It is also not a billing warehouse. It uses pricing and telemetry to estimate savings, but its core job is operational: find waste, propose a safe change, help the team apply it, verify the outcome, and keep evidence.</p>
+<h2 id="current-scope-and-roadmap">Current scope and roadmap</h2>
+<p>Current product scope:</p>
+<ul>
+<li>Kubernetes CPU and memory rightsizing;</li>
+<li>database class recommendations;</li>
+<li>direct apply with guardrails;</li>
+<li>verification and rollback;</li>
+<li>audit trail;</li>
+<li>Slack notification contact points;</li>
+<li>weekly and on-demand reports;</li>
+<li>GitHub IaC PR creation;</li>
+<li>GCP cloud-waste scanning for unattached disks;</li>
+<li>direct cleanup for confirmed unattached GCP Persistent Disks.</li>
+</ul>
+<p>Planned next:</p>
+<ul>
+<li>broader cloud-waste detection for idle load balancers and unused NAT gateways using traffic evidence;</li>
+<li>GitOps manifest PRs for Helm values, Kustomize overlays, and ArgoCD-managed applications;</li>
+<li>richer repository discovery and workload-to-source mapping;</li>
+<li>on-call tagging and incident-management integrations;</li>
+<li>Jira, ServiceNow, PagerDuty, and enterprise approval workflows;</li>
+<li>multi-cloud cloud-waste scanners;</li>
+<li>signed image releases and OCI chart publishing.</li>
+</ul>
+<h2 id="the-short-version">The short version</h2>
+<p>Consize gives platform teams a safer way to reduce infrastructure cost.</p>
+<p>It finds oversized workloads, oversized databases, and cloud resources that should not still be billing. It turns findings into reviewable changes or guarded direct applies. Then it verifies production health and records the evidence.</p>
+<p>That is the difference between cost visibility and cost action.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
