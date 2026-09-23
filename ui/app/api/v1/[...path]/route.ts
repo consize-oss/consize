@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: Promise<{ path?: string[] }> | { path?: string[] };
+  params: Promise<{ path?: string[] }>;
 };
 
 const DEFAULT_API_UPSTREAM = "http://consize-api:8080";
