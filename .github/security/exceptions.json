@@ -2,5 +2,39 @@
   "$schema": "./exceptions.schema.json",
   "schema_version": 1,
   "policy_version": "1.0.0",
-  "exceptions": []
+  "exceptions": [
+    {
+      "id": "SEC-EXC-2026-0003",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "GHSA-example-0003",
+      "fingerprint": "npm-next-ghsa-example-0003",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:next",
+        "component_type": "dependency",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": ">=16.3.3 <16.4.0"
+      },
+      "reason": "This synthetic fixture has passed its approved expiration and must fail validation.",
+      "compensating_controls": [
+        "The fictional endpoint was isolated while the test exception remained active."
+      ],
+      "ownership": {
+        "owner": "github:alice",
+        "requested_by": "github:alice",
+        "approved_by": "github:bob",
+        "approver_role": "security"
+      },
+      "timeline": {
+        "approved_at": "2026-08-28T00:00:00Z",
+        "expires_at": "2026-09-20T00:00:00Z",
+        "last_reviewed_at": "2026-09-13T00:00:00Z",
+        "next_review_at": "2026-09-20T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/1003"
+    }
+  ]
 }
