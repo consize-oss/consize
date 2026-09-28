@@ -1,0 +1,13 @@
+name: Disposable repository security fixture
+
+on:
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mutable action reference that must be rejected
+        uses: actions/checkout@v4
