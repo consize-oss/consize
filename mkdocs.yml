@@ -83,6 +83,7 @@ plugins:
         Reference:
           - reference/configuration.md
           - reference/resource-model.md
+          - reference/local-state.md
           - reference/supported-platforms.md
           - reference/api.md
         Resources:
@@ -106,6 +107,7 @@ nav:
   - Reference:
       - Configuration: reference/configuration.md
       - Resource Model: reference/resource-model.md
+      - Local State and Recovery: reference/local-state.md
       - Supported Platforms: reference/supported-platforms.md
       - API Reference: reference/api.md
 

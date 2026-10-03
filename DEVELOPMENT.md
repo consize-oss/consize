@@ -86,6 +86,12 @@ absolute path of your kubeconfig. On macOS this is normally:
 Do not commit the local configuration, state files, audit logs, credentials or
 downloaded plugins. The `.consize` directory is ignored by Git.
 
+The alpha backend stores resources, recommendations, action jobs, verification,
+and recovery state in `.consize/local-state.json`. It is single-process local
+storage for development and testing, not the final production persistence
+design. Read [Local State and Recovery](docs/reference/local-state.md) before
+resetting or repairing it.
+
 The lab configuration leaves API authentication disabled. This is intentional:
 
 - the API listens only on `127.0.0.1` when authentication is disabled;
@@ -279,8 +285,10 @@ helm uninstall consize-prometheus -n monitoring
 kubectl delete namespace monitoring
 ```
 
-To start with empty Consize state, first stop the API and then remove only the
-local ignored state and audit files under `.consize`.
+To start with empty Consize state, first stop the API and follow the
+[disposable-state procedure](docs/reference/local-state.md#disposable-local-development-state).
+It archives the state instead of deleting it and must not be used when pending
+actions, verification, rollback, or required audit history exist.
 
 ## Troubleshooting
 
@@ -294,6 +302,13 @@ kubectl get pods -A
 
 Confirm the kubeconfig path in `.consize/local-dev.config.json` is absolute and
 readable.
+
+### Startup reports an invalid durable resource
+
+Do not guess the missing provider or cluster identity and do not immediately
+delete `.consize/local-state.json`. Follow [Local State and
+Recovery](docs/reference/local-state.md) to back up the state and determine
+whether it is safe to reset or must be preserved for migration.
 
 ### Prometheus metrics are missing
 

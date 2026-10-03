@@ -4,6 +4,17 @@ Organized by what you're seeing, not by component. If your question is conceptua
 
 ## Installation
 
+### Consize stops with `invalid durable resource`
+
+The v0.3 resource migration refuses to guess missing provider, cluster,
+location, type, or provider resource identity. Do not immediately delete or
+manually edit the state file: it may contain pending verification, rollback,
+or audit information.
+
+Follow [Local State and Recovery](../reference/local-state.md) to stop the
+process, create and verify a backup, inspect the affected record, and choose
+between a disposable-development reset and a maintainer-reviewed migration.
+
 ### `curl http://127.0.0.1:18099/readyz` doesn't return `{"status":"ready"}`
 
 1. Check the pods actually came up:
@@ -93,4 +104,5 @@ See [Support](support.md) for where to ask, include your Consize version and the
 
 * [FAQ](faq.md)
 * [Configuration](../reference/configuration.md)
+* [Local State and Recovery](../reference/local-state.md)
 * [Support](support.md)
