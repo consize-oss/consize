@@ -224,12 +224,16 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
+	response := map[string]any{
 		"status":         status,
 		"store":          "healthy",
 		"durable_worker": s.controller != nil,
 		"plugins":        statuses,
-	})
+	}
+	if diagnostics, ok := s.st.(store.DiagnosticsStore); ok {
+		response["storage"] = diagnostics.StorageDiagnostics(r.Context())
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {

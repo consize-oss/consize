@@ -16,36 +16,61 @@ import (
 var ErrNotFound = errors.New("not found")
 
 type Memory struct {
-	path          string
-	lockFile      *os.File
-	poison        error
-	jobs          map[int64]Job
-	mu            sync.RWMutex
-	now           func() time.Time
-	resources     map[string]resource.Resource
-	recs          map[int64]Recommendation
-	actionRecords map[int64]Action
-	actions       map[int64]ActionEvent
-	nextActionID  int64
-	nextEventID   int64
-	nextRecID     int64
+	path                    string
+	lockFile                *os.File
+	poison                  error
+	diagnostics             StorageDiagnostics
+	jobs                    map[int64]Job
+	mu                      sync.RWMutex
+	now                     func() time.Time
+	resources               map[string]resource.Resource
+	recs                    map[int64]Recommendation
+	actionRecords           map[int64]Action
+	actions                 map[int64]ActionEvent
+	nextActionID            int64
+	nextEventID             int64
+	nextRecID               int64
+	resourceIdentityIndex   map[string]string
+	actionIdempotencyIndex  map[string]int64
+	actionsByRecommendation map[int64][]int64
+	activeJobByResource     map[string]int64
 }
 
 func NewMemory() *Memory {
 	return &Memory{
-		jobs:          map[int64]Job{},
-		now:           time.Now,
-		resources:     map[string]resource.Resource{},
-		recs:          map[int64]Recommendation{},
-		actionRecords: map[int64]Action{},
-		actions:       map[int64]ActionEvent{},
-		nextActionID:  1,
-		nextEventID:   1,
-		nextRecID:     1,
+		jobs:                    map[int64]Job{},
+		now:                     time.Now,
+		resources:               map[string]resource.Resource{},
+		recs:                    map[int64]Recommendation{},
+		actionRecords:           map[int64]Action{},
+		actions:                 map[int64]ActionEvent{},
+		nextActionID:            1,
+		nextEventID:             1,
+		nextRecID:               1,
+		resourceIdentityIndex:   map[string]string{},
+		actionIdempotencyIndex:  map[string]int64{},
+		actionsByRecommendation: map[int64][]int64{},
+		activeJobByResource:     map[string]int64{},
+		diagnostics:             StorageDiagnostics{Backend: "memory", CurrentVersion: currentStateVersion, TargetVersion: currentStateVersion, MigrationStatus: MigrationCurrent, Indexes: RequiredIndexes()},
 	}
 }
 
 func (m *Memory) Health(context.Context) error { m.mu.RLock(); defer m.mu.RUnlock(); return m.poison }
+
+func (m *Memory) StorageDiagnostics(context.Context) StorageDiagnostics {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	out := m.diagnostics
+	out.Healthy = m.poison == nil
+	if m.poison != nil {
+		out.Error = m.poison.Error()
+	}
+	out.EntityCounts = map[string]int{
+		"resources": len(m.resources), "recommendations": len(m.recs), "actions": len(m.actionRecords),
+		"audit_events": len(m.actions), "jobs": len(m.jobs),
+	}
+	return out
+}
 
 func (m *Memory) UpsertResource(_ context.Context, res resource.Resource) (resource.Resource, error) {
 	now := m.now().UTC()
@@ -56,16 +81,14 @@ func (m *Memory) UpsertResource(_ context.Context, res resource.Resource) (resou
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	for id, existing := range m.resources {
-		if id == normalized.ID || !resource.SameIdentity(existing, normalized) {
-			continue
-		}
+	identity := resourceIdentityKey(normalized)
+	if id, exists := m.resourceIdentityIndex[identity]; exists && id != normalized.ID {
 		if !resource.IsCanonicalID(id) && resource.IsCanonicalID(normalized.ID) {
 			// Preserve references created before canonical IDs were introduced.
 			normalized.ID = id
-			break
+		} else {
+			return resource.Resource{}, fmt.Errorf("%w: identity already registered as %q", resource.ErrIdentityConflict, id)
 		}
-		return resource.Resource{}, fmt.Errorf("%w: identity already registered as %q", resource.ErrIdentityConflict, id)
 	}
 
 	if existing, ok := m.resources[normalized.ID]; ok {
@@ -87,6 +110,7 @@ func (m *Memory) UpsertResource(_ context.Context, res resource.Resource) (resou
 		return resource.Resource{}, fmt.Errorf("validate resource update: %w", err)
 	}
 	m.resources[normalized.ID] = clone(normalized)
+	m.resourceIdentityIndex[identity] = normalized.ID
 	return clone(normalized), m.persistLocked()
 }
 
@@ -237,13 +261,12 @@ func (m *Memory) CreateAction(_ context.Context, action Action) (Action, error) 
 	if rec.ResourceID != action.ResourceID || rec.PluginID != action.PluginID || rec.ActionType != action.ActionType {
 		return Action{}, errors.New("action does not match its recommendation")
 	}
-	for _, existing := range m.actionRecords {
-		if existing.IdempotencyKey == action.IdempotencyKey {
-			if existing.RecommendationID != action.RecommendationID || existing.ResourceID != action.ResourceID || existing.PluginID != action.PluginID || existing.ActionType != action.ActionType || existing.Mode != action.Mode {
-				return Action{}, errors.New("idempotency key is already bound to a different action request")
-			}
-			return clone(existing), nil
+	if existingID, ok := m.actionIdempotencyIndex[action.IdempotencyKey]; ok {
+		existing := m.actionRecords[existingID]
+		if existing.RecommendationID != action.RecommendationID || existing.ResourceID != action.ResourceID || existing.PluginID != action.PluginID || existing.ActionType != action.ActionType || existing.Mode != action.Mode {
+			return Action{}, errors.New("idempotency key is already bound to a different action request")
 		}
+		return clone(existing), nil
 	}
 	action.SchemaVersion = ContractVersion
 	action.ID = m.nextActionID
@@ -255,6 +278,8 @@ func (m *Memory) CreateAction(_ context.Context, action Action) (Action, error) 
 		action.Parameters = map[string]any{}
 	}
 	m.actionRecords[action.ID] = clone(action)
+	m.actionIdempotencyIndex[action.IdempotencyKey] = action.ID
+	m.actionsByRecommendation[action.RecommendationID] = append(m.actionsByRecommendation[action.RecommendationID], action.ID)
 	return clone(action), m.persistLocked()
 }
 
@@ -320,6 +345,17 @@ func (m *Memory) TransitionAction(_ context.Context, id int64, status ActionStat
 func (m *Memory) CreateActionEvent(_ context.Context, event ActionEvent) (ActionEvent, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if event.RecommendationID > 0 {
+		if _, ok := m.recs[event.RecommendationID]; !ok {
+			return ActionEvent{}, errors.New("audit recommendation does not exist")
+		}
+	}
+	if event.ActionID > 0 {
+		action, ok := m.actionRecords[event.ActionID]
+		if !ok || (event.RecommendationID > 0 && action.RecommendationID != event.RecommendationID) {
+			return ActionEvent{}, errors.New("audit action does not exist or does not match its recommendation")
+		}
+	}
 	event.ID = m.nextEventID
 	m.nextEventID++
 	event.CreatedAt = m.now().UTC()

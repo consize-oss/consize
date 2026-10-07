@@ -612,6 +612,29 @@ components:
         store: {type: string, enum: [healthy, unavailable]}
         durable_worker: {type: boolean}
         plugins: {type: array, items: {$ref: '#/components/schemas/PluginStatus'}}
+        storage: {$ref: '#/components/schemas/StorageDiagnostics'}
+        error: {type: string}
+    MigrationRecord:
+      type: object
+      required: [from_version, to_version, name]
+      properties:
+        from_version: {type: integer}
+        to_version: {type: integer}
+        name: {type: string}
+    StorageDiagnostics:
+      type: object
+      required: [backend, durable, healthy, current_version, loaded_version, target_version, migration_status, indexes]
+      properties:
+        backend: {type: string}
+        durable: {type: boolean}
+        healthy: {type: boolean}
+        current_version: {type: integer}
+        loaded_version: {type: integer}
+        target_version: {type: integer}
+        migration_status: {type: string, enum: [current, migrated, pending, invalid]}
+        migrations: {type: array, items: {$ref: '#/components/schemas/MigrationRecord'}}
+        indexes: {type: array, items: {type: string}}
+        entity_counts: {type: object, additionalProperties: {type: integer}}
         error: {type: string}
     DiscoveryResult:
       type: object
