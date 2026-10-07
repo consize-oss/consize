@@ -1,3 +1,18 @@
+function nameSearchDialog() {
+  var dialog = document.querySelector('.md-search[role="dialog"]');
+  if (dialog) {
+    dialog.setAttribute("aria-label", "Search documentation");
+  }
+}
+
+nameSearchDialog();
+
+var observer = new MutationObserver(nameSearchDialog);
+observer.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
 document.addEventListener("DOMContentLoaded", function () {
   // Icon paths (24x24 viewBox), same set used in the top-nav dropdown.
   var icons = {

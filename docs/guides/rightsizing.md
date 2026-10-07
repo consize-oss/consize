@@ -1,3 +1,7 @@
+---
+description: Learn how Consize uses Kubernetes resource usage data and percentiles to identify safer rightsizing opportunities.
+---
+
 # Kubernetes Rightsizing
 
 Kubernetes workloads are often given more CPU and memory than they actually need.

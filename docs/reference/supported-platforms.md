@@ -1,3 +1,7 @@
+---
+description: Check which Cloud, AI, and SaaS environments, providers, metrics systems, and workload types Consize currently supports before installing.
+---
+
 # Supported Platforms
 
 A quick reference for what Consize can talk to today, so you can check fit before installing.

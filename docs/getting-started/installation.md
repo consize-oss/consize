@@ -1,3 +1,7 @@
+---
+description: Install Consize on a Kubernetes cluster with Helm and configure it to safely optimize workloads using your existing metrics.
+---
+
 # Production Installation
 
 This guide walks you through installing Consize on a Kubernetes cluster using Helm.

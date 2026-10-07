@@ -1,3 +1,7 @@
+---
+description: Learn how Consize evaluates optimization changes with safety checks, guardrails, and post-change verification to reduce production risk.
+---
+
 # The Safety Net
 
 Infrastructure optimization is only useful if the changes are safe.

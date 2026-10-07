@@ -1,3 +1,7 @@
+---
+description: Explore Consize's optimization and rollback workflow locally with Docker, without a Kubernetes cluster or production credentials.
+---
+
 # Interactive Sandbox
 
 The Interactive Sandbox lets you explore Consize's optimization workflow without setting up a production Kubernetes environment.

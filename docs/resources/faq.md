@@ -1,3 +1,7 @@
+---
+description: Find answers to common questions about Consize recommendations, safety verification, rollbacks, supported optimization behavior, and current limitations.
+---
+
 # FAQ
 
 Conceptual and "should I trust this" questions. If your command actually failed, see [Troubleshooting](troubleshooting.md) instead.

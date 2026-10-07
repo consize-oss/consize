@@ -1,3 +1,7 @@
+---
+description: Get started with Consize to safely identify and optimize cloud, AI and SaaS infrastructure waste through recommendations, reviewable changes, and automatic rollback.
+---
+
 # Get started
 
 Consize helps engineering teams reduce infrastructure waste without turning cost optimization into a production risk.

@@ -1,3 +1,7 @@
+---
+description: Learn how Consize turns cloud, AI and SaaS usage signals into governed optimization actions through observe, analyze, recommend, review, apply, and verify.
+---
+
 # How Consize Works
 
 Consize turns cost and usage signals into governed, verifiable optimization
@@ -46,7 +50,7 @@ the loop above:
 | **Policy** | Evaluates every proposed change against your configured guardrails before it's allowed to proceed |
 | **Orchestrator** | Applies approved changes step-wise, within configured boundaries |
 | **Safety / Verifier** | Watches SLIs after each step and triggers an automatic rollback on regression |
-| **Store** | Persists resources, recommendations, and their audit history |
+| **Store** | Persists resources, recommendations, and their audit history. See the [Universal Resource Model](../reference/resource-model.md) for how Consize represents infrastructure resources. |
 | **Audit** | Records what was observed, recommended, approved, applied, and verified, so every action is traceable |
 
 ## Plugin architecture

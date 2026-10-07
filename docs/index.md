@@ -1,5 +1,5 @@
 ---
-title: Consize Documentation
+title: "Consize Documentation"
 hide:
   - toc
 ---
