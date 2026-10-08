@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -22,6 +23,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
+
+func TestHealthReportsDurableStorageStatus(t *testing.T) {
+	server, _, _ := apiFixture(t)
+	w := httptest.NewRecorder()
+	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/health", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("health status = %d, body = %s", w.Code, w.Body.String())
+	}
+	var response struct {
+		Storage store.StorageDiagnostics `json:"storage"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	if !response.Storage.Durable || !response.Storage.Healthy {
+		t.Fatalf("storage diagnostics = %+v", response.Storage)
+	}
+	if response.Storage.CurrentVersion == 0 || response.Storage.LoadedVersion != response.Storage.CurrentVersion {
+		t.Fatalf("storage versions = loaded %d, current %d", response.Storage.LoadedVersion, response.Storage.CurrentVersion)
+	}
+	if response.Storage.MigrationStatus != store.MigrationCurrent {
+		t.Fatalf("migration status = %q", response.Storage.MigrationStatus)
+	}
+	if len(response.Storage.Indexes) == 0 {
+		t.Fatal("storage diagnostics omitted required indexes")
+	}
+}
 
 type apiMetrics struct{}
 

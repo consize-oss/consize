@@ -41,6 +41,8 @@ func run(ctx context.Context, args []string) error {
 		return usage()
 	}
 	switch args[0] {
+	case "storage":
+		return runStorage(args[1:])
 	case "discover":
 		fs := flag.NewFlagSet("discover", flag.ExitOnError)
 		configPath := fs.String("config", "", "Path to Consize plugin config JSON")
@@ -69,7 +71,7 @@ func run(ctx context.Context, args []string) error {
 		}
 		defer st.Close()
 		if !st.Durable() {
-			return fmt.Errorf("worker requires state_path")
+			return fmt.Errorf("worker requires database_url or state_path")
 		}
 		return safety.New(st, plugins, policies, cfg.Verification, cfg.Recommender).Run(ctx)
 	case "plugins":
@@ -257,13 +259,21 @@ func run(ctx context.Context, args []string) error {
 	}
 }
 
-func foundation(ctx context.Context, path string) (*store.Memory, *plugin.Manager, *policy.Engine, bootstrap.Config, error) {
+func foundation(ctx context.Context, path string) (store.RuntimeStore, *plugin.Manager, *policy.Engine, bootstrap.Config, error) {
 	cfg, err := config.LoadBootstrap(path)
 	if err != nil {
 		return nil, nil, nil, bootstrap.Config{}, err
 	}
-	st := store.NewMemory()
-	if cfg.StatePath != "" {
+	if cfg.DatabaseURL == "" {
+		cfg.DatabaseURL = os.Getenv("CONSIZE_DATABASE_URL")
+	}
+	var st store.RuntimeStore = store.NewMemory()
+	if cfg.DatabaseURL != "" {
+		st, err = store.OpenPostgres(ctx, cfg.DatabaseURL)
+		if err != nil {
+			return nil, nil, nil, bootstrap.Config{}, err
+		}
+	} else if cfg.StatePath != "" {
 		st, err = store.OpenDurable(cfg.StatePath)
 		if err != nil {
 			return nil, nil, nil, bootstrap.Config{}, err
@@ -278,7 +288,84 @@ func foundation(ctx context.Context, path string) (*store.Memory, *plugin.Manage
 }
 
 func usage() error {
-	return fmt.Errorf("usage: consize <discover|plugins|health|metrics|recommend|plan|execute|run|serve> -config config.json [flags]")
+	return fmt.Errorf("usage: consize <discover|plugins|health|metrics|recommend|plan|execute|run|serve|storage> [flags]")
+}
+
+func runStorage(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("usage: consize storage <status|migrate|backup|restore|reset> -state path [flags]")
+	}
+	fs := flag.NewFlagSet("storage "+args[0], flag.ContinueOnError)
+	statePath := fs.String("state", "", "Path to the durable Consize state file")
+	databaseURL := fs.String("database-url", os.Getenv("CONSIZE_DATABASE_URL"), "PostgreSQL connection URL (prefer CONSIZE_DATABASE_URL)")
+	backupPath := fs.String("backup", "", "Path to the backup file")
+	confirmation := fs.String("confirm", "", "Required reset confirmation phrase")
+	if err := fs.Parse(args[1:]); err != nil {
+		return err
+	}
+	if (*statePath == "") == (*databaseURL == "") {
+		return fmt.Errorf("exactly one of -state or -database-url is required")
+	}
+	if *databaseURL != "" {
+		if args[0] != "status" && args[0] != "migrate" {
+			return fmt.Errorf("postgres %s uses the documented pg_dump/pg_restore procedure; only status and migrate are supported here", args[0])
+		}
+		if args[0] == "status" {
+			diagnostics, err := store.InspectPostgres(context.Background(), *databaseURL)
+			if printErr := printJSON(diagnostics); printErr != nil {
+				return printErr
+			}
+			return err
+		}
+		st, err := store.OpenPostgres(context.Background(), *databaseURL)
+		if err != nil {
+			return err
+		}
+		defer st.Close()
+		return printJSON(st.StorageDiagnostics(context.Background()))
+	}
+	switch args[0] {
+	case "status":
+		diagnostics, err := store.InspectDurable(*statePath)
+		if err != nil {
+			_ = printJSON(diagnostics)
+			return err
+		}
+		return printJSON(diagnostics)
+	case "migrate":
+		st, err := store.OpenDurable(*statePath)
+		if err != nil {
+			return err
+		}
+		defer st.Close()
+		return printJSON(st.StorageDiagnostics(context.Background()))
+	case "backup":
+		if *backupPath == "" {
+			return fmt.Errorf("-backup is required")
+		}
+		diagnostics, err := store.BackupDurable(*statePath, *backupPath)
+		if err != nil {
+			return err
+		}
+		return printJSON(map[string]any{"backup": *backupPath, "checksum": *backupPath + ".sha256", "storage": diagnostics})
+	case "restore":
+		if *backupPath == "" {
+			return fmt.Errorf("-backup is required")
+		}
+		diagnostics, err := store.RestoreDurable(*statePath, *backupPath)
+		if err != nil {
+			return err
+		}
+		return printJSON(diagnostics)
+	case "reset":
+		archive, err := store.ResetDurable(*statePath, *confirmation)
+		if err != nil {
+			return err
+		}
+		return printJSON(map[string]any{"reset": true, "previous_state_archive": archive})
+	default:
+		return fmt.Errorf("unknown storage command %q", args[0])
+	}
 }
 
 func printJSON(v any) error {
@@ -481,7 +568,7 @@ func validateListenAddress(addr string, authenticationEnabled bool) error {
 	return nil
 }
 
-func runDurableJob(ctx context.Context, st *store.Memory, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config, id int64, actor string) error {
+func runDurableJob(ctx context.Context, st store.RuntimeStore, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config, id int64, actor string) error {
 	controller := safety.New(st, plugins, policies, cfg.Verification, cfg.Recommender)
 	if _, err := controller.Submit(ctx, id, actor); err != nil {
 		return err
@@ -515,7 +602,7 @@ func runDurableJob(ctx context.Context, st *store.Memory, plugins *plugin.Manage
 	}
 }
 
-func optionalFoundation(ctx context.Context, path string) (*store.Memory, *plugin.Manager, *policy.Engine, bootstrap.Config, error) {
+func optionalFoundation(ctx context.Context, path string) (store.RuntimeStore, *plugin.Manager, *policy.Engine, bootstrap.Config, error) {
 	if path != "" {
 		return foundation(ctx, path)
 	}

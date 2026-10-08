@@ -65,15 +65,21 @@ func (m *Memory) CreateJob(_ context.Context, job Job) (Job, error) {
 	if rec.Status != RecommendationPending && rec.Status != RecommendationPlanned {
 		return Job{}, errors.New("recommendation is not actionable")
 	}
-	for _, existing := range m.jobs {
-		if existing.Resource.ID == job.Resource.ID && (!Terminal(existing.State) || existing.State == "manual_intervention") {
-			return Job{}, errors.New("resource already has an active or unresolved action")
-		}
+	action, ok := m.actionRecords[job.ActionID]
+	if !ok || action.RecommendationID != job.RecommendationID {
+		return Job{}, errors.New("job action does not exist or belongs to another recommendation")
+	}
+	if job.Resource.ID != rec.ResourceID || job.Plan.ResourceID != rec.ResourceID || job.Plan.PluginID != rec.PluginID || job.Plan.ActionType != rec.ActionType {
+		return Job{}, errors.New("job resource or plan does not match its recommendation")
+	}
+	if _, exists := m.activeJobByResource[job.Resource.ID]; exists {
+		return Job{}, errors.New("resource already has an active or unresolved action")
 	}
 	job.State = "prepared"
 	job.UpdatedAt = m.now().UTC()
 	job.NextRun = job.UpdatedAt
 	m.jobs[job.ID] = clone(job)
+	m.activeJobByResource[job.Resource.ID] = job.ID
 	m.jobEventLocked(job, "Durable action prepared before mutation")
 	return clone(job), m.persistLocked()
 }
@@ -87,8 +93,17 @@ func (m *Memory) SaveJob(_ context.Context, job Job, message string) error {
 	if _, ok := m.jobs[job.ID]; !ok {
 		return ErrNotFound
 	}
+	existing := m.jobs[job.ID]
+	if job.ID != existing.ID || job.ActionID != existing.ActionID || job.RecommendationID != existing.RecommendationID || job.Resource.ID != existing.Resource.ID {
+		return errors.New("immutable job identity cannot be changed")
+	}
 	job.UpdatedAt = m.now().UTC()
 	m.jobs[job.ID] = clone(job)
+	if Terminal(job.State) && job.State != "manual_intervention" {
+		delete(m.activeJobByResource, job.Resource.ID)
+	} else {
+		m.activeJobByResource[job.Resource.ID] = job.ID
+	}
 	m.jobEventLocked(job, message)
 	return m.persistLocked()
 }

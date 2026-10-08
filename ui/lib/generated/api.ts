@@ -612,6 +612,28 @@ export interface components {
             store: "healthy" | "unavailable";
             durable_worker?: boolean;
             plugins?: components["schemas"]["PluginStatus"][];
+            storage?: components["schemas"]["StorageDiagnostics"];
+            error?: string;
+        };
+        MigrationRecord: {
+            from_version: number;
+            to_version: number;
+            name: string;
+        };
+        StorageDiagnostics: {
+            backend: string;
+            durable: boolean;
+            healthy: boolean;
+            current_version: number;
+            loaded_version: number;
+            target_version: number;
+            /** @enum {string} */
+            migration_status: "current" | "migrated" | "pending" | "invalid";
+            migrations?: components["schemas"]["MigrationRecord"][];
+            indexes: string[];
+            entity_counts?: {
+                [key: string]: number;
+            };
             error?: string;
         };
         DiscoveryResult: {

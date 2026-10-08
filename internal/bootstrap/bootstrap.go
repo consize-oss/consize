@@ -16,6 +16,7 @@ import (
 type Config struct {
 	ExternalPlugins []marketplace.ExternalConfig `json:"external_plugins,omitempty"`
 	AllowedOrigins  []string                     `json:"allowed_origins"`
+	DatabaseURL     string                       `json:"database_url,omitempty"`
 	StatePath       string                       `json:"state_path"`
 	Kubernetes      KubernetesConfig             `json:"kubernetes"`
 	Prometheus      PrometheusConfig             `json:"prometheus"`

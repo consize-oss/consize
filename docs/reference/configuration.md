@@ -4,6 +4,14 @@ Consize can be configured to control what it observes, what it can change, and h
 
 This page is the reference list of configuration options. For task-based walkthroughs, see [Production Installation](../getting-started/installation.md) and [Environments](../guides/environments.md).
 
+## Durable storage
+
+| Variable | Default | Description |
+|---|---|---|
+| `CONSIZE_DATABASE_URL` | unset | PostgreSQL connection URL shared by the API and worker. Required for production durable storage. Inject it from a secret and require TLS outside trusted local networks. |
+
+The JSON `state_path` configuration is limited to the single-process local lab. PostgreSQL owns production migrations, constraints, restart recovery, and concurrent API/worker access. See [Durable storage and schema evolution](../engineering/durable-storage.md).
+
 ## Collection
 
 | Variable | Default | Description |

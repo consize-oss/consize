@@ -178,6 +178,10 @@ curl -fsS http://127.0.0.1:8080/api/resources
 The durable registry and action state are stored under `.consize`. Keep that
 directory when testing restart recovery.
 
+This file backend is for the single-process local lab. Production API and
+worker deployments share PostgreSQL through `CONSIZE_DATABASE_URL`; see
+[`docs/engineering/durable-storage.md`](docs/engineering/durable-storage.md).
+
 ## 8. Start the UI
 
 In **Terminal 3**:
@@ -239,6 +243,16 @@ To verify durable recovery:
 The state store allows one owning process. An error saying the state is already
 locked usually means another API or worker is still running.
 
+Inspect the schema and migration status without starting the API:
+
+```bash
+go run ./cmd/consize storage status -state .consize/local-state.json
+```
+
+For backup, restore, upgrade, and reset procedures, follow
+[`docs/engineering/durable-storage.md`](docs/engineering/durable-storage.md).
+Do not delete the state file to resolve an upgrade error.
+
 ## 11. Plugin Development and Installation
 
 Built-in plugin contracts are under [`pkg/plugin`](pkg/plugin), and first-party
@@ -279,8 +293,14 @@ helm uninstall consize-prometheus -n monitoring
 kubectl delete namespace monitoring
 ```
 
-To start with empty Consize state, first stop the API and then remove only the
-local ignored state and audit files under `.consize`.
+To start with empty Consize state, first stop the API, then use the guarded
+reset command. The previous file is archived rather than deleted:
+
+```bash
+go run ./cmd/consize storage reset \
+  -state .consize/local-state.json \
+  -confirm "ERASE LOCAL STATE"
+```
 
 ## Troubleshooting
 
