@@ -2,7 +2,9 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 
 	"github.com/consize-oss/consize/pkg/resource"
@@ -33,6 +35,33 @@ type StorageDiagnostics struct {
 	Indexes         []string          `json:"indexes"`
 	EntityCounts    map[string]int    `json:"entity_counts,omitempty"`
 	Error           string            `json:"error,omitempty"`
+}
+
+var (
+	credentialURLPattern      = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://[^:/@\s]+:)([^@\s]+)(@)`)
+	jsonPasswordPattern       = regexp.MustCompile(`(?i)(["'](?:password|passwd|pwd)["']\s*:\s*)(["'][^"']*["'])`)
+	assignmentPasswordPattern = regexp.MustCompile(`(?i)(\b(?:password|passwd|pwd)\b\s*[=:]\s*)([^\s,;&]+)`)
+)
+
+// Redacted returns diagnostics that are safe to serialize or display. Error is
+// the only free-form field; sanitize it defensively in case a database driver
+// includes connection details in a future error message.
+func (d StorageDiagnostics) Redacted() StorageDiagnostics {
+	d.Error = redactDiagnosticText(d.Error)
+	return d
+}
+
+// MarshalJSON makes redaction the default for every JSON output path, including
+// diagnostics nested in maps or API responses.
+func (d StorageDiagnostics) MarshalJSON() ([]byte, error) {
+	type storageDiagnosticsAlias StorageDiagnostics
+	return json.Marshal(storageDiagnosticsAlias(d.Redacted()))
+}
+
+func redactDiagnosticText(value string) string {
+	value = jsonPasswordPattern.ReplaceAllString(value, `${1}"[REDACTED]"`)
+	value = credentialURLPattern.ReplaceAllString(value, `${1}[REDACTED]${3}`)
+	return assignmentPasswordPattern.ReplaceAllString(value, `${1}[REDACTED]`)
 }
 
 type DiagnosticsStore interface {

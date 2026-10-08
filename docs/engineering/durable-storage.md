@@ -12,6 +12,13 @@ go run ./cmd/consize storage migrate
 go run ./cmd/consize storage status
 ```
 
+PostgreSQL storage commands have a 30-second operation timeout by default so a
+stalled connection or migration lock cannot leave the CLI waiting forever. Use
+`-timeout` to select a shorter or longer bounded duration when the environment
+requires it, for example `storage status -timeout 10s`. Diagnostic JSON redacts
+passwords found in connection URLs, keyword assignments, query parameters, and
+structured error details; continue to treat the database URL itself as a secret.
+
 Startup runs the same migration path before serving traffic or processing jobs. It fails closed if PostgreSQL cannot be reached, a migration checksum changed, the migration ledger has a gap, a migration fails, or the database is newer than the binary supports.
 
 ## Owned data

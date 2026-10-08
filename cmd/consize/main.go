@@ -42,7 +42,7 @@ func run(ctx context.Context, args []string) error {
 	}
 	switch args[0] {
 	case "storage":
-		return runStorage(args[1:])
+		return runStorage(ctx, args[1:])
 	case "discover":
 		fs := flag.NewFlagSet("discover", flag.ExitOnError)
 		configPath := fs.String("config", "", "Path to Consize plugin config JSON")
@@ -291,7 +291,9 @@ func usage() error {
 	return fmt.Errorf("usage: consize <discover|plugins|health|metrics|recommend|plan|execute|run|serve|storage> [flags]")
 }
 
-func runStorage(args []string) error {
+const defaultStorageOperationTimeout = 30 * time.Second
+
+func runStorage(parent context.Context, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("usage: consize storage <status|migrate|backup|restore|reset> -state path [flags]")
 	}
@@ -300,6 +302,7 @@ func runStorage(args []string) error {
 	databaseURL := fs.String("database-url", os.Getenv("CONSIZE_DATABASE_URL"), "PostgreSQL connection URL (prefer CONSIZE_DATABASE_URL)")
 	backupPath := fs.String("backup", "", "Path to the backup file")
 	confirmation := fs.String("confirm", "", "Required reset confirmation phrase")
+	timeout := fs.Duration("timeout", defaultStorageOperationTimeout, "Maximum time for a PostgreSQL storage operation")
 	if err := fs.Parse(args[1:]); err != nil {
 		return err
 	}
@@ -307,22 +310,27 @@ func runStorage(args []string) error {
 		return fmt.Errorf("exactly one of -state or -database-url is required")
 	}
 	if *databaseURL != "" {
+		if *timeout <= 0 {
+			return fmt.Errorf("-timeout must be greater than zero")
+		}
 		if args[0] != "status" && args[0] != "migrate" {
 			return fmt.Errorf("postgres %s uses the documented pg_dump/pg_restore procedure; only status and migrate are supported here", args[0])
 		}
+		ctx, cancel := context.WithTimeout(parent, *timeout)
+		defer cancel()
 		if args[0] == "status" {
-			diagnostics, err := store.InspectPostgres(context.Background(), *databaseURL)
+			diagnostics, err := store.InspectPostgres(ctx, *databaseURL)
 			if printErr := printJSON(diagnostics); printErr != nil {
 				return printErr
 			}
 			return err
 		}
-		st, err := store.OpenPostgres(context.Background(), *databaseURL)
+		st, err := store.OpenPostgres(ctx, *databaseURL)
 		if err != nil {
 			return err
 		}
 		defer st.Close()
-		return printJSON(st.StorageDiagnostics(context.Background()))
+		return printJSON(st.StorageDiagnostics(ctx))
 	}
 	switch args[0] {
 	case "status":
