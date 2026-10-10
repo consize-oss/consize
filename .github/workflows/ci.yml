@@ -325,7 +325,7 @@ jobs:
         run: npm ci
 
       - name: Lint frontend
-        run: npx next lint --dir .
+        run: npm run lint
 
       - name: Build production frontend
         run: npm run build
