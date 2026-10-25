@@ -96,32 +96,32 @@ export const handlers = [
   }),
 
 
-  http.get("*/api/v1/plugins", () => {
-    if (scenario === "backend-down") {
-      return HttpResponse.json(
-        { title: "Capability service unavailable", status: 503, retryable: true },
-        { status: 503, headers: { "Content-Type": "application/problem+json" } },
-      );
-    }
-    const items = [
-      {
-        id: "kubernetes",
-        display_name: "Kubernetes",
-        capability: "Resource discovery",
-        health: scenario === "partial-failure" ? "degraded" : "healthy",
-        message: scenario === "partial-failure" ? "API server latency elevated" : undefined,
-        last_checked_at: new Date().toISOString(),
-      },
-      {
-        id: "prometheus",
-        display_name: "Prometheus",
-        capability: "Evidence collection",
-        health: "healthy",
-        last_checked_at: new Date().toISOString(),
-      },
-    ];
-    return HttpResponse.json({ items });
-  }),
+  // http.get("*/api/v1/plugins", () => {
+  //   if (scenario === "backend-down") {
+  //     return HttpResponse.json(
+  //       { title: "Capability service unavailable", status: 503, retryable: true },
+  //       { status: 503, headers: { "Content-Type": "application/problem+json" } },
+  //     );
+  //   }
+  //   const items = [
+  //     {
+  //       id: "kubernetes",
+  //       display_name: "Kubernetes",
+  //       capability: "Resource discovery",
+  //       health: scenario === "partial-failure" ? "degraded" : "healthy",
+  //       message: scenario === "partial-failure" ? "API server latency elevated" : undefined,
+  //       last_checked_at: new Date().toISOString(),
+  //     },
+  //     {
+  //       id: "prometheus",
+  //       display_name: "Prometheus",
+  //       capability: "Evidence collection",
+  //       health: "healthy",
+  //       last_checked_at: new Date().toISOString(),
+  //     },
+  //   ];
+  //   return HttpResponse.json({ items });
+  // }),
 
   // http.get("*/api/v1/audit-events", () => {
   //   if (scenario === "backend-down" || scenario === "partial-failure") {

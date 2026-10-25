@@ -30,6 +30,7 @@ export const baseRecommendations: RecommendationListItem[] = [
       type: "Deployment",
       source: "prod-us-east-1",
     },
+    
     target_summary: "c6i.2xlarge · 8→4 vCPU",
     owner: "Platform",
     policy_id: "prod-conservative",
