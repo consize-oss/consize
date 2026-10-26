@@ -80,7 +80,6 @@ export const recommendationListItemSchema = z.object({
   confidence_note: z.string().optional(),
   change_summary: z.object({ current: z.string(), proposed: z.string() }).optional(),
   savings_note: z.string().optional(),
-  primary_action: z.enum(["github_pull_request", "schedule", "direct_apply", "request_approval"]).optional(),
   estimated_savings: moneySchema,
   status: z.enum(["actionable", "blocked", "pending_approval", "planned", "executed", "superseded"]),
   available_remediations: z.array(remediationSchema),

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
-import { formatRelativeTime } from "@/lib/format";
-import { useRecommendationList } from "../overview/queries";
+import { relativeTime } from "@/lib/format";
+import { useDashboardSummary } from "../overview/queries";
+import { summaryParamsOf, useScope } from "../scope/useScope";
 
 type RecommendationsHeaderProps = {
   onExport?: () => void;
@@ -12,10 +13,10 @@ type RecommendationsHeaderProps = {
 export function RecommendationsHeader({
   onExport,
 }: RecommendationsHeaderProps) {
-  // Reuse the table's cached data. evaluated_at is when analysis ran,
-  // not when this page fetched the list.
-  const { data } = useRecommendationList();
-  const evaluatedAt = data?.evaluated_at;
+  const { scope, range } = useScope();
+  const { data } = useDashboardSummary(summaryParamsOf(scope, range));
+  const timestamp = data?.last_evaluated_at;
+  const evaluatedAt = timestamp && Number.isFinite(Date.parse(timestamp)) ? timestamp : undefined;
   // Start the clock after mounting so server and browser initially render alike.
   const [now, setNow] = useState<number | null>(null);
 
@@ -46,7 +47,7 @@ export function RecommendationsHeader({
             dateTime={evaluatedAt ?? undefined}
             title={evaluatedAt ? new Date(evaluatedAt).toLocaleString() : undefined}
           >
-            {now === null ? "—" : formatRelativeTime(evaluatedAt, now)}
+            {now === null || !evaluatedAt ? "—" : relativeTime(evaluatedAt, now)}
           </time>
         </p>
         {/* onExport will supply the download action; keep the button disabled until then. */}

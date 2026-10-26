@@ -92,7 +92,19 @@ export const handlers = [
     if (q.get("sort") === "priority") {
       items = items.filter((item) => item.status !== "superseded");
     }
-    return HttpResponse.json({ items, page: { next_cursor: null, has_more: false } });
+    // Overview requests only five rows. Without a limit, Recommendations still
+    // receives the full filtered list for its local pagination and status counts.
+    const requestedLimit = Number(q.get("limit"));
+    const limit = Number.isSafeInteger(requestedLimit) && requestedLimit > 0 ? requestedLimit : undefined;
+    const requestedOffset = Number(q.get("cursor"));
+    const offset = Number.isSafeInteger(requestedOffset) && requestedOffset >= 0 ? requestedOffset : 0;
+    const end = limit === undefined ? items.length : Math.min(offset + limit, items.length);
+    const hasMore = end < items.length;
+    items = items.slice(offset, end);
+    return HttpResponse.json({
+      items,
+      page: { next_cursor: hasMore ? String(end) : null, has_more: hasMore },
+    });
   }),
 
 

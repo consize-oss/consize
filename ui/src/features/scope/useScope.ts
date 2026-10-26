@@ -44,7 +44,7 @@ export function useScope() {
         else p.delete(k);
       }
       const qs = p.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname);
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
     [queryString, pathname, router],
   );

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { prepareApiRetry } from "@/lib/api-client";
+import { prepareApiRetry, reloadForMockConnectionFailure } from "@/lib/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys, useRecommendationList } from "../overview/queries";
 import { RecommendationsHeader } from "./RecommendationsHeader";
@@ -84,12 +84,16 @@ export function RecommendationsScreen() {
     try {
       await prepareApiRetry();
       // Recover the table, category counts, header, and dropdown options together.
-      await queryClient.refetchQueries({
-        queryKey: queryKeys.recommendations.all,
-        type: "active",
-      });
-    } catch {
-      // Keep the error card available if mock startup still fails; another retry can try again.
+      await queryClient.refetchQueries(
+        {
+          queryKey: queryKeys.recommendations.all,
+          type: "active",
+        },
+        { throwOnError: true },
+      );
+    } catch (error) {
+      // Refresh only if local mocks lost their connection after inactivity.
+      reloadForMockConnectionFailure(error);
     } finally {
       setRetrying(false);
     }

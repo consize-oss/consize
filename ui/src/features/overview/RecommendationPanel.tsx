@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Box, Check, Clock, Cpu, Database, Folder, GitPullRequest, Lock, Server, Zap } from "lucide-react";
+import { Box, Cpu, Database, Folder, Server } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { formatMoney, sentenceCase } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 import type { RecommendationListItem } from "@/schemas";
 import { summaryParamsOf, useScope } from "../scope/useScope";
 import { useDashboardSummary, useRecommendationList } from "./queries";
+import { RecommendationAction } from "../recommendations/RecommendationAction";
 
 type Attention = "all" | "approvals" | "high-risk" | "blocked";
 const ATTENTION: { key: Attention; label: string; dot?: string; empty: string }[] = [
@@ -41,42 +42,6 @@ const VISUAL: Record<string, { icon: LucideIcon; tile: string; glyph: string }> 
 const FALLBACK_VISUAL = { icon: Box, tile: "bg-app-surface-alt border-app-border", glyph: "text-fg-muted" };
 
 const PROVIDER_SHORT: Record<string, string> = { kubernetes: "k8s", aws: "AWS" };
-const METHOD_ICON: Record<string, LucideIcon> = {
-  github_pull_request: GitPullRequest,
-  schedule: Clock,
-  direct_apply: Zap,
-};
-
-// What the row's button says comes from the backend's remediation list.
-// Every button opens the focused review page: nothing mutates from a row
-// (PRD §6.4), so the "action" is the path you'll review, not a commit.
-function primaryAction(rec: RecommendationListItem) {
-  const enabled = rec.available_remediations.find((r) => r.enabled && r.method !== "review");
-  if (enabled) {
-    return {
-      label: enabled.label,
-      icon: METHOD_ICON[enabled.method] ?? Check,
-      style:
-        enabled.method === "github_pull_request"
-          ? "bg-ok-bg-strong hover:bg-ok-bg text-ok-fg border-ok-line"
-          : "bg-app-subcard hover:bg-app-surface-alt text-fg-secondary hover:text-fg border-app-border",
-    };
-  }
-  const blocked = rec.available_remediations.find((r) => !r.enabled && r.disabled_reason);
-  if (blocked) {
-    return {
-      label: sentenceCase(blocked.disabled_reason!),
-      icon: Lock,
-      style: "bg-warn-bg hover:bg-warn-bg text-warn-fg border-warn-line",
-    };
-  }
-  return {
-    label: "Review change",
-    icon: Check,
-    style: "bg-app-subcard hover:bg-app-surface-alt text-fg-secondary hover:text-fg border-app-border",
-  };
-}
-
 export function RecommendationPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -182,8 +147,6 @@ export function RecommendationPanel() {
                 const Icon = visual.icon;
                 const risk = RISK[rec.risk];
                 const money = formatMoney(rec.estimated_savings);
-                const action = primaryAction(rec);
-                const ActionIcon = action.icon;
                 const href = `/recommendations/${rec.id}`;
                 const meta = [PROVIDER_SHORT[rec.resource.provider] ?? rec.resource.provider, rec.resource.source, rec.target_summary].join(" • ");
                 return (
@@ -227,14 +190,7 @@ export function RecommendationPanel() {
                       <span className="text-fg-muted text-[10px]">/mo</span>
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <Link
-                        href={href}
-                        onClick={(e) => e.stopPropagation()}
-                        className={`h-7 px-3 border rounded-btn text-xs font-medium inline-flex items-center gap-1.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 ${action.style}`}
-                      >
-                        <ActionIcon className="w-3 h-3" aria-hidden />
-                        <span>{action.label}</span>
-                      </Link>
+                      <RecommendationAction recommendation={rec} variant="overview" />
                     </td>
                   </tr>
                 );

@@ -13,8 +13,6 @@ export const money = (
   basis: Money["basis"] = "estimated",
 ): Money => ({ amount_minor, currency: "USD", period: "month", basis });
 
-// Order = the backend's priority ranking (the Overview shows the top 5).
-// rec_04 is superseded: it stays inspectable but never appears in the ranking.
 export const baseRecommendations: RecommendationListItem[] = [
   {
     id: "rec_01",
@@ -29,20 +27,32 @@ export const baseRecommendations: RecommendationListItem[] = [
       region: "us-east-1",
       type: "Deployment",
       source: "prod-us-east-1",
+      kind: "compute",
+      description: "ns: payments · Tier 1 SRE",
+      scope: "prod-us-east-1",
+      inspect: true,
+      tags: { team: "payments", tier: "1" },
     },
     
     target_summary: "c6i.2xlarge · 8→4 vCPU",
+    change_summary: {
+      current: "c6i.2xl (8C / 16G)",
+      proposed: "c6i.xl (4C / 8G)",
+    },
     owner: "Platform",
     policy_id: "prod-conservative",
     risk: "low",
     confidence: "high",
+    confidence_percentage: 98,
+    confidence_note: "30d P95",
     estimated_savings: money(420000),
+    savings_note: "-48% cost",
     status: "actionable",
     available_remediations: [
-      { method: "review", label: "Review change", enabled: true },
+      { method: "review", label: "Review", enabled: true },
       {
         method: "github_pull_request",
-        label: "Review & create PR",
+        label: "Create PR",
         enabled: true,
         plugin_instance_id: "github-gitops:infra",
       },
@@ -66,16 +76,26 @@ export const baseRecommendations: RecommendationListItem[] = [
       region: "us-east-1",
       type: "Aurora cluster",
       source: "acme-prod-aws",
+      kind: "database",
+      description: "engine: aurora-pg15 · multi-az",
+      scope: "us-east-1",
     },
     target_summary: "db.r6g.4xlarge → 2xlarge",
+    change_summary: {
+      current: "db.r6g.4xlarge",
+      proposed: "db.r6g.2xlarge",
+    },
     owner: "Checkout",
     policy_id: "db-safe-change",
     risk: "medium",
     confidence: "medium",
+    confidence_percentage: 94,
+    confidence_note: "14d P99",
     estimated_savings: money(1280000),
+    savings_note: "-50% mem alloc",
     status: "pending_approval",
     available_remediations: [
-      { method: "review", label: "Review change", enabled: true },
+      { method: "review", label: "Review", enabled: true },
       { method: "schedule", label: "Schedule", enabled: true },
     ],
   },
@@ -87,21 +107,31 @@ export const baseRecommendations: RecommendationListItem[] = [
       id: "res_05",
       name: "analytics-raw-events",
       provider: "aws",
-      environment: "production",
+      environment: "datalake",
       region: "us-east-1",
       type: "S3 bucket",
       source: "acme-prod-aws",
+      kind: "storage",
+      description: "s3://prod-events-lake · 42TB",
+      scope: "aws-global",
     },
     target_summary: "S3 Standard → Glacier IR",
+    change_summary: {
+      current: "S3 Std 42TB",
+      proposed: "Glacier Instant",
+    },
     owner: "Data Eng",
     policy_id: "lifecycle",
     risk: "low",
     confidence: "high",
+    confidence_percentage: 99,
+    confidence_note: "Access: 90d",
     estimated_savings: money(195000),
+    savings_note: "-68% GB-mo",
     status: "actionable",
     available_remediations: [
-      { method: "review", label: "Review change", enabled: true },
-      { method: "direct_apply", label: "Apply change", enabled: true },
+      { method: "review", label: "Review", enabled: true },
+      { method: "direct_apply", label: "Apply directly", enabled: true },
     ],
   },
   {
@@ -117,13 +147,23 @@ export const baseRecommendations: RecommendationListItem[] = [
       region: "us-east-1",
       type: "GPU node group",
       source: "prod-us-east-1",
+      kind: "gpu",
+      description: "nodegroup: g5.4xlarge · 4 nodes",
+      scope: "prod-us-east-1",
     },
     target_summary: "g5.4xlarge · 4→3 nodes",
+    change_summary: {
+      current: "g5.4xlarge · 4 nodes",
+      proposed: "g5.4xlarge · 3 nodes",
+    },
     owner: "ML Ops",
     policy_id: "gpu-strict",
     risk: "high",
     confidence: "low",
+     confidence_percentage: 96,
+    confidence_note: "Eval bench",
     estimated_savings: money(840000),
+    savings_note: "-25% GPU nodes",
     status: "blocked",
     available_remediations: [
       {
@@ -147,43 +187,372 @@ export const baseRecommendations: RecommendationListItem[] = [
       region: "us-west-2",
       type: "Worker pool",
       source: "staging-us-west-2",
+      kind: "compute",
+      description: "ns: workers · 8 nodes",
+      scope: "staging-us-west-2",
     },
     target_summary: "Non-prod limits · 8→4 nodes",
+    change_summary: {
+      current: "req: 4C / 12G",
+      proposed: "req: 1C / 3G",
+    },
     owner: "Infra Core",
     policy_id: "non-prod-auto",
     risk: "low",
     confidence: "high",
+    confidence_percentage: 99,
+    confidence_note: "60d idle check",
     estimated_savings: money(264000),
+    savings_note: "-50% nodes",
     status: "actionable",
     available_remediations: [
-      { method: "review", label: "Review change", enabled: true },
-      { method: "direct_apply", label: "Direct apply", enabled: true },
+      { method: "review", label: "Review", enabled: true },
+      { method: "direct_apply", label: "Apply directly", enabled: true },
     ],
   },
   {
     id: "rec_04",
     version: "1",
-    title: "Right-size payment-service-deployment (earlier run)",
+    title: "Right-size image-processing-worker CPU requests",
     resource: {
-      id: "res_01",
-      name: "payment-service-deployment",
+      id: "res_04",
+      name: "image-processing-worker",
+      provider: "kubernetes",
+      environment: "staging",
+      namespace: "media",
+      region: "us-west-2",
+      type: "Deployment",
+      source: "staging-us-west-2",
+      kind: "compute",
+      description: "ns: media · 4 replicas",
+      scope: "staging-us-west-2",
+    },
+    target_summary: "CPU request: 2 → 1 vCPU per replica",
+    change_summary: {
+      current: "CPU request: 2 vCPU",
+      proposed: "CPU request: 1 vCPU",
+    },
+    owner: "Platform",
+    policy_id: "non-prod-auto",
+    risk: "low",
+    confidence: "high",
+    confidence_percentage: 97,
+    confidence_note: "14d P95",
+    estimated_savings: money(96000),
+    savings_note: "-50% CPU req",
+    status: "actionable",
+    available_remediations: [
+      { method: "review", label: "Review", enabled: true },
+    ],
+  },
+  {
+    id: "rec_07",
+    version: "1",
+    title: "Optimize customer-support-agent-llm routing",
+    resource: {
+      id: "res_07",
+      name: "customer-support-agent-llm",
+      provider: "aws",
+      environment: "production",
+      region: "us-east-1",
+      type: "LLM router",
+      source: "acme-prod-aws",
+      kind: "ai",
+      description: "Gateway: Bedrock/OpenAI Router",
+      scope: "global-api"
+    },
+    target_summary: "gpt-4-32k direct → Sonnet 3.5 + Cache",
+    change_summary: {
+      current: "gpt-4-32k direct",
+      proposed: "Sonnet 3.5 + Cache"
+    },
+    owner: "genai-sre",
+    policy_id: "model-routing",
+    risk: "low",
+    confidence: "high",
+    confidence_percentage: 96,
+    confidence_note: "Eval bench",
+    estimated_savings: money(540000),
+    savings_note: "-72% token cost",
+    status: "actionable",
+    available_remediations: [
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "direct_apply",
+        label: "Apply directly",
+        enabled: true
+      }
+    ]
+  },
+  {
+    id: "rec_08",
+    version: "1",
+    title: "Use Spot capacity for ml-training-spot-fallback",
+    resource: {
+      id: "res_08",
+      name: "ml-training-spot-fallback",
       provider: "kubernetes",
       environment: "production",
-      namespace: "payments",
+      namespace: "ml-ops",
+      region: "us-west-2",
+      type: "GPU node group",
+      source: "prod-us-west-2",
+      kind: "gpu",
+      description: "nodegroup: g5.12xlarge · On-Demand",
+      scope: "prod-us-west-2"
+    },
+    target_summary: "On-Demand GPU Pool → Spot Interruption Mix",
+    change_summary: {
+      current: "On-Demand GPU Pool",
+      proposed: "Spot Interruption Mix"
+    },
+    owner: "ML Ops",
+    policy_id: "gpu-strict",
+    risk: "high",
+    confidence: "medium",
+    confidence_percentage: 89,
+    confidence_note: "Spot reb 7d",
+    estimated_savings: money(680000),
+    savings_note: "-62% GPU rate",
+    status: "pending_approval",
+    available_remediations: [
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "direct_apply",
+        label: "Apply directly",
+        enabled: false,
+        disabled_reason: "approval_required"
+      }
+    ]
+  },
+  {
+    id: "rec_09",
+    version: "1",
+    title: "Reduce checkout-gateway-api minimum replicas",
+    resource: {
+      id: "res_09",
+      name: "checkout-gateway-api",
+      provider: "kubernetes",
+      environment: "production",
+      namespace: "checkout",
       region: "us-east-1",
       type: "Deployment",
       source: "prod-us-east-1",
+      kind: "compute",
+      description: "ns: checkout · HPA min 12",
+      scope: "prod-us-east-1"
     },
-    target_summary: "c6i.2xlarge · 8→6 vCPU",
+    target_summary: "Min Replicas: 12 → 8",
+    change_summary: {
+      current: "Min Replicas: 12",
+      proposed: "Min Replicas: 8"
+    },
+    owner: "checkout-eng",
+    policy_id: "prod-conservative",
+    risk: "low",
+    confidence: "high",
+    confidence_percentage: 95,
+    confidence_note: "21d traffic",
+    estimated_savings: money(145000),
+    savings_note: "-33% static base",
+    status: "actionable",
+    available_remediations: [
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "github_pull_request",
+        label: "Create PR",
+        enabled: true,
+        plugin_instance_id: "github-gitops:infra"
+      }
+    ]
+  },
+  {
+    id: "rec_10",
+    version: "1",
+    title: "Right-size notifications-worker CPU requests",
+    resource: {
+      id: "res_10",
+      name: "notifications-worker",
+      provider: "kubernetes",
+      environment: "production",
+      namespace: "messaging",
+      region: "us-east-1",
+      type: "Deployment",
+      source: "prod-us-east-1",
+      kind: "compute",
+      description: "ns: messaging · 6 replicas",
+      scope: "prod-us-east-1"
+    },
+    target_summary: "CPU request: 2 → 1 vCPU per replica",
+    change_summary: {
+      current: "CPU request: 2 vCPU",
+      proposed: "CPU request: 1 vCPU"
+    },
     owner: "Platform",
     policy_id: "prod-conservative",
     risk: "low",
-    confidence: "medium",
-    estimated_savings: money(380000),
-    status: "superseded",
+    confidence: "high",
+    confidence_percentage: 97,
+    confidence_note: "14d P95",
+    estimated_savings: money(90000),
+    savings_note: "-50% CPU req",
+    status: "actionable",
     available_remediations: [
-      { method: "review", label: "Review change", enabled: false, disabled_reason: "superseded" },
-    ],
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "github_pull_request",
+        label: "Create PR",
+        enabled: true,
+        plugin_instance_id: "github-gitops:infra"
+      }
+    ]
+  },
+  {
+    id: "rec_11",
+    version: "1",
+    title: "Downscale sessions-redis-cache",
+    resource: {
+      id: "res_11",
+      name: "sessions-redis-cache",
+      provider: "aws",
+      environment: "production",
+      region: "us-east-1",
+      type: "ElastiCache cluster",
+      source: "acme-prod-aws",
+      kind: "database",
+      description: "engine: redis7 · multi-az",
+      scope: "us-east-1"
+    },
+    target_summary: "cache.r6g.xlarge → cache.r6g.large",
+    change_summary: {
+      current: "cache.r6g.xlarge",
+      proposed: "cache.r6g.large"
+    },
+    owner: "Platform",
+    policy_id: "db-safe-change",
+    risk: "medium",
+    confidence: "high",
+    confidence_percentage: 93,
+    confidence_note: "30d memory",
+    estimated_savings: money(180000),
+    savings_note: "-50% node size",
+    status: "pending_approval",
+    available_remediations: [
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "schedule",
+        label: "Schedule",
+        enabled: true
+      }
+    ]
+  },
+  {
+    id: "rec_12",
+    version: "1",
+    title: "Reduce idle dev-build-runner capacity",
+    resource: {
+      id: "res_12",
+      name: "dev-build-runner",
+      provider: "kubernetes",
+      environment: "development",
+      namespace: "ci",
+      region: "us-west-2",
+      type: "Worker pool",
+      source: "dev-us-west-2",
+      kind: "compute",
+      description: "ns: ci · 4 nodes",
+      scope: "dev-us-west-2"
+    },
+    target_summary: "Build runner pool: 4 → 2 nodes",
+    change_summary: {
+      current: "Build runners: 4 nodes",
+      proposed: "Build runners: 2 nodes"
+    },
+    owner: "Infra Core",
+    policy_id: "non-prod-auto",
+    risk: "low",
+    confidence: "high",
+    confidence_percentage: 99,
+    confidence_note: "30d idle check",
+    estimated_savings: money(60000),
+    savings_note: "-50% nodes",
+    status: "actionable",
+    available_remediations: [
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "direct_apply",
+        label: "Apply directly",
+        enabled: true
+      }
+    ]
+  },
+  {
+    id: "rec_13",
+    version: "1",
+    title: "Archive older archive-access-logs objects",
+    resource: {
+      id: "res_13",
+      name: "archive-access-logs",
+      provider: "aws",
+      environment: "datalake",
+      region: "us-east-1",
+      type: "S3 bucket",
+      source: "acme-prod-aws",
+      kind: "storage",
+      description: "s3://archive-access-logs · 18TB",
+      scope: "aws-global"
+    },
+    target_summary: "S3 Standard → Glacier Flexible Retrieval",
+    change_summary: {
+      current: "S3 Standard 18TB",
+      proposed: "Glacier Flexible Retrieval"
+    },
+    owner: "Data Eng",
+    policy_id: "retention-approval",
+    risk: "medium",
+    confidence: "medium",
+    confidence_percentage: 90,
+    confidence_note: "Access: 180d",
+    estimated_savings: money(75000),
+    savings_note: "-65% storage cost",
+    status: "blocked",
+    available_remediations: [
+      {
+        method: "review",
+        label: "Review",
+        enabled: true
+      },
+      {
+        method: "direct_apply",
+        label: "Apply directly",
+        enabled: false,
+        disabled_reason: "approval_required"
+      }
+    ]
   },
 ];
 
@@ -256,7 +625,7 @@ export function buildSummary(
     rollback_rate: 0,
     rollbacks: 0,
     guarded_changes: empty ? 0 : w.guarded,
-    open_recommendations: empty ? 0 : scoped ? open.length : 84,
+    open_recommendations: empty ? 0 : open.length,
     policy_engine: opts.degraded ? "unavailable" : "enforcing",
     verifier: opts.degraded ? "degraded" : "healthy",
     last_evaluated_at: new Date(Date.now() - 4 * 60_000).toISOString(),
@@ -380,6 +749,8 @@ function buildDetail(
 }
 
 const detailOverrides: Record<string, Partial<RecommendationDetail>> = {
+  rec_01: {},
+  rec_06: {},
   rec_02: {
     current: { "Instance class": "db.r6g.4xlarge" },
     proposed: { "Instance class": "db.r6g.2xlarge" },
@@ -460,10 +831,33 @@ const detailOverrides: Record<string, Partial<RecommendationDetail>> = {
       verification: ["Retrieval requests must keep succeeding"],
     },
   },
-  rec_04: { superseded_by: "rec_01" },
 };
 
 export function detailFor(id: string): RecommendationDetail | undefined {
   const rec = baseRecommendations.find((r) => r.id === id);
-  return rec ? buildDetail(rec, detailOverrides[id]) : undefined;
+  if (!rec) return undefined;
+  if (!detailOverrides[id]) {
+    const needsApproval = rec.status === "pending_approval"
+      || rec.available_remediations.some((action) => action.enabled && action.method === "github_pull_request");
+    return buildDetail(rec, {
+      summary: "UI mock example: " + rec.change_summary!.current + " → " + rec.change_summary!.proposed + ". These values are sample data, not a measured evaluation.",
+      algorithm: { id: "ui-mock-sample", version: "1.0.0" },
+      current: { Configuration: rec.change_summary!.current },
+      proposed: { Configuration: rec.change_summary!.proposed },
+      confidence_assessment: {
+        observed_history: "Sample data only",
+        required_history: "Not evaluated",
+        coverage_ratio: 0,
+        reasons: ["The table percentage is illustrative; no measured evidence is supplied."],
+      },
+      evidence: [],
+      policy: {
+        decision: rec.status === "blocked" ? "blocked" : needsApproval ? "requires_approval" : "allowed",
+        reasons: [rec.status === "blocked" ? "Sample change is blocked pending policy approval" : needsApproval ? "Sample change requires review and approval" : "Sample policy allows this change"],
+        verification: ["Demo only: production verification has not been performed"],
+      },
+      audit: [],
+    });
+  }
+  return buildDetail(rec, detailOverrides[id]);
 }

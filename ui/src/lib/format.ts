@@ -41,22 +41,3 @@ export function formatMoneyCompact(m: { amount_minor: number; currency: string }
     .format(m.amount_minor / 100)
     .toLowerCase();
 }
-
-/** Turn an evaluation timestamp into "4m ago", "1h ago", or "2d ago".
- * Passing the current time in makes the formatting easy to check with fixed examples.
- */
-export function formatRelativeTime(timestamp: string | null | undefined, now: number): string {
-  // Missing or invalid dates mean unknown, rather than an invented evaluation age.
-  if (!timestamp) return "—";
-  const evaluatedAt = Date.parse(timestamp);
-  if (!Number.isFinite(evaluatedAt) || !Number.isFinite(now)) return "—";
-
-  // Small differences between server and browser clocks should not show negative ages.
-  const minutes = Math.floor(Math.max(0, now - evaluatedAt) / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}

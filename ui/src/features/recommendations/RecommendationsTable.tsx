@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Box, BrainCircuit, CalendarDays, ChevronRight, Cpu, Database, GitPullRequest, Hexagon, Shield, Zap } from "lucide-react";
+import { Box, BrainCircuit, ChevronRight, Cpu, Database, Hexagon } from "lucide-react";
 import { formatMoney, titleCase } from "@/lib/format";
 import type { RecommendationListItem } from "@/schemas";
+import { RecommendationAction } from "./RecommendationAction";
 
 
 
@@ -28,13 +29,6 @@ const RESOURCE_STYLES = {
   storage: { icon: Box, color: "border-violet-500/25 bg-violet-500/10 text-violet-500" },
   ai: { icon: BrainCircuit, color: "border-purple-500/25 bg-purple-500/10 text-purple-500" },
   gpu: { icon: Cpu, color: "border-badge-high/25 bg-badge-high/10 text-badge-high-text" },
-};
-
-const ACTIONS = {
-  github_pull_request: { label: "Create PR", icon: GitPullRequest, color: "text-status-info" },
-  schedule: { label: "Schedule", icon: CalendarDays, color: "text-badge-medium-text" },
-  direct_apply: { label: "Apply directly", icon: Zap, color: "text-accent-400" },
-  request_approval: { label: "Request approval", icon: Shield, color: "text-badge-medium-text" },
 };
 
 export function RecommendationsTable({ items, isLoading, isError, isRetrying, hasFilters, onRetry }: RecommendationsTableProps) {
@@ -128,7 +122,7 @@ function RecommendationRow({ recommendation: rec }: { recommendation: Recommenda
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-              <Link href={`/recommendations/${encodeURIComponent(rec.id)}`} className="break-words rounded font-medium text-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
+              <Link href={`/recommendations/${encodeURIComponent(rec.id)}`} className="break-words rounded font-[650] text-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
                 {rec.resource.name}
               </Link>
               {rec.resource.inspect && <span className="rounded border border-badge-low/25 bg-badge-low/10 px-1 text-[8px] leading-3 text-badge-low-text uppercase">Inspect</span>}
@@ -138,7 +132,7 @@ function RecommendationRow({ recommendation: rec }: { recommendation: Recommenda
         </div>
       </th>
       <td className="px-3 py-3.5">
-        <span className="flex items-center gap-1 text-fg">
+        <span className="flex items-center gap-1 font-[650] text-fg">
           <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${rec.resource.environment === "production" ? "bg-status-high" : "bg-status-info"}`} />
           {environment}
         </span>
@@ -146,50 +140,30 @@ function RecommendationRow({ recommendation: rec }: { recommendation: Recommenda
       </td>
       <td className="break-words px-3 py-3.5 text-fg-secondary">{rec.owner}</td>
       <td className="px-3 py-3.5">
-        <span className="block text-[10px] text-fg-secondary">{rec.change_summary?.current ?? "—"}</span>
+        <span className="block text-[10px] font-[650] text-fg">{rec.change_summary?.current ?? "—"}</span>
         {rec.change_summary?.proposed && (
-          <span className="mt-0.5 flex items-start gap-0.5 text-[10px] text-accent-400">
+          <span className="mt-0.5 flex items-start gap-0.5 text-[10px] text-ok-fg">
             <ChevronRight aria-hidden="true" className="mt-0.5 h-3 w-3 shrink-0" />
             <span><span className="sr-only">Suggested: </span>{rec.change_summary.proposed}</span>
           </span>
         )}
       </td>
       <td className="px-3 py-3.5">
-        <span className="whitespace-nowrap text-[13px] font-semibold text-accent-400">
+        <span className="whitespace-nowrap text-[13px] font-[650] text-ok-strong">
           {rec.estimated_savings.amount_minor > 0 ? "+" : ""}{savings.display}
           <span className="text-[10px] font-normal text-fg-muted">/mo</span>
         </span>
         <span className="mt-0.5 block text-[10px] text-fg-muted">{rec.savings_note ?? "—"}</span>
       </td>
       <td className="px-3 py-3.5">
-        <span className={`inline-flex rounded border px-1.5 py-0.5 text-[9px] leading-3 ${RISK_STYLES[rec.risk]}`}>{titleCase(rec.risk)}</span>
+        <span className={`inline-flex rounded border px-1.5 py-0.5 text-[9px] leading-3 font-[650] ${RISK_STYLES[rec.risk]}`}>{titleCase(rec.risk)}</span>
       </td>
       <td className="px-3 py-3.5">
         {/* A percentage is a separate value, never a conversion from the legacy high/medium/low label. */}
-        <span className="block font-medium text-fg">{rec.confidence_percentage == null ? "—" : `${rec.confidence_percentage}%`}</span>
+        <span className="block font-[650] text-fg">{rec.confidence_percentage == null ? "—" : `${rec.confidence_percentage}%`}</span>
         <span className="mt-0.5 block text-[10px] text-fg-muted">{rec.confidence_note ?? "—"}</span>
       </td>
-      <td className="px-3 py-3.5 text-center"><RecommendationAction action={rec.primary_action} /></td>
+      <td className="px-3 py-3.5 text-center"><RecommendationAction recommendation={rec} /></td>
     </tr>
-  );
-}
-
-function RecommendationAction({ action }: { action: RecommendationListItem["primary_action"] }) {
-  if (!action) return <span className="text-fg-muted">—</span>;
-  const { label, icon: ActionIcon, color } = ACTIONS[action];
-  const approval = action === "request_approval";
-  const labelColor = approval || action === "schedule" ? "text-badge-medium-text" : "text-fg-secondary";
-
-  return (
-    // This is the static UI stage: showing an action must not pretend to execute it.
-    <button
-      type="button"
-      disabled
-      title={`${label} is not available yet`}
-      className={`inline-flex h-8 w-full max-w-36 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[10px] font-medium disabled:cursor-not-allowed ${labelColor} ${approval ? "border-badge-medium/40 bg-badge-medium/10" : "border-app-border bg-app-surface"}`}
-    >
-      <ActionIcon aria-hidden="true" className={`h-3 w-3 shrink-0 ${color}`} />
-      {label}
-    </button>
   );
 }
