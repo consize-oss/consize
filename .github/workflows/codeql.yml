@@ -37,7 +37,7 @@ jobs:
       - name: Build Go for extraction
         if: matrix.language == 'go'
         run: go build -mod=readonly ./...
-      - uses: github/codeql-action/analyze@a79638c6e166cca8d437da39b8b88cae58fed1f3 # v4.31.0
+      - uses: github/codeql-action/analyze@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
         with:
           category: /language:${{ matrix.language }}
           upload: false
@@ -59,7 +59,7 @@ jobs:
           esac
           go run ./cmd/codeql-report --input "${reports[0]}" --output "$RUNNER_TEMP/codeql-report.json" --context "$context" --version "$(git rev-parse HEAD)"
           go run ./cmd/security-policy evaluate --policy .github/security/policy.json --exceptions .github/security/exceptions.json --report "$RUNNER_TEMP/codeql-report.json" --output "$RUNNER_TEMP/codeql-decision.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: codeql-${{ matrix.language }}-${{ github.run_id }}
