@@ -5,7 +5,7 @@
   "devDependencies": {
     "@playwright/test": "https://registry.npmjs.org/@playwright/test/-/test-1.64.0.tgz",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.3",
     "typescript": "5.9.3"
   },
   "overrides": {
