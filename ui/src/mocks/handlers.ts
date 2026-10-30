@@ -1,5 +1,7 @@
 import { http, HttpResponse } from "msw";
-import type { RecommendationListItem } from "@/schemas";
+import type { RecommendationListItem, ScopeOptions } from "@/schemas";
+import type { ResourceInventoryDetails } from "@/features/resources/resourceInventory";
+import { baseResources } from "./resources";
 import {
   baseRecommendations,
   buildScopeOptions,
@@ -40,7 +42,79 @@ const FILTERS: Record<string, (r: RecommendationListItem) => string | undefined>
   type: (r) => r.resource.type,
 };
 
+// Keep established choices while including resources that do not have recommendations.
+function buildInventoryScopeOptions(): ScopeOptions {
+  const existing = buildScopeOptions();
+  const merge = (
+    current: { value: string; label: string }[],
+    values: string[],
+    label: (value: string) => string = (value) => value,
+  ) => {
+    const options = new Map(current.map((option) => [option.value, option]));
+    for (const value of values.filter(Boolean)) {
+      if (!options.has(value)) options.set(value, { value, label: label(value) });
+    }
+    return [...options.values()].sort((a, b) => a.value.localeCompare(b.value));
+  };
+  return {
+    providers: merge(existing.providers, baseResources.map((resource) => resource.provider),
+      (value) => ({ aws: "AWS", kubernetes: "Kubernetes" }[value] ?? value)),
+    sources: merge(existing.sources, baseResources.map((resource) => resource.source_plugin_id)),
+    regions: merge(existing.regions, baseResources.map((resource) => resource.region)),
+    resource_types: merge(existing.resource_types, baseResources.map((resource) =>
+      (resource.metadata.demo_inventory as ResourceInventoryDetails).scope_type ?? resource.type)),
+  };
+}
+
+let inventorySyncedAt: string | null = null;
+
+function resourceInventoryForScenario() {
+  return scenario === "empty-cluster" ? [] : baseResources.map((resource) => {
+    const inventory = resource.metadata.demo_inventory as ResourceInventoryDetails;
+    return {
+      ...resource,
+      ...(inventorySyncedAt ? {
+        observed_at: inventorySyncedAt, last_seen_at: inventorySyncedAt, updated_at: inventorySyncedAt,
+      } : {}),
+      metadata: {
+        ...resource.metadata,
+        demo_inventory: {
+          ...inventory,
+          ...(scenario === "no-recommendations" ? { recommendation_ids: [] } : {}),
+          ...(scenario === "stale" && inventory.telemetry?.status === "healthy" ? {
+            telemetry: {
+              ...inventory.telemetry, status: "stale",
+              checked_at: new Date(Date.now() - 3 * 60 * 60_000).toISOString(),
+            },
+          } : {}),
+        },
+      },
+    };
+  });
+}
+
 export const handlers = [
+  http.get("*/api/resources", () => {
+    if (isDown()) return unavailable("Resource inventory unavailable");
+    return HttpResponse.json({ resources: resourceInventoryForScenario() });
+  }),
+
+  http.post("*/api/discovery", () => {
+    if (isDown()) return unavailable("Inventory sync unavailable");
+    inventorySyncedAt = new Date().toISOString();
+    const groups = new Map<string, typeof baseResources>();
+    for (const resource of resourceInventoryForScenario()) {
+      const resources = groups.get(resource.source_plugin_id) ?? [];
+      resources.push(resource);
+      groups.set(resource.source_plugin_id, resources);
+    }
+    return HttpResponse.json({
+      providers: [...groups.entries()].map(([plugin_id, resources]) => ({
+        plugin_id, count: resources.length, resources,
+      })),
+    });
+  }),
+
   http.get("*/api/v1/dashboard/summary", ({ request }) => {
     if (scenario === "backend-down") return unavailable("Service unavailable");
     const q = new URL(request.url).searchParams;
@@ -67,7 +141,7 @@ export const handlers = [
     return HttpResponse.json(
       scenario === "empty-cluster"
         ? { providers: [], sources: [], regions: [], resource_types: [] }
-        : buildScopeOptions(),
+        : buildInventoryScopeOptions(),
     );
   }),
 
