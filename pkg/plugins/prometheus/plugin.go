@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/consize-oss/consize/pkg/evidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -18,6 +20,7 @@ type Config struct {
 	BaseURL string
 	Window  time.Duration
 	Step    time.Duration
+	Units   map[string]string
 	Queries map[string]string
 }
 
@@ -25,6 +28,7 @@ type Plugin struct {
 	client  Client
 	window  time.Duration
 	step    time.Duration
+	units   map[string]string
 	queries map[string]string
 }
 
@@ -52,7 +56,7 @@ func NewWithClient(client Client, cfg Config) *Plugin {
 	for key, query := range cfg.Queries {
 		queries[key] = query
 	}
-	return &Plugin{client: client, window: window, step: step, queries: queries}
+	return &Plugin{client: client, window: window, step: step, queries: queries, units: cfg.Units}
 }
 
 func (p *Plugin) ID() string { return ID }
@@ -103,6 +107,7 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 	if podSelector == "" {
 		podSelector = fmt.Sprintf("%s-.+", regexpQuote(name))
 	}
+	collectedAt := time.Now().UTC()
 	signals := map[string]any{
 		"namespace": namespace,
 		"name":      name,
@@ -110,18 +115,27 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		"step":      p.step.String(),
 	}
 	coverage := map[string]plugin.MetricCoverage{}
-	for key, queryTemplate := range p.queries {
+	records := []evidence.Record{}
+	keys := make([]string, 0, len(p.queries))
+	for key := range p.queries {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		queryTemplate := p.queries[key]
 		query := renderQuery(queryTemplate, namespace, podSelector)
 		series, err := p.client.QueryRange(ctx, query, start, end, p.step)
 		if err != nil {
 			return plugin.MetricsSnapshot{}, err
 		}
 		values := []float64{}
+		discarded := 0
 		points := map[int64]bool{}
 		var first, last time.Time
 		for _, s := range series {
 			for _, point := range s.Points {
 				if point.Timestamp.Before(start) || point.Timestamp.After(end) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) {
+					discarded++
 					continue
 				}
 				points[point.Timestamp.UnixNano()] = true
@@ -154,8 +168,39 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 			signals[key+"_max"] = max(values)
 		}
 		signals[key+"_points"] = len(values)
+		unit := signalUnit(key)
+		if configured := p.units[key]; configured != "" {
+			unit = configured
+		}
+		if unit == "" {
+			return plugin.MetricsSnapshot{}, fmt.Errorf("unit is undefined for signal %q", key)
+		}
+		quality := evidence.Valid
+		if len(values) == 0 {
+			quality = evidence.Missing
+			if discarded > 0 {
+				quality = evidence.Invalid
+			}
+		} else if collectedAt.Sub(last) > 2*p.step {
+			quality = evidence.Stale
+		} else if float64(len(points))/float64(coverage[key].ExpectedPoints) < 0.9 || discarded > 0 {
+			quality = evidence.Partial
+		}
+		for _, stat := range []string{"p50", "p95", "p99", "max"} {
+			var value *float64
+			if v, ok := signals[key+"_"+stat].(float64); ok {
+				value = evidence.Number(v)
+			}
+			rec, err := evidence.Seal(evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: stat, Unit: unit, OriginalUnit: unit, Scale: 1, Value: value, SampleCount: len(values), WindowStart: start, WindowEnd: end, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}})
+			if err != nil {
+				return plugin.MetricsSnapshot{}, err
+			}
+			records = append(records, rec)
+		}
+
 	}
 	return plugin.MetricsSnapshot{
+		Records:    records,
 		Coverage:   coverage,
 		PluginID:   ID,
 		ResourceID: res.ID,
@@ -167,7 +212,7 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 			"deployment is matched through namespace and ReplicaSet-style pod prefix",
 			"health verification can use the same metrics after an action",
 		},
-		CollectedAt: end,
+		CollectedAt: collectedAt,
 	}, nil
 }
 
@@ -236,4 +281,18 @@ func renderQuery(template, namespace, podRegex string) string {
 		"{pod_regex}", podRegex,
 	)
 	return replacer.Replace(template)
+}
+
+func signalUnit(key string) string {
+	switch key {
+	case "cpu_cores":
+		return "cores"
+	case "memory_working_set_bytes":
+		return "bytes"
+	case "cpu_throttling_ratio":
+		return "ratio"
+	case "restarts_30m", "oom_events_30m", "evicted_pods":
+		return "count"
+	}
+	return ""
 }

@@ -6,11 +6,13 @@ import (
 
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/verification"
+	"github.com/consize-oss/consize/pkg/evidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
 type Recommendation struct {
+	EvidenceSnapshot        []evidence.Record    `json:"evidence_snapshot,omitempty"`
 	SchemaVersion           int                  `json:"schema_version"`
 	ID                      int64                `json:"id"`
 	ResourceID              string               `json:"resource_id"`

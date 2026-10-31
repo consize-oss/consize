@@ -2,6 +2,7 @@ package recommender
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"time"
@@ -46,6 +47,12 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 	if res.Type != resource.TypeKubernetesDeployment {
 		return store.Recommendation{}, fmt.Errorf("unsupported resource type %q", res.Type)
 	}
+	if snapshot.ResourceID != res.ID || snapshot.PluginID != r.cfg.MetricsPluginID {
+		return store.Recommendation{}, fmt.Errorf("metrics identity mismatch")
+	}
+	if _, err := snapshot.Measurement(r.cfg.MetricKey, "bytes", time.Now().UTC()); err != nil {
+		return store.Recommendation{}, err
+	}
 	currentReq, err := numberFromState(res.CurrentState, r.cfg.CurrentRequestKey)
 	if err != nil {
 		return store.Recommendation{}, err
@@ -71,14 +78,25 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 		return store.Recommendation{}, fmt.Errorf("reduction %.2f is below minimum %.2f", reductionRatio, r.cfg.MinReductionRatio)
 	}
 	proposedLimit := currentLimit
+	encoded, err := json.Marshal(snapshot)
+	if err != nil {
+		return store.Recommendation{}, err
+	}
+	var frozen plugin.MetricsSnapshot
+	if err = json.Unmarshal(encoded, &frozen); err != nil {
+		return store.Recommendation{}, err
+	}
+	snapshot = frozen
 	confidence := AssessConfidence(r.cfg, res, snapshot, time.Now().UTC())
 	return store.Recommendation{
-		ResourceID:  res.ID,
-		PluginID:    r.cfg.ActionPluginID,
-		AlgorithmID: r.ID(),
-		ActionType:  r.cfg.ActionType,
-		Title:       fmt.Sprintf("Reduce %s request for %s", r.cfg.ResourceKind, res.Name),
-		Summary:     fmt.Sprintf("Reduce the %s reservation by %.0f%% using p95 usage with %.2fx headroom. The limit is unchanged. This is reserved capacity, not verified billing savings.", r.cfg.ResourceKind, reductionRatio*100, r.cfg.HeadroomRatio),
+		ResourceID:       res.ID,
+		PluginID:         r.cfg.ActionPluginID,
+		AlgorithmID:      r.ID(),
+		AlgorithmVersion: "1",
+		EvidenceSnapshot: snapshot.Records,
+		ActionType:       r.cfg.ActionType,
+		Title:            fmt.Sprintf("Reduce %s request for %s", r.cfg.ResourceKind, res.Name),
+		Summary:          fmt.Sprintf("Reduce the %s reservation by %.0f%% using p95 usage with %.2fx headroom. The limit is unchanged. This is reserved capacity, not verified billing savings.", r.cfg.ResourceKind, reductionRatio*100, r.cfg.HeadroomRatio),
 		Current: map[string]any{
 			"resource": r.cfg.ResourceKind,
 			"request":  currentReq,
@@ -123,7 +141,7 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 		Confidence:   confidence.Label,
 		Risk:         riskFor(res, reductionRatio),
 		Evidence:     append(evidenceLines(r, snapshot, observed, currentReq, proposedReq, reductionRatio), confidence.Reasons...),
-		EvidenceRefs: []string{fmt.Sprintf("metrics:%s:%s:%d", snapshot.PluginID, snapshot.ResourceID, snapshot.CollectedAt.UnixNano())},
+		EvidenceRefs: evidenceIDs(snapshot),
 		Status:       store.RecommendationPending,
 	}, nil
 }
@@ -262,4 +280,12 @@ func asFloat(v any) (float64, bool) {
 
 type jsonNumber interface {
 	Float64() (float64, error)
+}
+
+func evidenceIDs(snapshot plugin.MetricsSnapshot) []string {
+	ids := make([]string, 0, len(snapshot.Records))
+	for _, r := range snapshot.Records {
+		ids = append(ids, r.ID)
+	}
+	return ids
 }
