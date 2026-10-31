@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
   merge_group:
   schedule:
     - cron: "17 5 * * 2"
@@ -54,7 +55,7 @@ jobs:
             pull_request) context=pull_request ;;
             push) context=default_branch ;;
             schedule) context=scheduled_scan ;;
-            merge_group) context=build ;;
+            merge_group|workflow_dispatch) context=build ;;
             *) exit 1 ;;
           esac
           go run ./cmd/codeql-report --input "${reports[0]}" --output "$RUNNER_TEMP/codeql-report.json" --context "$context" --version "$(git rev-parse HEAD)"
