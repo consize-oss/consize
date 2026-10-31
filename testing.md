@@ -218,7 +218,11 @@ GITLEAKS_BIN=/tmp/consize-gitleaks \
 
 The history test must detect a synthetic test token even when it is added and removed within the tested branch. Use only documented synthetic fixtures in a disposable, unmerged branch. Never test with a live credential.
 
-### 4.7 Repository hygiene
+### 4.7 Dependency security
+
+Use `scripts/security/install-govulncheck.sh "$PWD/.tools"`, then run `go test -race ./internal/dependencysecurity ./internal/securitypolicy ./cmd/dependency-security`. The live scan command and report interpretation are in [the dependency security runbook](docs/engineering/dependency-security.md). Both npm lockfiles, including CI tooling, must remain in coverage; no lockfile is changed in CI.
+
+### 4.8 Repository hygiene
 
 ```bash
 git status --short
@@ -720,6 +724,7 @@ The current canonical checks include:
 - `API contract`;
 - `Secret scan`;
 - `Security policy`;
+- `Dependency security`;
 - `Repository security`;
 - `Backend quality`;
 - `Frontend quality`;
