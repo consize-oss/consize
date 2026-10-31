@@ -5,6 +5,43 @@ import { getClientPage } from "./pagination";
 const resources = Array.from({ length: 50 }, (_, index) => ({ id: index + 1 }));
 
 describe("Complete-list pagination", () => {
+  // Known examples exercise different list sizes independently of the application's demo data.
+  const examples = [
+    { count: 0, pages: 1, lastPageSize: 0 },
+    { count: 1, pages: 1, lastPageSize: 1 },
+    { count: 6, pages: 1, lastPageSize: 6 },
+    { count: 7, pages: 1, lastPageSize: 7 },
+    { count: 8, pages: 2, lastPageSize: 1 },
+    { count: 14, pages: 2, lastPageSize: 7 },
+    { count: 15, pages: 3, lastPageSize: 1 },
+    { count: 50, pages: 8, lastPageSize: 1 },
+    { count: 70, pages: 10, lastPageSize: 7 },
+    { count: 100, pages: 15, lastPageSize: 2 },
+    { count: 1000, pages: 143, lastPageSize: 6 },
+    { count: 10000, pages: 1429, lastPageSize: 4 },
+  ];
+  for (const example of examples) {
+    it("paginates " + example.count + " records without losing or repeating any", () => {
+      const sample = Array.from({ length: example.count }, (_, index) => ({ id: index + 1 }));
+      const first = getClientPage(sample, 1, 7);
+      const last = getClientPage(sample, Number.MAX_SAFE_INTEGER, 7);
+      assert.equal(first.totalItems, example.count);
+      assert.equal(first.totalPages, example.pages);
+      assert.equal(last.currentPage, example.pages);
+      assert.equal(last.items.length, example.lastPageSize);
+      assert.equal(last.endItem, example.count);
+      assert.deepEqual(last.items, sample.slice(example.count - example.lastPageSize));
+      const visited: typeof sample = [];
+      for (let page = 1; page <= example.pages; page++) {
+        const result = getClientPage(sample, page, 7);
+        assert.equal(result.currentPage, page);
+        assert.ok(result.items.length <= 7);
+        visited.push(...result.items);
+      }
+      assert.deepEqual(visited, sample);
+    });
+  }
+
   it("uses seven rows per page and reports accurate record ranges", () => {
     const first = getClientPage(resources, 1, 7);
     const second = getClientPage(resources, 2, 7);
