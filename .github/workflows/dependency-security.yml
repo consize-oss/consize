@@ -1,0 +1,74 @@
+name: Dependency security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  schedule:
+    - cron: "37 4 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-security:
+    name: Dependency security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: .go-version
+          cache-dependency-path: go.sum
+      - name: Set up pinned Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+      - name: Install pinned npm
+        run: npm install --global "$(node -p 'require("./ui/package.json").packageManager')"
+      - name: Install module-checksum-verified govulncheck
+        run: scripts/security/install-govulncheck.sh "$RUNNER_TEMP/dependency-tools"
+      - name: Prove policy, parsing, expiry and scanner-failure controls
+        run: go test -race ./internal/dependencysecurity ./internal/securitypolicy ./cmd/dependency-security
+      - name: Audit all npm dependencies and Go source graphs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          case "$EVENT_NAME" in
+            pull_request) context=pull_request ;;
+            push) context=default_branch ;;
+            schedule) context=scheduled_scan ;;
+            merge_group|workflow_dispatch) context=build ;;
+            *) echo "Unsupported dependency scan event"; exit 1 ;;
+          esac
+          go run ./cmd/dependency-security \
+            --output "$RUNNER_TEMP/dependency-security" \
+            --govulncheck "$RUNNER_TEMP/dependency-tools/govulncheck" \
+            --context "$context" \
+            --revision "$(git rev-parse HEAD)"
+      - name: Reject source or lockfile mutation
+        if: always()
+        run: git diff --exit-code
+      - name: Retain redacted reports, decisions and manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dependency-security-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/dependency-security/*-report.json
+            ${{ runner.temp }}/dependency-security/*-decision.json
+            ${{ runner.temp }}/dependency-security/manifest.json
+          if-no-files-found: error
+          retention-days: 14

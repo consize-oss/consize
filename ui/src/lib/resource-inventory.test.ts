@@ -61,6 +61,21 @@ const coverageRecords = [
 ];
 
 describe("Resource inventory rules", () => {
+  it("validates string labels while preserving resource metadata and current state", () => {
+    const resource = exampleResource("record-maps", {
+      labels: { team: "platform" },
+      metadata: { provider: { managed: true }, generation: 3 },
+      current_state: { replicas: 2, enabled: true, zones: ["east", "west"] },
+    });
+    const parsed = resourceListSchema.parse({ resources: [resource] }).resources[0];
+    assert.deepEqual(parsed.labels, resource.labels);
+    assert.deepEqual(parsed.metadata, resource.metadata);
+    assert.deepEqual(parsed.current_state, resource.current_state);
+    assert.equal(resourceListSchema.safeParse({
+      resources: [{ ...resource, labels: { team: 123 } }],
+    }).success, false);
+  });
+
   it("counts the full inventory, rather than the seven visible rows", () => {
     const result = buildResourceInventory(ruleRecords, {}, empty, "all", 1);
     assert.equal(result.summary.totalResources, 10);

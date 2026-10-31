@@ -29,3 +29,6 @@
 /cmd/codeql-report/ @TheInvincibleRalph
 /docs/engineering/baseline-ci.md @TheInvincibleRalph
 /tools/ci/ @TheInvincibleRalph
+/internal/dependencysecurity/ @TheInvincibleRalph
+/cmd/dependency-security/ @TheInvincibleRalph
+/docs/engineering/dependency-security.md @TheInvincibleRalph

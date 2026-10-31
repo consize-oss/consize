@@ -16,7 +16,7 @@ const resourceSchema: z.ZodType<Resource> = z.object({
   region: z.string(), account: z.string(), criticality: z.enum(["low", "medium", "high"]),
   lifecycle_state: z.enum(["active", "stale", "deleted"]),
   support_status: z.enum(["fully_supported", "model_only", "unsupported"]),
-  labels: z.record(z.string()), metadata: z.record(z.unknown()), current_state: z.record(z.unknown()),
+  labels: z.record(z.string(), z.string()), metadata: z.record(z.string(), z.unknown()), current_state: z.record(z.string(), z.unknown()),
   monthly_cost: z.number(), source_plugin_id: z.string(),
   observed_at: z.string().datetime(), first_seen_at: z.string().datetime(), last_seen_at: z.string().datetime(),
   created_at: z.string().datetime(), updated_at: z.string().datetime(),
