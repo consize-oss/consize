@@ -76,7 +76,7 @@ type RuntimeStore interface {
 
 func RequiredIndexes() []string {
 	return []string{
-		"resources(provider,account_id,region,provider_resource_id) unique",
+		"resources(provider,account_id,region,type,provider_resource_id) unique",
 		"recommendations(resource_id,status)",
 		"actions(idempotency_key) unique",
 		"actions(recommendation_id)",

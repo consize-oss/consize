@@ -14,7 +14,7 @@ import (
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
-var ErrNotFound = errors.New("not found")
+var ErrNotFound = resource.ErrNotFound
 
 type Memory struct {
 	path                    string
@@ -77,46 +77,52 @@ func (m *Memory) StorageDiagnostics(context.Context) StorageDiagnostics {
 	return out
 }
 
-func (m *Memory) UpsertResource(_ context.Context, res resource.Resource) (resource.Resource, error) {
-	now := m.now().UTC()
-	normalized, err := res.Normalize(now)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("normalize resource: %w", err)
-	}
+func (m *Memory) CreateResource(ctx context.Context, res resource.Resource) (resource.Resource, error) {
+	return m.putResource(ctx, res, true)
+}
+func (m *Memory) UpsertResource(ctx context.Context, res resource.Resource) (resource.Resource, error) {
+	return m.putResource(ctx, res, false)
+}
+func (m *Memory) putResource(ctx context.Context, res resource.Resource, createOnly bool) (resource.Resource, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
+	if err := ctx.Err(); err != nil {
+		return resource.Resource{}, err
+	}
+	now := m.now().UTC()
+	normalized, err := normalizeObservation(res, now)
+	if err != nil {
+		return resource.Resource{}, err
+	}
+	if prior, ok := m.resources[normalized.ID]; ok && !resource.SameIdentity(prior, normalized) {
+		return resource.Resource{}, resource.ErrIdentityConflict
+	}
 	identity := resourceIdentityKey(normalized)
-	if id, exists := m.resourceIdentityIndex[identity]; exists && id != normalized.ID {
-		if !resource.IsCanonicalID(id) && resource.IsCanonicalID(normalized.ID) {
-			// Preserve references created before canonical IDs were introduced.
-			normalized.ID = id
-		} else {
-			return resource.Resource{}, fmt.Errorf("%w: identity already registered as %q", resource.ErrIdentityConflict, id)
-		}
+	id := normalized.ID
+	if existingID, ok := m.resourceIdentityIndex[identity]; ok {
+		id = existingID
 	}
-
-	if existing, ok := m.resources[normalized.ID]; ok {
-		if !resource.SameIdentity(existing, normalized) {
-			return resource.Resource{}, fmt.Errorf("%w: id %q belongs to a different provider resource", resource.ErrIdentityConflict, normalized.ID)
-		}
-		if normalized.ObservedAt.Before(existing.LastSeenAt) {
-			return resource.Resource{}, fmt.Errorf("stale resource observation: observed_at %s precedes last_seen_at %s", normalized.ObservedAt, existing.LastSeenAt)
-		}
-		if !resource.ValidLifecycleTransition(existing.LifecycleState, normalized.LifecycleState) {
-			return resource.Resource{}, fmt.Errorf("invalid resource lifecycle transition from %q to %q", existing.LifecycleState, normalized.LifecycleState)
-		}
-		normalized.FirstSeenAt = existing.FirstSeenAt
-		normalized.CreatedAt = existing.CreatedAt
+	var existing *resource.Resource
+	previous, ok := m.resources[id]
+	if ok {
+		existing = &previous
 	}
-	normalized.LastSeenAt = normalized.ObservedAt
-	normalized.UpdatedAt = now
-	if err := normalized.Validate(); err != nil {
-		return resource.Resource{}, fmt.Errorf("validate resource update: %w", err)
+	normalized, err = prepareResource(normalized, existing, now, createOnly)
+	if err != nil {
+		return resource.Resource{}, err
 	}
 	m.resources[normalized.ID] = clone(normalized)
 	m.resourceIdentityIndex[identity] = normalized.ID
-	return clone(normalized), m.persistLocked()
+	if err = m.persistLocked(); err != nil {
+		if existing != nil {
+			m.resources[id] = previous
+		} else {
+			delete(m.resources, normalized.ID)
+			delete(m.resourceIdentityIndex, identity)
+		}
+		return resource.Resource{}, err
+	}
+	return clone(normalized), nil
 }
 
 func (m *Memory) GetResource(_ context.Context, id string) (resource.Resource, error) {
