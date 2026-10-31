@@ -829,3 +829,13 @@ Before opening a change that affects security findings or exceptions, confirm:
 Green CI is evidence that the defined checks completed under this policy. It is
 not proof that the repository contains no vulnerability. The team must continue
 to review coverage, new attack paths, scanner quality, and the threat model.
+
+## CodeQL verification after a main-branch failure
+
+Pull-request CodeQL runs use changed-code filtering. A green PR does not establish that the full default-branch scan is clean. The `CodeQL` workflow also supports manual dispatch against a selected branch for a full scan before merging a scanner or security remediation:
+
+```bash
+gh workflow run codeql.yml --repo consize-oss/consize --ref BRANCH_NAME
+```
+
+Verify both language jobs and their redacted policy decisions. Identical CodeQL findings at the same rule/file/line are normalized once; conflicting duplicate metadata fails closed. Distinct locations remain separate findings. This does not lower severity, ignore report errors or create an exception. Reports and decisions retain the existing 14-day artifact retention and repository visibility; raw source-bearing SARIF is not uploaded by this workflow.

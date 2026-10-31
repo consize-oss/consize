@@ -64,6 +64,7 @@ func Normalize(data []byte, target securitypolicy.ReportTarget, at time.Time) (s
 		return securitypolicy.FindingReport{}, fmt.Errorf("missing SARIF 2.1.0 runs")
 	}
 	report := securitypolicy.FindingReport{Schema: "./findings.schema.json", SchemaVersion: 1, Scanner: "codeql", ScanID: "codeql-" + target.Version, GeneratedAt: at.UTC().Format(time.RFC3339), Status: "completed", Attempts: 1, Target: target, Findings: []securitypolicy.Finding{}}
+	seen := map[string]securitypolicy.Finding{}
 	for _, run := range doc.Runs {
 		if run.Tool.Driver.Name != "CodeQL" {
 			return report, fmt.Errorf("unexpected SARIF producer")
@@ -141,7 +142,15 @@ func Normalize(data []byte, target securitypolicy.ReportTarget, at time.Time) (s
 				return report, fmt.Errorf("invalid source location")
 			}
 			fp := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s:%s:%d", id, path, location.Region.Line))))
-			report.Findings = append(report.Findings, securitypolicy.Finding{Fingerprint: fp, RuleID: id, FindingType: "sast", Severity: severity, Confidence: confidence, Reachability: "unknown", Mandatory: true, ExceptionAllowed: true, Component: target.Component, ComponentType: "source", Path: path, Environment: target.Environment, Context: target.Context, Version: target.Version, Summary: fmt.Sprintf("CodeQL %s at source line %d", id, location.Region.Line), Redacted: true})
+			finding := securitypolicy.Finding{Fingerprint: fp, RuleID: id, FindingType: "sast", Severity: severity, Confidence: confidence, Reachability: "unknown", Mandatory: true, ExceptionAllowed: true, Component: target.Component, ComponentType: "source", Path: path, Environment: target.Environment, Context: target.Context, Version: target.Version, Summary: fmt.Sprintf("CodeQL %s at source line %d", id, location.Region.Line), Redacted: true}
+			if previous, ok := seen[fp]; ok {
+				if previous != finding {
+					return report, fmt.Errorf("conflicting metadata for duplicate finding")
+				}
+				continue
+			}
+			seen[fp] = finding
+			report.Findings = append(report.Findings, finding)
 		}
 	}
 	return report, nil
