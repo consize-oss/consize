@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/internal/bootstrap"
+	"github.com/consize-oss/consize/internal/testevidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 )
 
@@ -31,7 +32,7 @@ func TestVerifyFailsWhenRestartsIncrease(t *testing.T) {
 }
 
 func snapshot(memory, cpu, restarts float64) plugin.MetricsSnapshot {
-	return plugin.MetricsSnapshot{
+	return testevidence.Attach(plugin.MetricsSnapshot{
 		PluginID:    "prometheus-metrics",
 		ResourceID:  "k8s:prod:checkout-api",
 		Source:      "prometheus",
@@ -45,7 +46,7 @@ func snapshot(memory, cpu, restarts float64) plugin.MetricsSnapshot {
 			"cpu_cores_p95":                   cpu,
 			"restarts_30m_max":                restarts,
 		},
-	}
+	})
 }
 
 func TestMissingMetricsAreInconclusive(t *testing.T) {
@@ -102,10 +103,13 @@ func TestConfiguredHealthChecks(t *testing.T) {
 				before.Signals[key] = 1.
 				after.Signals[key] = 1.2
 			}
+			before = testevidence.Attach(before)
+			after = testevidence.Attach(after)
 			if got := New(cfg).Verify(before, after); got.Status != StatusPassed {
 				t.Fatalf("healthy check: %+v", got)
 			}
 			after.Signals[key] = check.Threshold + 1
+			after = testevidence.Attach(after)
 			if got := New(cfg).Verify(before, after); got.Status != StatusFailed {
 				t.Fatalf("breach: %+v", got)
 			}

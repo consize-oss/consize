@@ -16,6 +16,7 @@ import (
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/store"
+	"github.com/consize-oss/consize/internal/testevidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 	k8splugin "github.com/consize-oss/consize/pkg/plugins/kubernetes"
 	"github.com/consize-oss/consize/pkg/resource"
@@ -69,7 +70,7 @@ func (apiMetrics) ReadMetricsBetween(_ context.Context, res resource.Resource, s
 	for _, key := range []string{"memory_working_set_bytes", "cpu_cores", "restarts_30m"} {
 		coverage[key] = plugin.MetricCoverage{FirstSample: start, LastSample: end, ExpectedPoints: 60, ActualPoints: 60, Step: 30 * time.Second}
 	}
-	return plugin.MetricsSnapshot{PluginID: "metrics", ResourceID: res.ID, CollectedAt: end, Coverage: coverage, Signals: map[string]any{"memory_working_set_bytes_p95": 100.0, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 60, "cpu_cores_points": 60, "restarts_30m_points": 60}}, nil
+	return testevidence.Attach(plugin.MetricsSnapshot{PluginID: "metrics", ResourceID: res.ID, CollectedAt: end, Coverage: coverage, Signals: map[string]any{"memory_working_set_bytes_p95": 100.0, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 60, "cpu_cores_points": 60, "restarts_30m_points": 60}}), nil
 }
 
 func apiFixture(t *testing.T) (*Server, *store.Memory, *fake.Clientset) {
@@ -269,5 +270,42 @@ func TestAuditHealthAndIntegrityEndpoints(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Fatalf("%s: %d %s", path, w.Code, w.Body)
 		}
+	}
+}
+
+func TestRecommendationAPIExposesImmutableProvenance(t *testing.T) {
+	server, _, _ := apiFixture(t)
+	server.cfg.Recommender.MetricsPluginID = "metrics"
+	w := httptest.NewRecorder()
+	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/recommendations/generate?resource_id=test", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("generate: %d %s", w.Code, w.Body)
+	}
+	var response struct {
+		Recommendations []store.Recommendation `json:"recommendations"`
+		Evidence        plugin.MetricsSnapshot `json:"evidence"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	if len(response.Recommendations) != 1 || len(response.Evidence.Records) == 0 {
+		t.Fatal("missing API provenance")
+	}
+	rec := response.Recommendations[0]
+	if len(rec.EvidenceSnapshot) != len(response.Evidence.Records) || rec.AlgorithmVersion == "" {
+		t.Fatal("missing frozen inputs")
+	}
+	for i, r := range rec.EvidenceSnapshot {
+		if err := r.Validate(); err != nil {
+			t.Fatal(err)
+		}
+		if r.ID != rec.EvidenceRefs[i] || r.ID != response.Evidence.Records[i].ID {
+			t.Fatal("API evidence mismatch")
+		}
+	}
+	w = httptest.NewRecorder()
+	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/dashboard", nil))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), rec.EvidenceRefs[0]) || !strings.Contains(w.Body.String(), "evidence_snapshot") {
+		t.Fatalf("list lost provenance: %d", w.Code)
 	}
 }

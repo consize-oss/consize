@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/consize-oss/consize/pkg/evidence"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
@@ -119,6 +120,7 @@ type ActionResult struct {
 }
 
 type MetricsSnapshot struct {
+	Records     []evidence.Record         `json:"records,omitempty"`
 	Coverage    map[string]MetricCoverage `json:"coverage,omitempty"`
 	PluginID    string                    `json:"plugin_id"`
 	ResourceID  string                    `json:"resource_id"`

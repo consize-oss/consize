@@ -141,6 +141,9 @@ func (m *Memory) ListResources(context.Context) ([]resource.Resource, error) {
 }
 
 func (m *Memory) CreateRecommendation(_ context.Context, rec Recommendation) (Recommendation, error) {
+	if err := validateRecommendationEvidence(rec); err != nil {
+		return Recommendation{}, err
+	}
 	if rec.ResourceID == "" || rec.PluginID == "" || rec.ActionType == "" || rec.AlgorithmID == "" || len(rec.EvidenceRefs) == 0 {
 		return Recommendation{}, errors.New("resource_id, plugin_id, action_type, algorithm_id, and evidence_refs are required")
 	}
@@ -183,7 +186,12 @@ func (m *Memory) CreateRecommendation(_ context.Context, rec Recommendation) (Re
 	rec.CreatedAt = now
 	rec.UpdatedAt = now
 	m.recs[rec.ID] = clone(rec)
-	return clone(rec), m.persistLocked()
+	if err := m.persistLocked(); err != nil {
+		delete(m.recs, rec.ID)
+		m.nextRecID--
+		return Recommendation{}, err
+	}
+	return clone(rec), nil
 }
 
 func (m *Memory) GetRecommendation(_ context.Context, id int64) (Recommendation, error) {

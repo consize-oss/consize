@@ -266,3 +266,23 @@ func TestPostgresFailedMigrationRollsBackSchemaAndLedger(t *testing.T) {
 		t.Fatal("failed migration left an earlier index behind")
 	}
 }
+
+func TestPostgresEvidenceSnapshotSurvivesRestart(t *testing.T) {
+	ctx := context.Background()
+	url := postgresTestURL(t)
+	st, err := OpenPostgres(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := assertEvidencePersistence(t, st)
+	st.Close()
+	reopened, err := OpenPostgres(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reopened.Close()
+	rec, err := reopened.GetRecommendation(ctx, id)
+	if err != nil || *rec.EvidenceSnapshot[0].Value != 100 {
+		t.Fatal("historical PostgreSQL snapshot changed", err)
+	}
+}

@@ -512,6 +512,7 @@ export interface components {
             risk: string;
             evidence: string[];
             evidence_refs?: string[];
+            evidence_snapshot?: components["schemas"]["EvidenceRecord"][];
             policy_id: string;
             /** @description Recommendation lifecycle state: pending, planned, approved, executing, verified, rejected, expired, superseded, failed, rolled_back, or manual_intervention. */
             status: string;
@@ -675,6 +676,8 @@ export interface components {
         };
         VerificationCheck: {
             signal: string;
+            /** @description Canonical unit expected by this verification threshold. */
+            unit?: string;
             /** @enum {string} */
             statistic: "p95" | "p99" | "max";
             /** @enum {string} */
@@ -694,7 +697,40 @@ export interface components {
             max_memory_p95_increase_ratio: number;
             max_cpu_p95_increase_ratio: number;
         };
+        /** @description Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero. */
+        EvidenceRecord: {
+            /** @enum {integer} */
+            schema_version: 1;
+            id: string;
+            resource_id: string;
+            plugin_id: string;
+            signal: string;
+            query: string;
+            /** @enum {string} */
+            kind: "raw" | "aggregated" | "derived";
+            aggregation: string;
+            unit: string;
+            original_unit: string;
+            scale: number;
+            value: number | null;
+            sample_count: number;
+            /** Format: date-time */
+            window_start: string;
+            /** Format: date-time */
+            window_end: string;
+            /** Format: date-time */
+            collected_at: string;
+            /** Format: date-time */
+            fresh_until: string;
+            /** @enum {string} */
+            quality: "valid" | "missing" | "stale" | "partial" | "invalid" | "unavailable";
+            parents?: string[];
+            extensions?: {
+                [key: string]: string;
+            };
+        };
         MetricsSnapshot: {
+            records?: components["schemas"]["EvidenceRecord"][];
             plugin_id: string;
             resource_id: string;
             source: string;

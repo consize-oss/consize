@@ -542,6 +542,7 @@ components:
         risk: {type: string}
         evidence: {type: array, items: {type: string}}
         evidence_refs: {type: array, minItems: 1, items: {type: string}}
+        evidence_snapshot: {type: array, maxItems: 256, items: {$ref: '#/components/schemas/EvidenceRecord'}}
         policy_id: {type: string}
         status: {type: string, description: "Recommendation lifecycle state: pending, planned, approved, executing, verified, rejected, expired, superseded, failed, rolled_back, or manual_intervention."}
         expires_at: {type: string, format: date-time}
@@ -706,6 +707,7 @@ components:
       required: [signal, statistic, mode, threshold]
       properties:
         signal: {type: string}
+        unit: {type: string, description: Canonical unit expected by this verification threshold.}
         statistic: {type: string, enum: [p95, p99, max]}
         mode: {type: string, enum: [absolute, ratio]}
         threshold: {type: number}
@@ -724,10 +726,36 @@ components:
         max_restart_increase: {type: number}
         max_memory_p95_increase_ratio: {type: number}
         max_cpu_p95_increase_ratio: {type: number}
+    EvidenceRecord:
+      type: object
+      description: Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero.
+      required: [schema_version, id, resource_id, plugin_id, signal, query, kind, aggregation, unit, original_unit, scale, value, sample_count, window_start, window_end, collected_at, fresh_until, quality]
+      properties:
+        schema_version: {type: integer, enum: [1]}
+        id: {type: string, pattern: '^evidence:v1:[a-f0-9]{64}$'}
+        resource_id: {type: string}
+        plugin_id: {type: string}
+        signal: {type: string}
+        query: {type: string, maxLength: 8192}
+        kind: {type: string, enum: [raw, aggregated, derived]}
+        aggregation: {type: string}
+        unit: {type: string}
+        original_unit: {type: string}
+        scale: {type: number, exclusiveMinimum: 0}
+        value: {type: [number, 'null']}
+        sample_count: {type: integer, minimum: 0}
+        window_start: {type: string, format: date-time}
+        window_end: {type: string, format: date-time}
+        collected_at: {type: string, format: date-time}
+        fresh_until: {type: string, format: date-time}
+        quality: {type: string, enum: [valid, missing, stale, partial, invalid, unavailable]}
+        parents: {type: array, maxItems: 64, items: {type: string}}
+        extensions: {type: object, maxProperties: 32, additionalProperties: {type: string, maxLength: 1024}}
     MetricsSnapshot:
       type: object
       required: [plugin_id, resource_id, source, window, signals, evidence, collected_at]
       properties:
+        records: {type: array, maxItems: 256, items: {$ref: '#/components/schemas/EvidenceRecord'}}
         plugin_id: {type: string}
         resource_id: {type: string}
         source: {type: string}

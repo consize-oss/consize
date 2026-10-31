@@ -222,6 +222,9 @@ func (p *Postgres) ListResources(ctx context.Context) ([]resource.Resource, erro
 }
 
 func (p *Postgres) CreateRecommendation(ctx context.Context, rec Recommendation) (Recommendation, error) {
+	if err := validateRecommendationEvidence(rec); err != nil {
+		return Recommendation{}, err
+	}
 	if rec.ResourceID == "" || rec.PluginID == "" || rec.ActionType == "" || rec.AlgorithmID == "" || len(rec.EvidenceRefs) == 0 {
 		return Recommendation{}, errors.New("resource_id, plugin_id, action_type, algorithm_id, and evidence_refs are required")
 	}

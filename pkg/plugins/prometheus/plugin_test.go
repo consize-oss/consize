@@ -79,3 +79,46 @@ func TestReadMetricsQueriesPrometheusForDeploymentSignals(t *testing.T) {
 		}
 	}
 }
+
+func TestTypedQueryProvenance(t *testing.T) {
+	client := &fakeClient{}
+	p := NewWithClient(client, Config{Step: time.Minute})
+	end := time.Now().UTC()
+	s, err := p.ReadMetricsBetween(context.Background(), resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}}, end.Add(-2*time.Minute), end)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.ValidateRecords(); err != nil {
+		t.Fatal(err)
+	}
+	if len(s.Records) != 24 {
+		t.Fatal("incomplete provenance", len(s.Records))
+	}
+	for _, r := range s.Records {
+		if !strings.Contains(r.Query, `namespace="test"`) || r.SampleCount != 3 || r.Kind != "aggregated" || r.Quality != "valid" || !r.WindowEnd.Equal(end) {
+			t.Fatal("incorrect provenance", r.Signal)
+		}
+	}
+	if _, err = s.Measurement("memory_working_set_bytes_p95", "bytes", s.CollectedAt); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCustomSignalRequiresUnitProvenance(t *testing.T) {
+	res := resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}}
+	end := time.Now().UTC()
+	cfg := Config{Step: time.Minute, Queries: map[string]string{"latency_seconds": "synthetic custom query"}}
+	p := NewWithClient(&fakeClient{}, cfg)
+	if _, err := p.ReadMetricsBetween(context.Background(), res, end.Add(-2*time.Minute), end); err == nil {
+		t.Fatal("custom unit silently guessed")
+	}
+	cfg.Units = map[string]string{"latency_seconds": "seconds"}
+	p = NewWithClient(&fakeClient{}, cfg)
+	s, err := p.ReadMetricsBetween(context.Background(), res, end.Add(-2*time.Minute), end)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.Measurement("latency_seconds_p95", "seconds", s.CollectedAt); err != nil {
+		t.Fatal(err)
+	}
+}
