@@ -309,3 +309,44 @@ func TestRecommendationAPIExposesImmutableProvenance(t *testing.T) {
 		t.Fatalf("list lost provenance: %d", w.Code)
 	}
 }
+
+func TestResourcePagesPreserveLegacyAndBindFilters(t *testing.T) {
+	server, st, _ := apiFixture(t)
+	ctx := context.Background()
+	original, err := st.GetResource(ctx, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"page-a", "page-b", "page-c"} {
+		r := original
+		r.ID = id
+		r.ProviderResourceID = id
+		r.Owner = "paging-owner"
+		if _, err = st.UpsertResource(ctx, r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	request := func(path string) *httptest.ResponseRecorder {
+		w := httptest.NewRecorder()
+		server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, path, nil))
+		return w
+	}
+	legacy := request("/api/resources")
+	if legacy.Code != http.StatusOK || strings.Contains(legacy.Body.String(), "has_more") {
+		t.Fatalf("legacy response changed: %d %s", legacy.Code, legacy.Body)
+	}
+	var page resource.Page
+	w := request("/api/resources?owner=paging-owner&limit=2")
+	if err = json.Unmarshal(w.Body.Bytes(), &page); err != nil || w.Code != 200 || len(page.Resources) != 2 || page.Resources[0].ID != "page-a" || !page.HasMore {
+		t.Fatalf("first page: %d %s %v", w.Code, w.Body, err)
+	}
+	w = request("/api/resources?owner=paging-owner&limit=2&cursor=" + page.NextCursor)
+	if err = json.Unmarshal(w.Body.Bytes(), &page); err != nil || len(page.Resources) != 1 || page.Resources[0].ID != "page-c" || page.HasMore {
+		t.Fatalf("last page: %d %s", w.Code, w.Body)
+	}
+	for _, query := range []string{"limit=0", "limit=201", "limit=invalid", "cursor=malformed", "provider=aws&provider=kubernetes", "unknown=value", "lifecycle_state=unknown"} {
+		if bad := request("/api/resources?" + query); bad.Code != 400 {
+			t.Fatalf("invalid filter accepted: %s %d", query, bad.Code)
+		}
+	}
+}

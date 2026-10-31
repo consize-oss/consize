@@ -157,58 +157,6 @@ func notFound(err error) error {
 	return err
 }
 
-func (p *Postgres) UpsertResource(ctx context.Context, res resource.Resource) (resource.Resource, error) {
-	now := p.now().UTC()
-	normalized, err := res.Normalize(now)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("normalize resource: %w", err)
-	}
-	tx, err := p.pool.BeginTx(ctx, pgx.TxOptions{})
-	if err != nil {
-		return resource.Resource{}, err
-	}
-	defer tx.Rollback(ctx)
-	var existingJSON []byte
-	err = tx.QueryRow(ctx, `SELECT payload FROM resources WHERE id=$1 FOR UPDATE`, normalized.ID).Scan(&existingJSON)
-	if err == nil {
-		existing, err := decode[resource.Resource](existingJSON)
-		if err != nil {
-			return resource.Resource{}, err
-		}
-		if !resource.SameIdentity(existing, normalized) {
-			return resource.Resource{}, fmt.Errorf("%w: id %q belongs to a different provider resource", resource.ErrIdentityConflict, normalized.ID)
-		}
-		if normalized.ObservedAt.Before(existing.LastSeenAt) {
-			return resource.Resource{}, errors.New("stale resource observation")
-		}
-		if !resource.ValidLifecycleTransition(existing.LifecycleState, normalized.LifecycleState) {
-			return resource.Resource{}, errors.New("invalid resource lifecycle transition")
-		}
-		normalized.FirstSeenAt, normalized.CreatedAt = existing.FirstSeenAt, existing.CreatedAt
-	} else if !errors.Is(err, pgx.ErrNoRows) {
-		return resource.Resource{}, err
-	}
-	normalized.LastSeenAt, normalized.UpdatedAt = normalized.ObservedAt, now
-	if err := normalized.Validate(); err != nil {
-		return resource.Resource{}, err
-	}
-	payload, err := marshal(normalized)
-	if err != nil {
-		return resource.Resource{}, err
-	}
-	_, err = tx.Exec(ctx, `INSERT INTO resources(id,provider,account_id,region,provider_resource_id,payload,created_at,updated_at)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8)
-        ON CONFLICT(id) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at`,
-		normalized.ID, normalized.Provider, normalized.Account, normalized.Region, normalized.ProviderResourceID, payload, normalized.CreatedAt, normalized.UpdatedAt)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("persist resource: %w", err)
-	}
-	if err := tx.Commit(ctx); err != nil {
-		return resource.Resource{}, err
-	}
-	return normalized, nil
-}
-
 func (p *Postgres) GetResource(ctx context.Context, id string) (resource.Resource, error) {
 	var payload []byte
 	if err := p.pool.QueryRow(ctx, `SELECT payload FROM resources WHERE id=$1`, id).Scan(&payload); err != nil {
@@ -218,7 +166,7 @@ func (p *Postgres) GetResource(ctx context.Context, id string) (resource.Resourc
 }
 
 func (p *Postgres) ListResources(ctx context.Context) ([]resource.Resource, error) {
-	return listJSON[resource.Resource](ctx, p.pool, `SELECT payload FROM resources ORDER BY id`)
+	return listJSON[resource.Resource](ctx, p.pool, `SELECT payload FROM resources ORDER BY id COLLATE "C"`)
 }
 
 func (p *Postgres) CreateRecommendation(ctx context.Context, rec Recommendation) (Recommendation, error) {

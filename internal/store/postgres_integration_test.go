@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/pkg/plugin"
+	"github.com/consize-oss/consize/pkg/resource"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -284,5 +285,85 @@ func TestPostgresEvidenceSnapshotSurvivesRestart(t *testing.T) {
 	rec, err := reopened.GetRecommendation(ctx, id)
 	if err != nil || *rec.EvidenceSnapshot[0].Value != 100 {
 		t.Fatal("historical PostgreSQL snapshot changed", err)
+	}
+}
+
+func TestPostgresRegistryContract(t *testing.T) {
+	ctx := context.Background()
+	url := postgresTestURL(t)
+	st, err := OpenPostgres(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	exerciseRegistry(t, st)
+	exerciseRegistryPagination(t, st)
+	exerciseConcurrentRegistry(t, st)
+	// Type is part of identity even when provider-local names coincide.
+	first := resourceInput(time.Now().UTC())
+	first.ProviderResourceID = "shared-local-id"
+	a, err := st.UpsertResource(ctx, first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second := first
+	second.Type = resource.TypeAWSRDSInstance
+	b, err := st.UpsertResource(ctx, second)
+	if err != nil || a.ID == b.ID {
+		t.Fatal("resource type omitted from identity", err)
+	}
+	legacy := resourceInput(time.Now().UTC())
+	legacy.ProviderResourceID = "legacy-recovery"
+	legacy.ID = "legacy-test"
+	old, err := st.UpsertResource(ctx, legacy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacy.ID = ""
+	got, err := st.UpsertResource(ctx, legacy)
+	if err != nil || got.ID != old.ID {
+		t.Fatal("legacy references lost", err)
+	}
+}
+
+func TestPostgresRegistryTombstoneRetainsHistoricalReferences(t *testing.T) {
+	ctx := context.Background()
+	url := postgresTestURL(t)
+	st, err := OpenPostgres(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	input := resourceInput(time.Now().Add(-time.Hour))
+	input.SourcePluginID = "historical-source"
+	res, err := st.UpsertResource(ctx, input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec, err := st.CreateRecommendation(ctx, evidenceRecommendation(t, res.ID, 100))
+	if err != nil {
+		t.Fatal(err)
+	}
+	action, err := st.CreateAction(ctx, Action{RecommendationID: rec.ID, ResourceID: res.ID, PluginID: rec.PluginID, ActionType: rec.ActionType, RemediationPath: "direct_apply", Mode: "approved", RequestedBy: "test", IdempotencyKey: "registry-postgres-history"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = st.UpdateResourceLifecycle(ctx, resource.LifecycleUpdate{Scope: registryScope(res), ID: res.ID, State: resource.LifecycleDeleted, ObservedAt: time.Now().Add(-time.Minute)}); err != nil {
+		t.Fatal(err)
+	}
+	st.Close()
+	st, err = OpenPostgres(ctx, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	got, err := st.GetResource(ctx, res.ID)
+	if err != nil || got.LifecycleState != resource.LifecycleDeleted || got.LifecycleObservedAt.IsZero() {
+		t.Fatal("lost PostgreSQL tombstone", err)
+	}
+	if _, err = st.GetRecommendation(ctx, rec.ID); err != nil {
+		t.Fatal("lost recommendation", err)
+	}
+	if _, err = st.GetAction(ctx, action.ID); err != nil {
+		t.Fatal("lost action", err)
 	}
 }

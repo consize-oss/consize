@@ -44,9 +44,22 @@ paths:
       tags: [Product]
       operationId: listResources
       summary: List registered resources
-      description: Lists provider-neutral resources currently held by the registry.
+      description: With no query parameters, returns the full legacy resource list. Supplying any filter, limit or cursor returns a filtered keyset page ordered by resource ID. Cursors are bound to filters; pages are a live view, not a multi-page snapshot.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 100}, description: Maximum resources per page.}
+        - {name: cursor, in: query, schema: {type: string}, description: Opaque continuation from the preceding page.}
+        - {name: provider, in: query, schema: {type: string}}
+        - {name: account, in: query, schema: {type: string}}
+        - {name: region, in: query, schema: {type: string}}
+        - {name: type, in: query, schema: {type: string}}
+        - {name: source_plugin_id, in: query, schema: {type: string}}
+        - {name: environment, in: query, schema: {type: string, enum: [production, staging, development]}}
+        - {name: lifecycle_state, in: query, schema: {type: string, enum: [active, stale, deleted]}}
+        - {name: support_status, in: query, schema: {type: string, enum: [fully_supported, model_only, unsupported]}}
+        - {name: owner, in: query, schema: {type: string}}
       responses:
         '200': {$ref: '#/components/responses/ResourcesResponse'}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
         '500': {$ref: '#/components/responses/ErrorResponse'}
@@ -336,7 +349,7 @@ components:
     ResourcesResponse:
       description: Registered resources.
       headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
-      content: {application/json: {schema: {type: object, required: [resources], properties: {resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}}}}}
+      content: {application/json: {schema: {type: object, required: [resources], properties: {resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}, next_cursor: {type: string}, has_more: {type: boolean}}}}}
     PluginsResponse:
       description: Registered plugin status.
       headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
@@ -493,6 +506,7 @@ components:
         observed_at: {type: string, format: date-time}
         first_seen_at: {type: string, format: date-time}
         last_seen_at: {type: string, format: date-time}
+        lifecycle_observed_at: {type: string, format: date-time}
         created_at: {type: string, format: date-time}
         updated_at: {type: string, format: date-time}
     ResourceInput:

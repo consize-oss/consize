@@ -69,29 +69,30 @@ type Identity struct {
 // Provider-specific fields belong in Metadata and CurrentState and cannot
 // override validated core identity or lifecycle fields.
 type Resource struct {
-	SchemaVersion      int               `json:"schema_version"`
-	ID                 string            `json:"id"`
-	Type               string            `json:"type"`
-	Provider           string            `json:"provider"`
-	ProviderResourceID string            `json:"provider_resource_id"`
-	Name               string            `json:"name"`
-	Environment        string            `json:"environment"`
-	Owner              string            `json:"owner"`
-	Region             string            `json:"region"`
-	Account            string            `json:"account"`
-	Criticality        string            `json:"criticality"`
-	LifecycleState     string            `json:"lifecycle_state"`
-	SupportStatus      string            `json:"support_status"`
-	Labels             map[string]string `json:"labels"`
-	Metadata           map[string]any    `json:"metadata"`
-	CurrentState       map[string]any    `json:"current_state"`
-	MonthlyCost        float64           `json:"monthly_cost"`
-	SourcePluginID     string            `json:"source_plugin_id"`
-	ObservedAt         time.Time         `json:"observed_at"`
-	FirstSeenAt        time.Time         `json:"first_seen_at"`
-	LastSeenAt         time.Time         `json:"last_seen_at"`
-	CreatedAt          time.Time         `json:"created_at"`
-	UpdatedAt          time.Time         `json:"updated_at"`
+	SchemaVersion       int               `json:"schema_version"`
+	ID                  string            `json:"id"`
+	Type                string            `json:"type"`
+	Provider            string            `json:"provider"`
+	ProviderResourceID  string            `json:"provider_resource_id"`
+	Name                string            `json:"name"`
+	Environment         string            `json:"environment"`
+	Owner               string            `json:"owner"`
+	Region              string            `json:"region"`
+	Account             string            `json:"account"`
+	Criticality         string            `json:"criticality"`
+	LifecycleState      string            `json:"lifecycle_state"`
+	SupportStatus       string            `json:"support_status"`
+	Labels              map[string]string `json:"labels"`
+	Metadata            map[string]any    `json:"metadata"`
+	CurrentState        map[string]any    `json:"current_state"`
+	MonthlyCost         float64           `json:"monthly_cost"`
+	SourcePluginID      string            `json:"source_plugin_id"`
+	LifecycleObservedAt time.Time         `json:"lifecycle_observed_at,omitempty"`
+	ObservedAt          time.Time         `json:"observed_at"`
+	FirstSeenAt         time.Time         `json:"first_seen_at"`
+	LastSeenAt          time.Time         `json:"last_seen_at"`
+	CreatedAt           time.Time         `json:"created_at"`
+	UpdatedAt           time.Time         `json:"updated_at"`
 }
 
 func (r Resource) Identity() Identity {
@@ -211,7 +212,7 @@ func (r Resource) Validate() error {
 	if r.ObservedAt.IsZero() || r.FirstSeenAt.IsZero() || r.LastSeenAt.IsZero() || r.CreatedAt.IsZero() || r.UpdatedAt.IsZero() {
 		return fmt.Errorf("%w: observation and lifecycle timestamps are required", ErrInvalidResource)
 	}
-	if r.LastSeenAt.Before(r.FirstSeenAt) || r.ObservedAt.After(r.LastSeenAt) {
+	if r.LastSeenAt.Before(r.FirstSeenAt) || r.ObservedAt.After(r.LastSeenAt) || (!r.LifecycleObservedAt.IsZero() && r.LifecycleObservedAt.Before(r.ObservedAt)) {
 		return fmt.Errorf("%w: resource timestamps are inconsistent", ErrInvalidResource)
 	}
 	return nil

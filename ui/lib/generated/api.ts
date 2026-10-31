@@ -53,7 +53,7 @@ export interface paths {
         };
         /**
          * List registered resources
-         * @description Lists provider-neutral resources currently held by the registry.
+         * @description With no query parameters, returns the full legacy resource list. Supplying any filter, limit or cursor returns a filtered keyset page ordered by resource ID. Cursors are bound to filters; pages are a live view, not a multi-page snapshot.
          */
         get: operations["listResources"];
         put?: never;
@@ -458,6 +458,8 @@ export interface components {
             first_seen_at: string;
             /** Format: date-time */
             last_seen_at: string;
+            /** Format: date-time */
+            lifecycle_observed_at?: string;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -880,6 +882,8 @@ export interface components {
             content: {
                 "application/json": {
                     resources: components["schemas"]["Resource"][];
+                    next_cursor?: string;
+                    has_more?: boolean;
                 };
             };
         };
@@ -1043,7 +1047,21 @@ export interface operations {
     };
     listResources: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Maximum resources per page. */
+                limit?: number;
+                /** @description Opaque continuation from the preceding page. */
+                cursor?: string;
+                provider?: string;
+                account?: string;
+                region?: string;
+                type?: string;
+                source_plugin_id?: string;
+                environment?: "production" | "staging" | "development";
+                lifecycle_state?: "active" | "stale" | "deleted";
+                support_status?: "fully_supported" | "model_only" | "unsupported";
+                owner?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1051,6 +1069,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["ResourcesResponse"];
+            400: components["responses"]["ErrorResponse"];
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
             500: components["responses"]["ErrorResponse"];
