@@ -29,6 +29,11 @@ export function relativeTime(iso: string, now = Date.now()) {
   if (hours < 24) return `${hours}h ago`;
   return `${Math.round(hours / 24)}d ago`;
 }
+// Like relativeTime but with seconds, for "checked 32s ago" health lines.
+export function relativeTimeShort(iso: string, now = Date.now()) {
+  const s = Math.max(0, Math.round((now - new Date(iso).getTime()) / 1000));
+  return s < 60 ? `${s}s ago` : relativeTime(iso, now);
+}
 
 // Compact money for tight spaces: $28.1k/mo style.
 export function formatMoneyCompact(m: { amount_minor: number; currency: string }) {
@@ -41,3 +46,4 @@ export function formatMoneyCompact(m: { amount_minor: number; currency: string }
     .format(m.amount_minor / 100)
     .toLowerCase();
 }
+
