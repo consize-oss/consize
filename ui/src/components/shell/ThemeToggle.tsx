@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 
 type Theme = "dark" | "light";
@@ -8,16 +8,19 @@ type Theme = "dark" | "light";
 // The inline script in layout.tsx has already applied the right theme
 // before paint (saved choice, else the system preference). This only reads
 // it back so the icon matches, and persists explicit changes.
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
+function subscribe(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => observer.disconnect();
+}
+const getTheme = (): Theme => document.documentElement.dataset.theme === "light" ? "light" : "dark";
+const getServerTheme = (): Theme => "dark";
 
-  useEffect(() => {
-    setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
-  }, []);
+export function ThemeToggle() {
+  const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
     document.documentElement.dataset.theme = next;
     window.localStorage.setItem("consize-theme", next);
   }

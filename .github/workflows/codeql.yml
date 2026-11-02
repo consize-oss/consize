@@ -1,0 +1,71 @@
+name: CodeQL
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  merge_group:
+  schedule:
+    - cron: "17 5 * * 2"
+permissions:
+  contents: read
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [go, javascript-typescript]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: .go-version
+          cache-dependency-path: go.sum
+      - uses: github/codeql-action/init@a79638c6e166cca8d437da39b8b88cae58fed1f3 # v4.31.0
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.language == 'go' && 'manual' || 'none' }}
+          tools: https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.27.3/codeql-bundle-linux64.tar.zst
+          queries: security-extended
+      - name: Build Go for extraction
+        if: matrix.language == 'go'
+        run: go build -mod=readonly ./...
+      - uses: github/codeql-action/analyze@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
+        with:
+          category: /language:${{ matrix.language }}
+          upload: false
+          output: ${{ runner.temp }}/codeql
+      - name: Evaluate redacted static-analysis findings
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          reports=("$RUNNER_TEMP/codeql/"*.sarif)
+          [[ ${#reports[@]} -eq 1 ]] || { echo "Expected one completed SARIF report"; exit 1; }
+          case "$EVENT_NAME" in
+            pull_request) context=pull_request ;;
+            push) context=default_branch ;;
+            schedule) context=scheduled_scan ;;
+            merge_group|workflow_dispatch) context=build ;;
+            *) exit 1 ;;
+          esac
+          go run ./cmd/codeql-report --input "${reports[0]}" --output "$RUNNER_TEMP/codeql-report.json" --context "$context" --version "$(git rev-parse HEAD)"
+          go run ./cmd/security-policy evaluate --policy .github/security/policy.json --exceptions .github/security/exceptions.json --report "$RUNNER_TEMP/codeql-report.json" --output "$RUNNER_TEMP/codeql-decision.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: codeql-${{ matrix.language }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/codeql-report.json
+            ${{ runner.temp }}/codeql-decision.json
+          if-no-files-found: error
+          retention-days: 14

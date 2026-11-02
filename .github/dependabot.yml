@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      go-minor-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directories: [/ui, /tools/ci]
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # No Dockerfile on the v0.3 baseline yet. Docker updates become active
+  # as soon as a root or nested image definition is added.
+  - package-ecosystem: docker
+    directories: ["/", "/**"]
+    schedule:
+      interval: weekly

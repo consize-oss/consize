@@ -232,6 +232,9 @@ func validateState(state diskState) error {
 		}
 	}
 	for id, rec := range state.Recommendations {
+		if err := validateRecommendationEvidence(rec); err != nil {
+			return fmt.Errorf("invalid stored evidence: %w", err)
+		}
 		if id < 1 || rec.ID != id || id >= state.NextRecID {
 			return errors.New("invalid recommendation sequence in durable state")
 		}

@@ -74,7 +74,7 @@
         return `\n\n${items.join("\n")}\n\n`;
       }
       case "table": {
-        const rows = [...n.querySelectorAll("tr")].map((tr) => [...tr.children].map((c) => md(c).trim().replace(/\|/g, "\\|").replace(/\n+/g, " ")));
+        const rows = [...n.querySelectorAll("tr")].map((tr) => [...tr.children].map((c) => md(c).trim().replace(/[\\|]/g, "\\$&").replace(/\n+/g, " ")));
         if (!rows.length) return "";
         return "\n\n" + [rows[0], rows[0].map(() => "---"), ...rows.slice(1)].map((r) => `| ${r.join(" | ")} |`).join("\n") + "\n\n";
       }
@@ -102,7 +102,10 @@
 
   // The mkdocs-llmstxt plugin publishes a clean index.md next to many pages; fall back to the rendered page.
   async function pageMarkdown() {
-    const dir = location.pathname.replace(/index\.html$/, "").replace(/\/?$/, "/");
+    const segments = location.pathname.split("/");
+    if (segments[segments.length - 1] === "index.html") segments.pop();
+    const path = segments.join("/");
+    const dir = path.endsWith("/") ? path : path + "/";
     try {
       const r = await fetch(location.origin + dir + "index.md");
       if (r.ok && !(r.headers.get("content-type") || "").includes("text/html")) return await r.text();

@@ -71,3 +71,5 @@ Plugins must not place credentials, access tokens, private keys, or unredacted s
 State schema v3 adds the resource schema version, lifecycle, support status, and first/last-seen timestamps. Migration populates these fields from existing timestamps but never guesses missing provider identity. If an older record lacks provider, account, location, type, or provider resource ID, startup fails with the affected resource ID so an operator can repair or deliberately recreate the local alpha state.
 
 This fail-closed behavior prevents two real resources from being merged under invented identity.
+
+Registry operations, scoped reconciliation, tombstones and pagination are specified in [the durable registry contract](resource-registry.md).

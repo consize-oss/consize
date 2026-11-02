@@ -57,7 +57,7 @@ export const recommendationListItemSchema = z.object({
     environment: z.string(),
     namespace: z.string().optional(),
     // Optional searchable metadata used by the frontend mock; confirm with the backend.
-    tags: z.record(z.string()).optional(),
+    tags: z.record(z.string(), z.string()).optional(),
     region: z.string().optional(),
     // type + source drive the table icon and the infrastructure-scope filter.
     type: z.string(),
@@ -191,8 +191,8 @@ export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
 export const recommendationDetailSchema = recommendationListItemSchema.extend({
   summary: z.string(),
   algorithm: z.object({ id: z.string(), version: z.string() }),
-  current: z.record(z.string()),
-  proposed: z.record(z.string()),
+  current: z.record(z.string(), z.string()),
+  proposed: z.record(z.string(), z.string()),
   confidence_assessment: z.object({
     observed_history: z.string(),
     required_history: z.string(),

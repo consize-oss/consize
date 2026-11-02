@@ -22,3 +22,13 @@
 /ui/lib/generated/api.ts @TheInvincibleRalph
 /internal/api/openapi_contract_test.go @TheInvincibleRalph
 /docs/engineering/api-contract.md @TheInvincibleRalph
+
+/scripts/ci/ @TheInvincibleRalph
+/internal/cibaseline/ @TheInvincibleRalph
+/internal/codeqlreport/ @TheInvincibleRalph
+/cmd/codeql-report/ @TheInvincibleRalph
+/docs/engineering/baseline-ci.md @TheInvincibleRalph
+/tools/ci/ @TheInvincibleRalph
+/internal/dependencysecurity/ @TheInvincibleRalph
+/cmd/dependency-security/ @TheInvincibleRalph
+/docs/engineering/dependency-security.md @TheInvincibleRalph

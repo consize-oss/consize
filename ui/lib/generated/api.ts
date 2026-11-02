@@ -53,7 +53,7 @@ export interface paths {
         };
         /**
          * List registered resources
-         * @description Lists provider-neutral resources currently held by the registry.
+         * @description With no query parameters, returns the full legacy resource list. Supplying any filter, limit or cursor returns a filtered keyset page ordered by resource ID. Cursors are bound to filters; pages are a live view, not a multi-page snapshot.
          */
         get: operations["listResources"];
         put?: never;
@@ -459,6 +459,8 @@ export interface components {
             /** Format: date-time */
             last_seen_at: string;
             /** Format: date-time */
+            lifecycle_observed_at?: string;
+            /** Format: date-time */
             created_at: string;
             /** Format: date-time */
             updated_at: string;
@@ -512,6 +514,7 @@ export interface components {
             risk: string;
             evidence: string[];
             evidence_refs?: string[];
+            evidence_snapshot?: components["schemas"]["EvidenceRecord"][];
             policy_id: string;
             /** @description Recommendation lifecycle state: pending, planned, approved, executing, verified, rejected, expired, superseded, failed, rolled_back, or manual_intervention. */
             status: string;
@@ -675,6 +678,8 @@ export interface components {
         };
         VerificationCheck: {
             signal: string;
+            /** @description Canonical unit expected by this verification threshold. */
+            unit?: string;
             /** @enum {string} */
             statistic: "p95" | "p99" | "max";
             /** @enum {string} */
@@ -694,7 +699,40 @@ export interface components {
             max_memory_p95_increase_ratio: number;
             max_cpu_p95_increase_ratio: number;
         };
+        /** @description Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero. */
+        EvidenceRecord: {
+            /** @enum {integer} */
+            schema_version: 1;
+            id: string;
+            resource_id: string;
+            plugin_id: string;
+            signal: string;
+            query: string;
+            /** @enum {string} */
+            kind: "raw" | "aggregated" | "derived";
+            aggregation: string;
+            unit: string;
+            original_unit: string;
+            scale: number;
+            value: number | null;
+            sample_count: number;
+            /** Format: date-time */
+            window_start: string;
+            /** Format: date-time */
+            window_end: string;
+            /** Format: date-time */
+            collected_at: string;
+            /** Format: date-time */
+            fresh_until: string;
+            /** @enum {string} */
+            quality: "valid" | "missing" | "stale" | "partial" | "invalid" | "unavailable";
+            parents?: string[];
+            extensions?: {
+                [key: string]: string;
+            };
+        };
         MetricsSnapshot: {
+            records?: components["schemas"]["EvidenceRecord"][];
             plugin_id: string;
             resource_id: string;
             source: string;
@@ -844,6 +882,8 @@ export interface components {
             content: {
                 "application/json": {
                     resources: components["schemas"]["Resource"][];
+                    next_cursor?: string;
+                    has_more?: boolean;
                 };
             };
         };
@@ -1007,7 +1047,21 @@ export interface operations {
     };
     listResources: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Maximum resources per page. */
+                limit?: number;
+                /** @description Opaque continuation from the preceding page. */
+                cursor?: string;
+                provider?: string;
+                account?: string;
+                region?: string;
+                type?: string;
+                source_plugin_id?: string;
+                environment?: "production" | "staging" | "development";
+                lifecycle_state?: "active" | "stale" | "deleted";
+                support_status?: "fully_supported" | "model_only" | "unsupported";
+                owner?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1015,6 +1069,7 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["ResourcesResponse"];
+            400: components["responses"]["ErrorResponse"];
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
             500: components["responses"]["ErrorResponse"];

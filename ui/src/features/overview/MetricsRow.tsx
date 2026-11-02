@@ -112,7 +112,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, AlertCircle, AlertTriangle, CheckCircle2, RefreshCw, TrendingUp } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw, TrendingUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { formatMoney, formatMoneyCompact, relativeTime } from "@/lib/format";
 import { WINDOWS, summaryParamsOf, useScope } from "../scope/useScope";

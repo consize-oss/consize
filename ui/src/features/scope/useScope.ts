@@ -39,9 +39,17 @@ export function useScope() {
   const update = useCallback(
     (changes: Record<string, string | undefined>) => {
       const p = new URLSearchParams(queryString);
+      const changesDataset = [...SCOPE_KEYS, "window"].some((key) =>
+        key in changes && (p.get(key) ?? "") !== (changes[key] ?? ""),
+      );
       for (const [k, v] of Object.entries(changes)) {
         if (v) p.set(k, v);
         else p.delete(k);
+      }
+      // A new infrastructure scope/window starts at the first page of its results.
+      if (changesDataset) {
+        p.delete("page");
+        p.delete("cursor");
       }
       const qs = p.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });

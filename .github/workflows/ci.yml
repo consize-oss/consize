@@ -16,26 +16,28 @@ concurrency:
 jobs:
   api-contract:
     name: API contract
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out complete source history
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: ui/package-lock.json
+          node-version-file: .node-version
 
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version-file: go.mod
+          go-version-file: .go-version
           cache-dependency-path: go.sum
+
+      - name: Install pinned npm
+        run: npm install --global "$(node -p 'require("./ui/package.json").packageManager')"
 
       - name: Install locked contract tools
         working-directory: ui
@@ -86,7 +88,7 @@ jobs:
         run: scripts/api/bundle.sh "$RUNNER_TEMP/api-contract"
 
       - name: Upload contract evidence
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: api-contract-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/api-contract/
@@ -95,19 +97,20 @@ jobs:
 
   secret-scan:
     name: Secret scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out complete source history
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
 
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version-file: go.mod
+          go-version-file: .go-version
           cache-dependency-path: go.sum
 
       - name: Install checksum-verified Gitleaks
@@ -159,7 +162,7 @@ jobs:
 
       - name: Upload redacted secret-scan evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: secret-scan-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -172,12 +175,13 @@ jobs:
 
   security-policy:
     name: Security policy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Check out source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Reject mutable GitHub Action references
@@ -193,7 +197,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version-file: go.mod
+          go-version-file: .go-version
           cache-dependency-path: go.sum
 
       - name: Test policy enforcement
@@ -224,18 +228,19 @@ jobs:
 
   repository-security:
     name: Repository security
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Check out complete source history
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version-file: go.mod
+          go-version-file: .go-version
           cache-dependency-path: go.sum
 
       - name: Test repository controls
@@ -265,7 +270,7 @@ jobs:
 
       - name: Upload redacted repository security evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: repository-security-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -276,64 +281,158 @@ jobs:
 
   backend:
     name: Backend quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Check out source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version-file: go.mod
+          go-version-file: .go-version
           cache-dependency-path: go.sum
 
-      - name: Verify formatting
-        shell: bash
-        run: |
-          unformatted="$(gofmt -l cmd internal pkg)"
-          if [[ -n "$unformatted" ]]; then
-            printf 'The following Go files require gofmt:\n%s\n' "$unformatted"
-            exit 1
-          fi
+      - name: Verify baseline workflow controls
+        run: go test ./internal/cibaseline -count=1
 
-      - name: Vet packages
-        run: go vet ./...
+      - name: Run formatting, vet, unit and race checks
+        run: scripts/ci/backend.sh
 
-      - name: Test with race detector
-        run: go test -race ./...
+      - name: Reject tracked-file drift
+        run: git diff --exit-code
 
   frontend:
-    name: Frontend production build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    name: Frontend quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: ui
     steps:
       - name: Check out source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: ui/package-lock.json
+          node-version-file: .node-version
+
+      - name: Install pinned npm
+        run: npm install --global "$(node -p 'require("./package.json").packageManager')"
+
+      - name: Install locked CI tools
+        run: npm --prefix ../tools/ci ci
 
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Check generated declarations before the build
+        run: ../scripts/api/check-generated.sh
+
+      - name: Lint without fixing source
+        run: npm run lint
+
+      - name: Prove compiler and test failures propagate
+        run: node ../scripts/ci/frontend-controls.mjs
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test
+
       - name: Build production frontend
         run: npm run build
 
+      - name: Reject tracked-file drift
+        run: git diff --exit-code
+
+  # Compatibility with the active ruleset; remove only after CON-61 remaps it.
+  frontend-build-compat:
+    name: Frontend production build
+    needs: frontend
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require the complete frontend gate
+        env:
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+        run: test "$FRONTEND_RESULT" = success
+
+  browser:
+    name: Browser smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_CONSIZE_API_BASE_URL: http://127.0.0.1:18080
+      NEXT_PUBLIC_USE_MOCKS: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: .go-version
+          cache-dependency-path: go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+
+      - name: Install pinned npm
+        run: npm install --global "$(node -p 'require("./ui/package.json").packageManager')"
+
+      - name: Install locked dependencies and browser
+        working-directory: ui
+        run: |
+          npm --prefix ../tools/ci ci
+          npm ci
+          node ../tools/ci/node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      - name: Build real API and production UI
+        run: |
+          go build -mod=readonly -o bin/consize-smoke ./cmd/consize
+          cd ui
+          npm run build
+
+      - name: Exercise browser against real API
+        working-directory: ui
+        run: npm run test:e2e
+
+      - name: Reject tracked-file drift
+        run: git diff --exit-code
+
+      - name: Upload synthetic browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ui/playwright-report/
+            ui/test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
   repository-hygiene:
     name: Repository hygiene
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Check out source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Reject legacy module references
         shell: bash

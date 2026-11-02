@@ -82,6 +82,30 @@ func (s *Service) Verify(before, after plugin.MetricsSnapshot) Result {
 					metric = key + "_" + check.Statistic
 				}
 			}
+			unit := "count"
+			if key == "memory_working_set_bytes" {
+				unit = "bytes"
+			}
+			if key == "cpu_cores" {
+				unit = "cores"
+			}
+			if key == "cpu_throttling_ratio" {
+				unit = "ratio"
+			}
+			if key == "error_rate" {
+				unit = "ratio"
+			}
+			if key == "latency_seconds" {
+				unit = "seconds"
+			}
+			for _, check := range s.cfg.Checks {
+				if check.Signal == key && check.Unit != "" {
+					unit = check.Unit
+				}
+			}
+			if _, err := snapshot.Measurement(metric, unit, snapshot.CollectedAt); err != nil {
+				reasons = append(reasons, "missing or untrustworthy provenance: "+metric)
+			}
 			value, exists := numericSignal(snapshot, metric)
 			if !exists || value < 0 || math.IsNaN(value) || math.IsInf(value, 0) {
 				reasons = append(reasons, "missing or invalid signal: "+metric)

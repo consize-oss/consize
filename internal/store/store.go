@@ -6,11 +6,13 @@ import (
 
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/verification"
+	"github.com/consize-oss/consize/pkg/evidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
 type Recommendation struct {
+	EvidenceSnapshot        []evidence.Record    `json:"evidence_snapshot,omitempty"`
 	SchemaVersion           int                  `json:"schema_version"`
 	ID                      int64                `json:"id"`
 	ResourceID              string               `json:"resource_id"`
@@ -60,10 +62,8 @@ type ActionEvent struct {
 }
 
 type Store interface {
+	resource.Registry
 	Health(ctx context.Context) error
-	UpsertResource(ctx context.Context, res resource.Resource) (resource.Resource, error)
-	GetResource(ctx context.Context, id string) (resource.Resource, error)
-	ListResources(ctx context.Context) ([]resource.Resource, error)
 	CreateRecommendation(ctx context.Context, rec Recommendation) (Recommendation, error)
 	GetRecommendation(ctx context.Context, id int64) (Recommendation, error)
 	ListRecommendations(ctx context.Context) ([]Recommendation, error)

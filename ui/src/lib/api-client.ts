@@ -41,32 +41,19 @@ export function reloadForMockConnectionFailure(error: unknown): boolean {
   return false;
 }
 
-export async function apiGet<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    // Every browser request waits for mocks to be ready, including a manual Retry.
-    // Keep this development-only and skip it during server rendering.
-    if (
-      typeof window !== "undefined"
-      && process.env.NODE_ENV === "development"
-      && process.env.NEXT_PUBLIC_USE_MOCKS === "true"
-    ) {
-      const { startMockServiceWorker } = await import("../mocks/browser");
-      await startMockServiceWorker();
-    }
-    res = await fetch(`${API_BASE}${path}`, { signal, cache: "no-store" });
-  } catch {
-    // A network or mock-startup failure happened before receiving an HTTP response.
-    throw new ApiError(0);
-  }
-
+async function readApiResponse<T>(res: Response, schema: z.ZodType<T>): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => undefined);
     const parsed = problemSchema.safeParse(body);
     throw new ApiError(res.status, parsed.success ? parsed.data : undefined);
   }
 
-  const json = await res.json();
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(-1, { title: "Response was not valid JSON", status: -1 });
+  }
   const parsed = schema.safeParse(json);
   if (!parsed.success) {
     // A 200 with the wrong shape is a contract break, not "unavailable" —
@@ -78,4 +65,26 @@ export async function apiGet<T>(path: string, schema: z.ZodType<T>, signal?: Abo
     });
   }
   return parsed.data;
+}
+export async function apiGet<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    await prepareApiRetry();
+    res = await fetch(`${API_BASE}${path}`, { signal, cache: "no-store" });
+  } catch {
+    throw new ApiError(0);
+  }
+  return readApiResponse(res, schema);
+}
+
+// Commands such as discovery use POST without a request body.
+export async function apiPost<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    await prepareApiRetry();
+    res = await fetch(`${API_BASE}${path}`, { method: "POST", signal, cache: "no-store" });
+  } catch {
+    throw new ApiError(0);
+  }
+  return readApiResponse(res, schema);
 }

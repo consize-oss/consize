@@ -11,6 +11,7 @@ import (
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/recommender"
 	"github.com/consize-oss/consize/internal/store"
+	"github.com/consize-oss/consize/internal/testevidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -120,7 +121,7 @@ func (m *testMetrics) snapshot(memory float64) plugin.MetricsSnapshot {
 	for _, key := range []string{"memory_working_set_bytes", "cpu_cores", "restarts_30m"} {
 		coverage[key] = plugin.MetricCoverage{FirstSample: m.now.Add(-10 * time.Minute), LastSample: *m.now, ExpectedPoints: 20, ActualPoints: 20, Step: 30 * time.Second}
 	}
-	return plugin.MetricsSnapshot{Coverage: coverage, PluginID: m.ID(), ResourceID: "test", CollectedAt: *m.now, Signals: map[string]any{"memory_working_set_bytes_p95": memory, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 20, "cpu_cores_points": 20, "restarts_30m_points": 20}}
+	return testevidence.Attach(plugin.MetricsSnapshot{Coverage: coverage, PluginID: m.ID(), ResourceID: "test", CollectedAt: *m.now, Signals: map[string]any{"memory_working_set_bytes_p95": memory, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 20, "cpu_cores_points": 20, "restarts_30m_points": 20}})
 }
 
 type harness struct {

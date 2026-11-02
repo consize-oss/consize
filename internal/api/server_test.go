@@ -16,6 +16,7 @@ import (
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/store"
+	"github.com/consize-oss/consize/internal/testevidence"
 	"github.com/consize-oss/consize/pkg/plugin"
 	k8splugin "github.com/consize-oss/consize/pkg/plugins/kubernetes"
 	"github.com/consize-oss/consize/pkg/resource"
@@ -69,7 +70,7 @@ func (apiMetrics) ReadMetricsBetween(_ context.Context, res resource.Resource, s
 	for _, key := range []string{"memory_working_set_bytes", "cpu_cores", "restarts_30m"} {
 		coverage[key] = plugin.MetricCoverage{FirstSample: start, LastSample: end, ExpectedPoints: 60, ActualPoints: 60, Step: 30 * time.Second}
 	}
-	return plugin.MetricsSnapshot{PluginID: "metrics", ResourceID: res.ID, CollectedAt: end, Coverage: coverage, Signals: map[string]any{"memory_working_set_bytes_p95": 100.0, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 60, "cpu_cores_points": 60, "restarts_30m_points": 60}}, nil
+	return testevidence.Attach(plugin.MetricsSnapshot{PluginID: "metrics", ResourceID: res.ID, CollectedAt: end, Coverage: coverage, Signals: map[string]any{"memory_working_set_bytes_p95": 100.0, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 60, "cpu_cores_points": 60, "restarts_30m_points": 60}}), nil
 }
 
 func apiFixture(t *testing.T) (*Server, *store.Memory, *fake.Clientset) {
@@ -268,6 +269,84 @@ func TestAuditHealthAndIntegrityEndpoints(t *testing.T) {
 		server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, path, nil))
 		if w.Code != http.StatusOK {
 			t.Fatalf("%s: %d %s", path, w.Code, w.Body)
+		}
+	}
+}
+
+func TestRecommendationAPIExposesImmutableProvenance(t *testing.T) {
+	server, _, _ := apiFixture(t)
+	server.cfg.Recommender.MetricsPluginID = "metrics"
+	w := httptest.NewRecorder()
+	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/recommendations/generate?resource_id=test", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("generate: %d %s", w.Code, w.Body)
+	}
+	var response struct {
+		Recommendations []store.Recommendation `json:"recommendations"`
+		Evidence        plugin.MetricsSnapshot `json:"evidence"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	if len(response.Recommendations) != 1 || len(response.Evidence.Records) == 0 {
+		t.Fatal("missing API provenance")
+	}
+	rec := response.Recommendations[0]
+	if len(rec.EvidenceSnapshot) != len(response.Evidence.Records) || rec.AlgorithmVersion == "" {
+		t.Fatal("missing frozen inputs")
+	}
+	for i, r := range rec.EvidenceSnapshot {
+		if err := r.Validate(); err != nil {
+			t.Fatal(err)
+		}
+		if r.ID != rec.EvidenceRefs[i] || r.ID != response.Evidence.Records[i].ID {
+			t.Fatal("API evidence mismatch")
+		}
+	}
+	w = httptest.NewRecorder()
+	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/dashboard", nil))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), rec.EvidenceRefs[0]) || !strings.Contains(w.Body.String(), "evidence_snapshot") {
+		t.Fatalf("list lost provenance: %d", w.Code)
+	}
+}
+
+func TestResourcePagesPreserveLegacyAndBindFilters(t *testing.T) {
+	server, st, _ := apiFixture(t)
+	ctx := context.Background()
+	original, err := st.GetResource(ctx, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"page-a", "page-b", "page-c"} {
+		r := original
+		r.ID = id
+		r.ProviderResourceID = id
+		r.Owner = "paging-owner"
+		if _, err = st.UpsertResource(ctx, r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	request := func(path string) *httptest.ResponseRecorder {
+		w := httptest.NewRecorder()
+		server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, path, nil))
+		return w
+	}
+	legacy := request("/api/resources")
+	if legacy.Code != http.StatusOK || strings.Contains(legacy.Body.String(), "has_more") {
+		t.Fatalf("legacy response changed: %d %s", legacy.Code, legacy.Body)
+	}
+	var page resource.Page
+	w := request("/api/resources?owner=paging-owner&limit=2")
+	if err = json.Unmarshal(w.Body.Bytes(), &page); err != nil || w.Code != 200 || len(page.Resources) != 2 || page.Resources[0].ID != "page-a" || !page.HasMore {
+		t.Fatalf("first page: %d %s %v", w.Code, w.Body, err)
+	}
+	w = request("/api/resources?owner=paging-owner&limit=2&cursor=" + page.NextCursor)
+	if err = json.Unmarshal(w.Body.Bytes(), &page); err != nil || len(page.Resources) != 1 || page.Resources[0].ID != "page-c" || page.HasMore {
+		t.Fatalf("last page: %d %s", w.Code, w.Body)
+	}
+	for _, query := range []string{"limit=0", "limit=201", "limit=invalid", "cursor=malformed", "provider=aws&provider=kubernetes", "unknown=value", "lifecycle_state=unknown"} {
+		if bad := request("/api/resources?" + query); bad.Code != 400 {
+			t.Fatalf("invalid filter accepted: %s %d", query, bad.Code)
 		}
 	}
 }

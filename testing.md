@@ -86,7 +86,7 @@ npm --version
 git status --short
 ```
 
-The Go version comes from `go.mod`. The frontend CI version comes from `.github/workflows/ci.yml`. Use `npm ci`, not `npm install`, for validation.
+The exact Go CI version comes from `.go-version` (and must satisfy `go.mod`); Node comes from `.node-version` and npm from `ui/package.json` `packageManager`. Use `npm ci`, not `npm install`, for validation.
 
 A clean-checkout test must not depend on:
 
@@ -129,13 +129,14 @@ go test -race ./path/to/package -run TestName -count=20
 ```bash
 cd ui
 npm ci
+npm run lint
+npm run typecheck
+npm test
 npm run build
 cd ..
 ```
 
-The production build is the current required frontend CI gate. It is not a substitute for interaction testing. Until dedicated unit and browser test commands are added to `ui/package.json`, UI changes must also include the manual and browser evidence in Sections 11 and 18.
-
-When frontend test tooling is introduced, its scripts must be stable repository commands such as `npm test`, `npm run test:e2e`, and `npm run test:a11y`; CI and this file must be updated in the same pull request.
+`Frontend quality` runs lint, type checks, unit tests, generated-declaration drift checks and a production build. `Browser smoke` builds the real Go API, starts it with a new temporary durable store, and runs the production UI with MSW disabled. See [the baseline CI runbook](docs/engineering/baseline-ci.md) for the local browser command, evidence and required-check migration.
 
 ### 4.4 API contract
 
@@ -217,7 +218,11 @@ GITLEAKS_BIN=/tmp/consize-gitleaks \
 
 The history test must detect a synthetic test token even when it is added and removed within the tested branch. Use only documented synthetic fixtures in a disposable, unmerged branch. Never test with a live credential.
 
-### 4.7 Repository hygiene
+### 4.7 Dependency security
+
+Use `scripts/security/install-govulncheck.sh "$PWD/.tools"`, then run `go test -race ./internal/dependencysecurity ./internal/securitypolicy ./cmd/dependency-security`. The live scan command and report interpretation are in [the dependency security runbook](docs/engineering/dependency-security.md). Both npm lockfiles, including CI tooling, must remain in coverage; no lockfile is changed in CI.
+
+### 4.8 Repository hygiene
 
 ```bash
 git status --short
@@ -719,9 +724,12 @@ The current canonical checks include:
 - `API contract`;
 - `Secret scan`;
 - `Security policy`;
+- `Dependency security`;
 - `Repository security`;
 - `Backend quality`;
-- `Frontend production build`;
+- `Frontend quality`;
+- `Browser smoke`;
+- `CodeQL (go)` and `CodeQL (javascript-typescript)`;
 - `Repository hygiene`.
 
 Required checks must run on pull requests, `main` pushes, and merge groups where configured. Scheduled security rescans should detect newly disclosed risk without a code change.

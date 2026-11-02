@@ -47,25 +47,57 @@ document.addEventListener("DOMContentLoaded", function () {
     base = JSON.parse(document.getElementById("__config").textContent).base;
   } catch (e) {}
 
+  // Build links as URLs and content as DOM nodes. Configuration must never
+  // become HTML or a link to a script/another origin.
+  var baseURL = new URL("./", location.href);
+  try {
+    if (typeof base === "string") {
+      var candidate = new URL(base + "/", location.href);
+      if (candidate.origin === location.origin &&
+          (candidate.protocol === "https:" || candidate.protocol === "http:")) {
+        baseURL = candidate;
+      }
+    }
+  } catch (e) {}
+
   var panel = document.createElement("div");
   panel.className = "consize-search-suggestions";
-  panel.innerHTML =
-    '<div class="consize-search-suggestions__label">Suggested</div>' +
-    '<ul class="consize-search-suggestions__list">' +
-    suggestions.map(function (s) {
-      return (
-        '<li><a class="consize-search-suggestions__link" href="' + base + "/" + s.url + '">' +
-          '<span class="consize-search-suggestions__icon" aria-hidden="true">' +
-            '<svg viewBox="0 0 24 24"><path d="' + icons[s.icon] + '"/></svg>' +
-          '</span>' +
-          '<span class="consize-search-suggestions__text">' +
-            '<span class="consize-search-suggestions__title">' + s.title + '</span>' +
-            '<span class="consize-search-suggestions__desc">' + s.desc + '</span>' +
-          '</span>' +
-        '</a></li>'
-      );
-    }).join("") +
-    '</ul>';
+  var label = document.createElement("div");
+  label.className = "consize-search-suggestions__label";
+  label.textContent = "Suggested";
+  panel.appendChild(label);
+  var list = document.createElement("ul");
+  list.className = "consize-search-suggestions__list";
+  panel.appendChild(list);
+  suggestions.forEach(function (s) {
+    var item = document.createElement("li");
+    var link = document.createElement("a");
+    link.className = "consize-search-suggestions__link";
+    link.href = new URL(s.url, baseURL).href;
+    var icon = document.createElement("span");
+    icon.className = "consize-search-suggestions__icon";
+    icon.setAttribute("aria-hidden", "true");
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", icons[s.icon]);
+    svg.appendChild(path);
+    icon.appendChild(svg);
+    link.appendChild(icon);
+    var text = document.createElement("span");
+    text.className = "consize-search-suggestions__text";
+    var title = document.createElement("span");
+    title.className = "consize-search-suggestions__title";
+    title.textContent = s.title;
+    var description = document.createElement("span");
+    description.className = "consize-search-suggestions__desc";
+    description.textContent = s.desc;
+    text.appendChild(title);
+    text.appendChild(description);
+    link.appendChild(text);
+    item.appendChild(link);
+    list.appendChild(item);
+  });
 
   scrollwrap.insertBefore(panel, result);
 

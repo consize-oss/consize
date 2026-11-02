@@ -52,3 +52,8 @@ yarn-error.log*
 # too just duplicates it and lets it drift out of sync with docs/ (it
 # already had at least one stale page from a since-renamed source file).
 site/
+
+# Browser test evidence
+ui/playwright-report/
+ui/test-results/
+tools/ci/node_modules/

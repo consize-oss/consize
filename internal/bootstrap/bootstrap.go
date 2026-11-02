@@ -56,6 +56,7 @@ type PrometheusConfig struct {
 	Window  string            `json:"window"`
 	Step    string            `json:"step"`
 	Queries map[string]string `json:"queries"`
+	Units   map[string]string `json:"units"`
 }
 
 type RecommenderConfig struct {
@@ -89,6 +90,7 @@ type VerificationConfig struct {
 
 // VerificationCheck binds a plugin signal to an explicit safety threshold.
 type VerificationCheck struct {
+	Unit      string  `json:"unit,omitempty"`
 	Signal    string  `json:"signal"`
 	Statistic string  `json:"statistic"` // p95, p99 or max
 	Mode      string  `json:"mode"`      // absolute or ratio
@@ -138,6 +140,7 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 			Window:  window,
 			Step:    step,
 			Queries: cfg.Prometheus.Queries,
+			Units:   cfg.Prometheus.Units,
 		})
 		if err != nil {
 			return fmt.Errorf("configure prometheus plugin: %w", err)

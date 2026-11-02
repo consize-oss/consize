@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -261,6 +262,24 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleResources(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		if len(r.URL.Query()) > 0 {
+			query, err := parseResourceQuery(r.URL.Query())
+			if err != nil {
+				writeError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			page, err := s.st.ListResourcePage(r.Context(), query)
+			if err != nil {
+				status := http.StatusInternalServerError
+				if errors.Is(err, resource.ErrInvalidQuery) {
+					status = http.StatusBadRequest
+				}
+				writeError(w, status, err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, page)
+			return
+		}
 		resources, err := s.st.ListResources(r.Context())
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
