@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "evidence:v1:359679f3c56b3e269c83f4efd28e13034080907327a31a12150a0c2871462f2a",
+  "resource_id": "resource:v1:kubernetes:example-cluster:local:kubernetes.deployment:payments%2Fcheckout-api",
+  "plugin_id": "prometheus-metrics",
+  "signal": "memory_working_set_bytes_p95",
+  "query": "quantile_over_time(0.95, container_memory_working_set_bytes{namespace=\"payments\",pod=~\"checkout-api-.+\"}[24h])",
+  "kind": "aggregated",
+  "aggregation": "p95",
+  "unit": "bytes",
+  "original_unit": "bytes",
+  "scale": 1,
+  "value": 268435456,
+  "sample_count": 1440,
+  "window_start": "2026-11-02T12:00:00Z",
+  "window_end": "2026-11-03T12:00:00Z",
+  "collected_at": "2026-11-03T12:00:00Z",
+  "fresh_until": "2026-11-03T12:02:00Z",
+  "quality": "valid"
+}

@@ -96,3 +96,8 @@ SLIs are watched after every change. If something regresses, Consize triggers an
 </div>
 
 </div>
+## v0.3 contributor contracts
+
+For the implemented alpha contracts, start with [Core model contracts](reference/core-model.md):
+resource identity, evidence, proposals, attempts, recovery and compatibility.
+Model compatibility does not imply a working provider integration.

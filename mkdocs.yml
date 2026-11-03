@@ -84,7 +84,10 @@ plugins:
           - concepts/safety-net.md: The safety decision matrix (BLOCK/SPLIT/REJECT/etc)
         Reference:
           - reference/configuration.md
+          - reference/core-model.md
           - reference/resource-model.md
+          - reference/resource-registry.md
+          - reference/evidence.md
           - reference/supported-platforms.md
           - reference/api.md
         Resources:
@@ -107,7 +110,14 @@ nav:
 
   - Reference:
       - Configuration: reference/configuration.md
+      - Core Model Contracts: reference/core-model.md
       - Resource Model: reference/resource-model.md
+      - Resource Registry: reference/resource-registry.md
+      - Evidence and Provenance: reference/evidence.md
+      - Recommendation and Action Contracts: engineering/recommendation-action-contracts.md
+      - Durable Storage: engineering/durable-storage.md
+      - Resource Identity Decision: engineering/adr-0001-universal-resource-identity.md
+      - Proposal and Attempt Decision: engineering/adr-0002-proposals-attempts-and-evidence.md
       - Supported Platforms: reference/supported-platforms.md
       - API Reference: reference/api.md
       - Audit Subsystem: engineering/audit-subsystem.md

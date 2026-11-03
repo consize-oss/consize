@@ -4,7 +4,7 @@ The resource registry gives every infrastructure object one common shape. A Kube
 
 ## Identity
 
-New resources receive an ID derived from five immutable coordinates:
+New resources without an explicit ID receive an ID derived from five immutable coordinates:
 
 ```text
 provider + account + location + resource type + provider resource ID
@@ -58,7 +58,10 @@ The registry rejects:
 - duplicate identities in durable state;
 - incomplete provider coordinates and control characters in identity fields.
 
-During the v0.3 alpha migration, a pre-existing noncanonical ID is retained when the same immutable resource is rediscovered with a canonical ID. This preserves recommendation, action, and audit references. New resources always use canonical IDs.
+During the v0.3 alpha migration, a pre-existing noncanonical ID is retained when the same immutable resource is rediscovered with a canonical ID. This preserves recommendation, action, and audit references. New producers should omit `id` and let core derive the canonical ID. For source
+compatibility, explicit noncanonical IDs are still accepted when they do not
+conflict with an existing identity. Do not interpret that compatibility path as a
+second ID-generation scheme.
 
 ## Provider extensions
 

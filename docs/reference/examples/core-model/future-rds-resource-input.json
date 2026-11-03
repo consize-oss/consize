@@ -1,0 +1,17 @@
+{
+  "account": "123456789012",
+  "criticality": "low",
+  "current_state": {
+    "instance_class": "example-class"
+  },
+  "environment": "development",
+  "metadata": {
+    "engine": "postgres"
+  },
+  "name": "example-orders",
+  "owner": "database-team",
+  "provider": "aws",
+  "provider_resource_id": "db/example-orders",
+  "region": "eu-west-1",
+  "type": "aws.rds.instance"
+}
