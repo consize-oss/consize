@@ -12,7 +12,7 @@ import (
 )
 
 func TestRecommendCreatesKubernetesPatchRecommendation(t *testing.T) {
-	recs, err := New(bootstrap.RecommenderConfig{
+	recs, err := New(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action",
 		HeadroomRatio:     1.5,
 		MinReductionRatio: 0.10,
 	}).Recommend(context.Background(), Input{
@@ -67,7 +67,7 @@ func TestRecommendCreatesKubernetesPatchRecommendation(t *testing.T) {
 }
 
 func TestLargeReductionIsCapped(t *testing.T) {
-	rec, err := New(bootstrap.RecommenderConfig{}).RecommendOne(context.Background(), resource.Resource{
+	rec, err := New(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action"}).RecommendOne(context.Background(), resource.Resource{
 		ID: "local", Type: resource.TypeKubernetesDeployment, Name: "test", CurrentState: map[string]any{"memory_request_bytes": int64(512 * 1024 * 1024), "memory_limit_bytes": int64(1024 * 1024 * 1024)},
 	}, testevidence.Attach(plugin.MetricsSnapshot{PluginID: "prometheus-metrics", ResourceID: "local", Signals: map[string]any{"memory_working_set_bytes_p95": float64(7 * 1024 * 1024)}}))
 	if err != nil {
@@ -84,7 +84,7 @@ func TestLargeReductionIsCapped(t *testing.T) {
 func TestRecommendationFreezesInputsAndRejectsUnusableProvenance(t *testing.T) {
 	res := resource.Resource{ID: "local", Type: resource.TypeKubernetesDeployment, Name: "test", CurrentState: map[string]any{"memory_request_bytes": int64(512 * 1024 * 1024)}}
 	s := testevidence.Attach(plugin.MetricsSnapshot{ResourceID: res.ID, PluginID: "prometheus-metrics", Signals: map[string]any{"memory_working_set_bytes_p95": 100.}})
-	engine := New(bootstrap.RecommenderConfig{})
+	engine := New(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action"})
 	rec, err := engine.RecommendOne(context.Background(), res, s)
 	if err != nil {
 		t.Fatal(err)

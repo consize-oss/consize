@@ -848,6 +848,7 @@ components:
       properties:
         status: {type: string, enum: [healthy, degraded, unhealthy]}
         store: {type: string, enum: [healthy, unavailable]}
+        diagnostics: {type: array, items: {type: string}, description: "Setup gaps reported from configured and registered capabilities."}
         durable_worker: {type: boolean}
         plugins: {type: array, items: {$ref: '#/components/schemas/PluginStatus'}}
         storage: {$ref: '#/components/schemas/StorageDiagnostics'}

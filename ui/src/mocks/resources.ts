@@ -73,7 +73,7 @@ function mockResource(
     support_status: supportStatus,
     labels: resource.labels ?? {},
     metadata: {
-      demo_inventory: {
+      inventory: {
         ...details, kind: resource.kind, recommendation_ids: recommendationIds,
         scope_type: resource.scopeType ?? SCOPE_TYPE_LABELS[type] ?? (type === "kubernetes.node_group" ? (resource.kind === "gpu" ? "GPU node group" : "Worker pool") : type),
       },

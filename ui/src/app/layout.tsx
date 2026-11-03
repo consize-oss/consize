@@ -6,7 +6,6 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { Topbar } from "@/components/shell/Topbar";
-import { ScenarioSwitcher } from "@/components/dev/ScenarioSwitcher";
 
 export const metadata: Metadata = {
   title: "Consize — Control Plane",
@@ -25,7 +24,10 @@ const THEME_INIT_SCRIPT = `
   } catch (e) {}
 `;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const ScenarioSwitcher = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCKS === "true"
+    ? (await import("@/components/dev/ScenarioSwitcher")).ScenarioSwitcher
+    : null;
   return (
     <html data-theme="dark" lang="en" suppressHydrationWarning>
       <head>
@@ -51,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Topbar />
           </Suspense>
           <div className="pl-[var(--sidebar-width)] pt-14 min-h-screen">{children}</div>
-          {process.env.NODE_ENV === "development" && (
+          {ScenarioSwitcher && (
             <div className="fixed bottom-3 right-3 z-50">
               <ScenarioSwitcher />
             </div>

@@ -12,8 +12,7 @@ const SCENARIOS: Scenario[] = [
   "backend-down",
 ];
 
-// Only ever rendered when NODE_ENV === "development" (see page.tsx) — this
-// exists purely so you can click through every state the ticket requires
+// Imported only for explicitly enabled development mocks.
 
 export function ScenarioSwitcher() {
   const queryClient = useQueryClient();
@@ -24,6 +23,8 @@ export function ScenarioSwitcher() {
   }
 
   return (
+    <label className="flex items-center gap-2 text-xs text-fg-secondary">
+      Demo data
     <select
       aria-label="Mock scenario"
       className="h-8 px-2 bg-app-surface border border-app-border rounded-lg text-xs font-mono text-slate-300"
@@ -36,5 +37,6 @@ export function ScenarioSwitcher() {
         </option>
       ))}
     </select>
+    </label>
   );
 }

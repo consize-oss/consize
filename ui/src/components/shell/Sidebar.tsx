@@ -14,6 +14,7 @@ import {
   Shield,
   Sparkles,
   Server,
+  UserRound,
 } from "lucide-react";
 import { useDashboardSummary } from "@/features/overview/queries";
 import { useScope } from "@/features/scope/useScope";
@@ -100,7 +101,7 @@ export function Sidebar() {
             </div>
             <div className="min-w-0">
               <div className="text-[10px] text-fg-muted uppercase tracking-wider leading-none mb-0.5">Workspace</div>
-              <div className="text-xs font-medium text-fg truncate leading-tight">Acme Corp Infra</div>
+              <div className="text-xs font-medium text-fg truncate leading-tight">Current instance</div>
             </div>
           </div>
           <ChevronsUpDown className="w-3.5 h-3.5 text-fg-muted shrink-0" aria-hidden />
@@ -109,11 +110,11 @@ export function Sidebar() {
         <div className="flex items-center justify-between px-1 pt-1">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-6 h-6 rounded-full bg-app-surface-alt border border-app-border flex items-center justify-center shrink-0 text-[11px] font-semibold text-fg-secondary">
-              FO
+              <UserRound className="w-3.5 h-3.5" aria-hidden />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-medium text-fg truncate leading-tight">FinOps Lead / SRE</div>
-              <div className="text-[10px] text-ok-strong font-medium leading-tight">Role: Admin</div>
+              <div className="text-xs font-medium text-fg truncate leading-tight">Identity unavailable</div>
+              <div className="text-[10px] text-fg-muted font-medium leading-tight">Role unknown</div>
             </div>
           </div>
           <button

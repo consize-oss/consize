@@ -63,7 +63,7 @@ function buildInventoryScopeOptions(): ScopeOptions {
     sources: merge(existing.sources, baseResources.map((resource) => resource.source_plugin_id)),
     regions: merge(existing.regions, baseResources.map((resource) => resource.region)),
     resource_types: merge(existing.resource_types, baseResources.map((resource) =>
-      (resource.metadata.demo_inventory as ResourceInventoryDetails).scope_type ?? resource.type)),
+      (resource.metadata.inventory as ResourceInventoryDetails).scope_type ?? resource.type)),
   };
 }
 
@@ -71,7 +71,7 @@ let inventorySyncedAt: string | null = null;
 
 function resourceInventoryForScenario() {
   return scenario === "empty-cluster" ? [] : baseResources.map((resource) => {
-    const inventory = resource.metadata.demo_inventory as ResourceInventoryDetails;
+    const inventory = resource.metadata.inventory as ResourceInventoryDetails;
     return {
       ...resource,
       ...(inventorySyncedAt ? {
@@ -79,7 +79,7 @@ function resourceInventoryForScenario() {
       } : {}),
       metadata: {
         ...resource.metadata,
-        demo_inventory: {
+        inventory: {
           ...inventory,
           ...(scenario === "no-recommendations" ? { recommendation_ids: [] } : {}),
           ...(scenario === "stale" && inventory.telemetry?.status === "healthy" ? {

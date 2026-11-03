@@ -44,6 +44,9 @@ func (r *HeadroomRecommender) Recommend(ctx context.Context, input Input) ([]sto
 }
 
 func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resource, snapshot plugin.MetricsSnapshot) (store.Recommendation, error) {
+	if r.cfg.MetricsPluginID == "" || r.cfg.ActionPluginID == "" {
+		return store.Recommendation{}, fmt.Errorf("recommendation metrics and action plugin IDs must be configured explicitly")
+	}
 	if res.Type != resource.TypeKubernetesDeployment {
 		return store.Recommendation{}, fmt.Errorf("unsupported resource type %q", res.Type)
 	}
@@ -189,12 +192,6 @@ func evidenceLines(r *HeadroomRecommender, snapshot plugin.MetricsSnapshot, obse
 func withDefaults(cfg bootstrap.RecommenderConfig) bootstrap.RecommenderConfig {
 	if cfg.ConfidenceProfile == "" {
 		cfg.ConfidenceProfile = "standard"
-	}
-	if cfg.MetricsPluginID == "" {
-		cfg.MetricsPluginID = "prometheus-metrics"
-	}
-	if cfg.ActionPluginID == "" {
-		cfg.ActionPluginID = "kubernetes-action"
 	}
 	if cfg.ActionType == "" {
 		cfg.ActionType = "k8s.patch_resources"
