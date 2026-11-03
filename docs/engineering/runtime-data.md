@@ -22,7 +22,7 @@ silently disable capabilities.
 
 Register resources through `/api/resources`, or explicitly configure a discovery
 plugin and call `/api/discovery`. With no discovery plugin, discovery returns an
-error instead of sample resources. See [the local integration guide](../../DEVELOPMENT.md)
+error instead of sample resources. See [the local integration guide](https://github.com/consize-oss/consize/blob/main/DEVELOPMENT.md)
 for an explicitly configured Kubernetes/Prometheus example.
 
 ## Bind capabilities explicitly

@@ -301,6 +301,9 @@ jobs:
       - name: Verify clean startup without demo data
         run: go test ./cmd/consize -run TestCleanStart -count=1
 
+      - name: Validate core model documentation and examples
+        run: go test ./internal/modeldocs -count=1
+
       - name: Run formatting, vet, unit and race checks
         run: scripts/ci/backend.sh
 

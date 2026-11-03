@@ -110,3 +110,33 @@ Audit entries reference the recommendation and describe policy, plan, worker, ve
 Durable state schema v4 introduces an independent action collection and event sequence. A v3 state file migrates without reinterpreting old audit events as complete actions. Existing events remain available, while new requests use the explicit action contract.
 
 This avoids inventing approval, idempotency, or execution data that old events never captured.
+
+## Allowed transitions
+
+The diagrams above show common paths. The complete accepted transitions are
+listed below; an omitted transition, including a transition to the same state,
+is rejected by [the store contract](https://github.com/consize-oss/consize/blob/main/internal/store/contracts.go).
+
+Recommendations:
+
+- `pending` → `planned`, `approved`, `rejected`, `expired`, `superseded`.
+- `planned` → `approved`, `rejected`, `expired`, `superseded`.
+- `approved` → `executing`, `rejected`, `expired`, `superseded`.
+- `executing` → `verified`, `failed`, `rolled_back`, `manual_intervention`.
+
+Actions:
+
+- `requested` → `planning`, `planned`, `approved`, `failed`, `cancelled`.
+- `planning` → `planned`, `failed`, `cancelled`.
+- `planned` → `approved`, `cancelled`, `failed`.
+- `approved` → `executing`, `cancelled`, `failed`.
+- `executing` → `verifying`, `succeeded`, `failed`, `rollback_pending`, `manual_intervention`.
+- `verifying` → `succeeded`, `failed`, `rollback_pending`, `manual_intervention`.
+- `failed` → `rollback_pending`, `manual_intervention`.
+- `rollback_pending` → `rolling_back`, `manual_intervention`.
+- `rolling_back` → `rolled_back`, `manual_intervention`.
+
+These are model transition rules, not permission to bypass policy or preflight.
+The worker owns a separate recovery state machine. See
+[core model contracts](../reference/core-model.md) for field ownership and
+[transition tests](https://github.com/consize-oss/consize/blob/main/internal/store/contracts_test.go) for enforcement.

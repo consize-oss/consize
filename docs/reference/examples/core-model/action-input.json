@@ -1,0 +1,10 @@
+{
+  "action_type": "k8s.patch_resources",
+  "idempotency_key": "docs-checkout-plan-1",
+  "mode": "dry_run",
+  "plugin_id": "kubernetes-action",
+  "recommendation_id": 1,
+  "remediation_path": "direct_apply",
+  "requested_by": "example-reviewer",
+  "resource_id": "resource:v1:kubernetes:example-cluster:local:kubernetes.deployment:payments%2Fcheckout-api"
+}

@@ -1,0 +1,20 @@
+{
+  "account": "example-cluster",
+  "criticality": "low",
+  "current_state": {
+    "memory_limit_bytes": 1073741824,
+    "memory_request_bytes": 536870912
+  },
+  "environment": "development",
+  "metadata": {
+    "name": "checkout-api",
+    "namespace": "payments"
+  },
+  "name": "checkout-api",
+  "owner": "payments-team",
+  "provider": "kubernetes",
+  "provider_resource_id": "payments/checkout-api",
+  "region": "local",
+  "source_plugin_id": "kubernetes-action",
+  "type": "kubernetes.deployment"
+}
