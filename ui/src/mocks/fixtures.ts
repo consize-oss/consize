@@ -33,6 +33,7 @@ export const baseRecommendations: RecommendationListItem[] = [
       inspect: true,
       tags: { team: "payments", tier: "1" },
     },
+    
     target_summary: "c6i.2xlarge · 8→4 vCPU",
     change_summary: {
       current: "c6i.2xl (8C / 16G)",

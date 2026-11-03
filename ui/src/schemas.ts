@@ -224,3 +224,82 @@ export const scopeOptionsSchema = z.object({
   resource_types: z.array(scopeOptionSchema),
 });
 export type ScopeOptions = z.infer<typeof scopeOptionsSchema>;
+
+
+// -- Plugins & ecosystem (design doc §8.4) ---------------------------------
+// One endpoint feeds both the Overview integration strip (compact) and the
+// Plugins screen (full), so they can never disagree about plugin health.
+export const pluginCategorySchema = z.enum(["evidence", "algorithm", "action", "notification"]);
+export type PluginCategory = z.infer<typeof pluginCategorySchema>;
+export const pluginKindSchema = z.enum(["evidence", "cost", "algorithm", "action", "notification"]);
+export type PluginKind = z.infer<typeof pluginKindSchema>;
+ 
+const toneSchema = z.enum(["default", "ok", "warn", "bad"]);
+ 
+export const pluginSchema = capabilitySchema.extend({
+  version: z.string(),
+  category: pluginCategorySchema,
+  kind: pluginKindSchema,
+  source: z.enum(["built_in", "registry"]),
+  trust: z.enum(["built_in", "verified_publisher", "unverified"]),
+  description: z.string(),
+  // Machine reason behind a bad/degraded health ("HTTP 401"), shown verbatim.
+  status_reason: z.string().optional(),
+  // Things that need a human even when the connection itself is healthy.
+  attention: z.array(z.enum(["permission_review", "credential_expiring"])),
+  // Only meaningful for algorithm plugins.
+  engine_state: z.enum(["active", "standby"]).nullable(),
+  // Three label/value facts for the card; the backend owns the wording.
+  facts: z.array(z.object({ label: z.string(), value: z.string(), tone: toneSchema })),
+});
+export type Plugin = z.infer<typeof pluginSchema>;
+ 
+// Aggregates are computed by the backend so they stay reproducible from
+// durable records (design doc §21.2) — the UI never counts its own list.
+export const pluginSummarySchema = z.object({
+  counts: z.object({
+    installed: z.number(),
+    evidence: z.number(),
+    algorithm: z.number(),
+    action: z.number(),
+    notification: z.number(),
+    // null = no marketplace in this release (PRD §1.3 non-goal).
+    marketplace: z.number().nullable(),
+  }),
+  ingestion: z.object({
+    active: z.number(),
+    total: z.number(),
+    fresh_ratio: z.number().nullable(),
+    freshness_window_seconds: z.number(),
+  }),
+  actions: z.object({
+    paths: z.number(),
+    summary: z.string(),
+    state: z.enum(["ready", "attention"]),
+  }),
+  recommendations: z.object({ active: z.number(), resources: z.number() }),
+  trust: z.object({ trusted: z.number(), total: z.number() }),
+});
+export type PluginSummary = z.infer<typeof pluginSummarySchema>;
+ 
+export const pluginListSchema = z.object({
+  items: z.array(pluginSchema),
+  summary: pluginSummarySchema,
+});
+ 
+export const pluginDetailSchema = pluginSchema.extend({
+  overview: z.string(),
+  scope_stats: z.array(
+    z.object({ label: z.string(), value: z.string(), sub: z.string().optional(), tone: toneSchema }),
+  ),
+  guardrail: z.object({ title: z.string(), description: z.string() }).nullable(),
+  // null = the plugin needs no credentials (built-ins).
+  credentials: z
+    .object({
+      state: z.enum(["encrypted", "expiring", "invalid"]),
+      entries: z.array(z.object({ label: z.string(), masked: z.string() })),
+    })
+    .nullable(),
+});
+export type PluginDetail = z.infer<typeof pluginDetailSchema>;
+ 
