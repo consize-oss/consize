@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/consize-oss/consize/internal/bootstrap"
@@ -11,6 +12,10 @@ import (
 )
 
 func Load(path string, out any) error {
+	return load(path, out, false)
+}
+
+func load(path string, out any, strict bool) error {
 	if path == "" {
 		return fmt.Errorf("path is required")
 	}
@@ -21,18 +26,30 @@ func Load(path string, out any) error {
 	defer f.Close()
 	dec := json.NewDecoder(f)
 	dec.UseNumber()
+	if strict {
+		dec.DisallowUnknownFields()
+	}
 	if err := dec.Decode(out); err != nil {
 		return fmt.Errorf("decode %s: %w", path, err)
+	}
+	if strict {
+		var extra any
+		if err := dec.Decode(&extra); err != io.EOF {
+			return fmt.Errorf("decode %s: expected exactly one configuration object", path)
+		}
 	}
 	return nil
 }
 
 func LoadBootstrap(path string) (bootstrap.Config, error) {
-	var cfg bootstrap.Config
-	if err := Load(path, &cfg); err != nil {
+	var cfg *bootstrap.Config
+	if err := load(path, &cfg, true); err != nil {
 		return bootstrap.Config{}, err
 	}
-	return cfg, nil
+	if cfg == nil {
+		return bootstrap.Config{}, fmt.Errorf("configuration must be an object")
+	}
+	return *cfg, nil
 }
 
 func LoadResource(path string) (resource.Resource, error) {

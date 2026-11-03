@@ -810,6 +810,8 @@ export interface components {
             status: "healthy" | "degraded" | "unhealthy";
             /** @enum {string} */
             store: "healthy" | "unavailable";
+            /** @description Setup gaps reported from configured and registered capabilities. */
+            diagnostics?: string[];
             durable_worker?: boolean;
             plugins?: components["schemas"]["PluginStatus"][];
             storage?: components["schemas"]["StorageDiagnostics"];

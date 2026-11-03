@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, UserRound } from "lucide-react";
 import { DateRangeMenu } from "@/features/scope/DateRangeMenu";
 import { ScopeMenu } from "@/features/scope/scopeMenu";
 import { ThemeToggle } from "./ThemeToggle";
@@ -42,7 +42,7 @@ export function Topbar() {
           aria-hidden
           className="w-8 h-8 rounded-btn bg-ok-bg border border-ok-line flex items-center justify-center text-ok-fg font-medium text-xs"
         >
-          FL
+          <UserRound className="w-4 h-4" />
         </div>
       </div>
     </header>

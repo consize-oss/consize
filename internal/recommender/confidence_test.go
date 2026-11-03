@@ -20,7 +20,7 @@ func TestConfidenceRequiresActualHistory(t *testing.T) {
 		window time.Duration
 		label  string
 	}{{time.Hour, "low"}, {24 * time.Hour, "low"}, {7 * 24 * time.Hour, "medium"}, {14 * 24 * time.Hour, "high"}} {
-		got := AssessConfidence(bootstrap.RecommenderConfig{}, res, history(now, tc.window, time.Minute), now)
+		got := AssessConfidence(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action"}, res, history(now, tc.window, time.Minute), now)
 		if got.Label != tc.label {
 			t.Fatalf("%s: %+v", tc.window, got)
 		}
@@ -28,7 +28,7 @@ func TestConfidenceRequiresActualHistory(t *testing.T) {
 }
 func TestConfidenceLabRestrictions(t *testing.T) {
 	now := time.Now()
-	cfg := bootstrap.RecommenderConfig{ConfidenceProfile: "lab"}
+	cfg := bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action", ConfidenceProfile: "lab"}
 	for _, tc := range []struct{ environment, criticality, want string }{{resource.EnvDevelopment, resource.CriticalityLow, "medium"}, {resource.EnvProduction, resource.CriticalityLow, "low"}, {resource.EnvStaging, resource.CriticalityLow, "low"}, {resource.EnvDevelopment, resource.CriticalityHigh, "low"}} {
 		res := resource.Resource{ID: "test", Environment: tc.environment, Criticality: tc.criticality}
 		if got := AssessConfidence(cfg, res, history(now, 30*time.Minute, 30*time.Second), now); got.Label != tc.want {
@@ -76,7 +76,7 @@ func TestConfidenceRejectsBadEvidence(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			s := history(now, 14*24*time.Hour, time.Minute)
 			tc.mutate(&s)
-			if got := AssessConfidence(bootstrap.RecommenderConfig{}, res, s, now); got.Label != "low" || len(got.Reasons) == 0 {
+			if got := AssessConfidence(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action"}, res, s, now); got.Label != "low" || len(got.Reasons) == 0 {
 				t.Fatalf("bad evidence: %+v", got)
 			}
 		})

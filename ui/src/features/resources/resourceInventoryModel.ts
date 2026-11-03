@@ -51,7 +51,7 @@ export function buildResourceInventory(
   requestedPage: number,
 ) {
   const allItems: ResourceInventoryItem[] = records.map((resource) => {
-    const details = inventoryDetailsSchema.safeParse(resource.metadata.demo_inventory);
+    const details = inventoryDetailsSchema.safeParse(resource.metadata.inventory);
     return { ...resource, inventory: details.success ? details.data : {} };
   });
   const scopedItems = allItems.filter((resource) =>

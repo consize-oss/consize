@@ -161,7 +161,7 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 			return err
 		}
 	}
-	return nil
+	return ValidateCapabilities(m, cfg)
 }
 
 func parseOptionalDuration(raw string) (time.Duration, error) {

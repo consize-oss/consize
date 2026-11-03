@@ -28,7 +28,7 @@ function exampleResource(
     support_status: "fully_supported", labels: {}, current_state: {}, monthly_cost: 100,
     source_plugin_id: "example-kubernetes", observed_at: exampleTime, first_seen_at: exampleTime,
     last_seen_at: exampleTime, created_at: exampleTime, updated_at: exampleTime,
-    metadata: { demo_inventory: {
+    metadata: { inventory: {
       scope_type: "Deployment", action_path_available: true,
       telemetry: { status: "healthy", source: "Example collector", checked_at: exampleTime },
       policy_coverage: "covered", optimization_status: "no_action_needed", recommendation_ids: [],
@@ -276,7 +276,7 @@ describe("Resource demo API responses", () => {
       assert.equal(response.status, 200);
       const options = scopeOptionsSchema.parse(await response.json());
       for (const resource of baseResources) {
-        const details = inventoryDetailsSchema.parse(resource.metadata.demo_inventory);
+        const details = inventoryDetailsSchema.parse(resource.metadata.inventory);
         assert.ok(options.providers.some((option) => option.value === resource.provider));
         assert.ok(options.sources.some((option) => option.value === resource.source_plugin_id));
         assert.ok(options.regions.some((option) => option.value === resource.region));

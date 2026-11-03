@@ -275,7 +275,9 @@ func TestAuditHealthAndIntegrityEndpoints(t *testing.T) {
 
 func TestRecommendationAPIExposesImmutableProvenance(t *testing.T) {
 	server, _, _ := apiFixture(t)
+	server.cfg.Recommender.Enabled = true
 	server.cfg.Recommender.MetricsPluginID = "metrics"
+	server.cfg.Recommender.ActionPluginID = "kubernetes-action"
 	w := httptest.NewRecorder()
 	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/recommendations/generate?resource_id=test", nil))
 	if w.Code != http.StatusOK {

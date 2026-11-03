@@ -155,9 +155,6 @@ func (s *Service) Verify(before, after plugin.MetricsSnapshot) Result {
 }
 
 func withDefaults(cfg bootstrap.VerificationConfig) bootstrap.VerificationConfig {
-	if cfg.MetricsPluginID == "" {
-		cfg.MetricsPluginID = "prometheus-metrics"
-	}
 	if cfg.MaxMemoryP95IncreaseRatio == 0 {
 		cfg.MaxMemoryP95IncreaseRatio = 1.25
 	}

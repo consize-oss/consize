@@ -47,6 +47,8 @@ The current alpha works end to end with Kubernetes Deployments and Prometheus. B
 
 ---
 
+For source development, see [runtime data, empty startup and demo isolation](docs/engineering/runtime-data.md).
+
 ## Getting Started
 
 | 🧪 Try the Sandbox | 🚀 Install v0.2.0 |

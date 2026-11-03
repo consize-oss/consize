@@ -17,6 +17,7 @@ import (
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/config"
 	"github.com/consize-oss/consize/internal/cost"
+	demoData "github.com/consize-oss/consize/internal/demo"
 	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/orchestrator"
 	"github.com/consize-oss/consize/internal/policy"
@@ -108,9 +109,12 @@ func run(ctx context.Context, args []string) error {
 		fs := flag.NewFlagSet("metrics", flag.ExitOnError)
 		configPath := fs.String("config", "", "Path to Consize plugin config JSON")
 		resourcePath := fs.String("resource", "", "Path to resource JSON")
-		pluginID := fs.String("plugin", "prometheus-metrics", "Metrics plugin ID")
+		pluginID := fs.String("plugin", "", "Metrics plugin ID (required)")
 		if err := fs.Parse(args[1:]); err != nil {
 			return err
+		}
+		if *pluginID == "" {
+			return fmt.Errorf("metrics -plugin is required")
 		}
 		res, err := config.LoadResource(*resourcePath)
 		if err != nil {
@@ -153,7 +157,7 @@ func run(ctx context.Context, args []string) error {
 			metricsPluginID = cfg.Verification.MetricsPluginID
 		}
 		if metricsPluginID == "" {
-			metricsPluginID = "prometheus-metrics"
+			return fmt.Errorf("metrics plugin ID must be configured explicitly")
 		}
 		p, err := plugins.MetricsPlugin(metricsPluginID, res.Type)
 		if err != nil {
@@ -432,7 +436,7 @@ func runEndToEnd(ctx context.Context, configPath, resourcePath, recommendationPa
 		metricsPluginID = cfg.Recommender.MetricsPluginID
 	}
 	if metricsPluginID == "" {
-		metricsPluginID = "prometheus-metrics"
+		return fmt.Errorf("metrics plugin ID must be configured explicitly")
 	}
 	metricsPlugin, err := plugins.MetricsPlugin(metricsPluginID, res.Type)
 	if err != nil {
@@ -503,6 +507,51 @@ func writeAudit(cfg bootstrap.Config, recordType string, payload any) error {
 	return sink.Write(recordType, payload)
 }
 
+func initializeHTTPServer(ctx context.Context, st store.RuntimeStore, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config, resourcePath, recommendationPath string, demo bool) (*api.Server, error) {
+	var err error
+	var seededResource resource.Resource
+	if resourcePath != "" {
+		seededResource, err = config.LoadResource(resourcePath)
+		if err != nil {
+			return nil, err
+		}
+		if existing, loadErr := st.GetResource(ctx, seededResource.ID); loadErr == nil {
+			seededResource = existing
+		} else if loadErr != store.ErrNotFound {
+			return nil, loadErr
+		}
+		seededResource, err = st.UpsertResource(ctx, seededResource)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if recommendationPath != "" {
+		rec, err := config.LoadRecommendation(recommendationPath)
+		if err != nil {
+			return nil, err
+		}
+		if rec.ResourceID == "" {
+			rec.ResourceID = seededResource.ID
+		}
+		if rec.ResourceID == "" {
+			return nil, fmt.Errorf("recommendation resource_id is required when no resource seed is provided")
+		}
+		if _, err := st.CreateRecommendation(ctx, rec); err != nil {
+			return nil, err
+		}
+	}
+	server, err := api.NewServer(st, plugins, policies, cfg)
+	if err != nil {
+		return nil, err
+	}
+	if demo {
+		if err := demoData.Seed(ctx, st); err != nil {
+			return nil, err
+		}
+	}
+	return server, nil
+}
+
 func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendationPath string, demo bool) error {
 	st, plugins, policies, cfg, err := optionalFoundation(ctx, configPath)
 	if err != nil {
@@ -512,45 +561,18 @@ func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendati
 	if err := validateListenAddress(addr, cfg.Auth.Enabled); err != nil {
 		return err
 	}
-	var seededResource resource.Resource
-	if resourcePath != "" {
-		seededResource, err = config.LoadResource(resourcePath)
-		if err != nil {
-			return err
-		}
-		if existing, loadErr := st.GetResource(ctx, seededResource.ID); loadErr == nil {
-			seededResource = existing
-		} else if loadErr != store.ErrNotFound {
-			return loadErr
-		}
-		seededResource, err = st.UpsertResource(ctx, seededResource)
-		if err != nil {
-			return err
-		}
-	}
-	if recommendationPath != "" {
-		rec, err := config.LoadRecommendation(recommendationPath)
-		if err != nil {
-			return err
-		}
-		if rec.ResourceID == "" {
-			rec.ResourceID = seededResource.ID
-		}
-		if rec.ResourceID == "" {
-			return fmt.Errorf("recommendation resource_id is required when no resource seed is provided")
-		}
-		if _, err := st.CreateRecommendation(ctx, rec); err != nil {
-			return err
-		}
-	}
-	server, err := api.NewServer(st, plugins, policies, cfg)
+	server, err := initializeHTTPServer(ctx, st, plugins, policies, cfg, resourcePath, recommendationPath, demo)
 	if err != nil {
 		return err
 	}
+	for _, diagnostic := range bootstrap.CapabilityDiagnostics(plugins, cfg) {
+		fmt.Fprintln(os.Stderr, "setup:", diagnostic)
+	}
+	if cfg.StatePath == "" && cfg.DatabaseURL == "" {
+		fmt.Fprintln(os.Stderr, "setup: No persistent storage configured; state is in memory and will not survive restart.")
+	}
 	if demo {
-		if err := server.SeedDemo(ctx); err != nil {
-			return err
-		}
+		fmt.Fprintln(os.Stderr, "demo: Synthetic design data enabled; use a disposable state store.")
 	}
 	fmt.Printf("Consize API listening on http://%s\n", addr)
 	workerCtx, cancel := context.WithCancel(ctx)

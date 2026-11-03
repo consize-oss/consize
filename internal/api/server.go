@@ -81,6 +81,9 @@ type actionRequest struct {
 }
 
 func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config) (*Server, error) {
+	if err := bootstrap.ValidateCapabilities(plugins, cfg); err != nil {
+		return nil, err
+	}
 	authorizer, err := auth.New(cfg.Auth)
 	if err != nil {
 		return nil, err
@@ -156,63 +159,6 @@ func (s *Server) handleJobs(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"jobs": jobs})
 }
 
-func (s *Server) SeedDemo(ctx context.Context) error {
-	resources, err := s.st.ListResources(ctx)
-	if err != nil {
-		return err
-	}
-	if len(resources) > 0 {
-		return nil
-	}
-	res := resource.Resource{
-		Type:               resource.TypeKubernetesDeployment,
-		Provider:           resource.ProviderKubernetes,
-		ProviderResourceID: "payments/payment-service-deployment",
-		Name:               "payment-service-deployment",
-		Environment:        resource.EnvProduction,
-		Owner:              "platform",
-		Region:             "us-east-1",
-		Account:            "acme-prod",
-		Criticality:        resource.CriticalityHigh,
-		MonthlyCost:        15000,
-		Labels:             map[string]string{"namespace": "payments", "service": "payments"},
-		Metadata:           map[string]any{"namespace": "payments", "name": "payment-service-deployment", "pod_regex": "payment-service-.+"},
-		CurrentState:       map[string]any{"memory_request_bytes": 8589934592, "memory_limit_bytes": 17179869184},
-	}
-	res, err = s.st.UpsertResource(ctx, res)
-	if err != nil {
-		return err
-	}
-	_, err = s.st.CreateRecommendation(ctx, store.Recommendation{
-		ResourceID:              res.ID,
-		PluginID:                "kubernetes-action",
-		AlgorithmID:             recommender.BuiltInHeadroomAlgorithmID,
-		AlgorithmVersion:        "1",
-		EvidenceRefs:            []string{"demo:metrics:payment-service-deployment"},
-		ActionType:              "k8s.patch_resources",
-		Title:                   "Reduce memory request for payment-service-deployment",
-		Summary:                 "Reduce memory request while retaining 35% P95 headroom and requiring policy approval for production.",
-		EstimatedSavingsMonthly: 4200,
-		Confidence:              "medium",
-		Risk:                    "low",
-		PolicyID:                "oss-foundation-v1",
-		Evidence:                []string{"Datadog/Prometheus memory P95 is stable", "No restart increase detected", "Production policy requires PR or approval path"},
-		Current:                 map[string]any{"resource": "memory", "request": 8589934592, "limit": 17179869184},
-		Proposed:                map[string]any{"resource": "memory", "request": 6442450944, "limit": 12884901888},
-		Parameters: map[string]any{
-			"patch": map[string]any{
-				"resource":         "memory",
-				"current_request":  8589934592,
-				"proposed_request": 6442450944,
-				"current_limit":    17179869184,
-				"proposed_limit":   12884901888,
-			},
-			"proposed": map[string]any{"resource": "memory", "request": 6442450944, "limit": 12884901888},
-		},
-	})
-	return err
-}
-
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
@@ -228,6 +174,9 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	status := "healthy"
+	if len(statuses) == 0 {
+		status = "degraded"
+	}
 	for _, candidate := range statuses {
 		if candidate.Health.Status != "healthy" {
 			status = "degraded"
@@ -239,6 +188,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		"store":          "healthy",
 		"durable_worker": s.controller != nil,
 		"plugins":        statuses,
+		"diagnostics":    bootstrap.CapabilityDiagnostics(s.plugins, s.cfg),
 	}
 	if diagnostics, ok := s.st.(store.DiagnosticsStore); ok {
 		response["storage"] = diagnostics.StorageDiagnostics(r.Context())
@@ -357,9 +307,14 @@ func (s *Server) handleGenerateRecommendation(w http.ResponseWriter, r *http.Req
 		writeError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	if !s.cfg.Recommender.Enabled {
+		writeError(w, http.StatusServiceUnavailable, "recommendation generation is disabled")
+		return
+	}
 	metricsPluginID := s.cfg.Recommender.MetricsPluginID
 	if metricsPluginID == "" {
-		metricsPluginID = "prometheus-metrics"
+		writeError(w, http.StatusServiceUnavailable, "recommender.metrics_plugin_id is not configured")
+		return
 	}
 	p, err := s.plugins.MetricsPlugin(metricsPluginID, res.Type)
 	if err != nil {
