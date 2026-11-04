@@ -89,11 +89,17 @@ helm template consize charts/consize \
 docker compose -f docker-compose.demo.yaml config --quiet
 ```
 
-The original v0.2.0 source passes the Go, Helm, and Compose checks. Its frontend
-currently has a lint failure in `CostOpportunitiesView.tsx` and a Next.js route
-context type-check failure in `app/api/v1/[...path]/route.ts`. These are known
-release defects, not permission to weaken the checks. A subsequent v0.2 patch
-must correct them before it is published.
+The 4 November 2026 CON-56 check reproduced the original tag's lint error in
+`CostOpportunitiesView.tsx`. Its backend tests and frontend production build
+passed in that run. An earlier qualification also recorded a Next.js route
+context type-check failure; it did not reproduce in the current locked-dependency
+build. These results do not authorize editing the immutable tag or weakening lint.
+
+`release/0.2` includes the corrective frontend hotfix from PR #21 and passes
+backend tests/vet and frontend lint/build in the current check. Record new patch
+release qualification separately. See
+[consolidation qualification](engineering/consolidation-qualification.md) for the
+exact commits, commands and outstanding live-workflow checks.
 
 ## Immutable deployment references
 

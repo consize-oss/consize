@@ -298,6 +298,9 @@ jobs:
       - name: Verify baseline workflow controls
         run: go test ./internal/cibaseline -count=1
 
+      - name: Test qualification prerequisite failures
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/qualification -p 'test_*.py'
+
       - name: Verify clean startup without demo data
         run: go test ./cmd/consize -run TestCleanStart -count=1
 

@@ -10,15 +10,14 @@ command reference.
 ## Start the Cluster
 
 ```bash
-kubectl config use-context docker-desktop
 kubectl --context docker-desktop get nodes
 ```
 
 ## Install the Demo Workload
 
 ```bash
-kubectl apply -f local-lab/k8s/demo-workload.yaml
-kubectl rollout status deployment/checkout-api -n consize-demo
+kubectl --context docker-desktop apply -f local-lab/k8s/demo-workload.yaml
+kubectl --context docker-desktop rollout status deployment/checkout-api -n consize-demo
 ```
 
 ## Install Prometheus
@@ -27,6 +26,7 @@ kubectl rollout status deployment/checkout-api -n consize-demo
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm upgrade --install consize-prometheus prometheus-community/prometheus \
+  --kube-context docker-desktop \
   --namespace monitoring \
   --create-namespace \
   --set alertmanager.enabled=false \
@@ -37,7 +37,7 @@ helm upgrade --install consize-prometheus prometheus-community/prometheus \
 ## Port-Forward Prometheus
 
 ```bash
-kubectl port-forward -n monitoring svc/consize-prometheus-server 9090:80
+kubectl --context docker-desktop port-forward -n monitoring svc/consize-prometheus-server 9090:80
 ```
 
 ## Run Consize
