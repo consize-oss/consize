@@ -215,6 +215,16 @@ the dedicated state; inspect its terminal result and audit before qualification.
 The separate plugin rollback test passed earlier but does not replace that
 governed rollback evidence.
 
+### Governed verification result — 7 November
+
+At 09:42:37 Lagos time, job 1/action 2 reached `verified`. The verification
+result was `passed` with no failure reasons. All six required signals had 11/11
+samples in the isolated five-minute observation interval, with 30-second maximum
+gaps. Durable audit event 7 records that resource state, readiness and isolated
+metrics checks passed. This establishes the live discovery-to-verified path and
+the two observed API restart recoveries for this run. No rollback was triggered;
+governed rollback remains unqualified, and CON-41 integration/reviews remain open.
+
 - [ ] Attach passing current-main CI for the exact reviewed commit.
 - [ ] Attach real live-workflow and restart/recovery evidence with no skipped stages.
 - [ ] Verify the supported UI/API path works rather than only showing error states.
