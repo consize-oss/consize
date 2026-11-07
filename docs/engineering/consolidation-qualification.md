@@ -43,9 +43,17 @@ Compose configuration validation without starting their deployment stacks.
 
 ## Known gaps and outstanding checks
 
-1. **Live lab unavailable.** Docker API checks timed out, Docker Desktop did not
-   respond, Kubernetes context `docker-desktop` could not reach its server, and
-   no Prometheus readiness endpoint was available at `127.0.0.1:9090`. Discovery,
+1. **Live evidence incomplete.** On 7 November, Docker Desktop recovered after
+   a normal restart timed out and its supported force-stop/start commands were
+   used. Docker and Kubernetes responded, the demo pods were running, and the
+   local-only Prometheus port-forward restored readiness at `127.0.0.1:9090`.
+   Against `b7448fc`, `TestLiveKubernetesApplyRollback` passed (6.97s) and
+   `TestLivePromQLHealthSemantics` passed (1.63s). Neither test was skipped.
+   `TestLiveLabVerificationEvidence` failed: all six required signals had
+   insufficient or stale coverage and missing or untrustworthy derived
+   provenance in its 30-minute window immediately after recovery. Keep the
+   lab collecting and rerun with the original evidence requirements; do not
+   reduce the window or treat readiness as usable history. Discovery,
    recommendation, plan, approved apply, verification, rollback and audit have
    not been requalified end to end in this run.
 2. **UI integration remains incomplete.** The current browser smoke explicitly
