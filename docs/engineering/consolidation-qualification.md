@@ -71,6 +71,25 @@ Compose configuration validation without starting their deployment stacks.
 
 ## Reproduce the checks
 
+### Follow-up diagnosis — 7 November
+
+Fresh workload samples resumed, but a later live check still found 13–15.5-minute
+gaps within the 30-minute window: CPU 31/61, throttling 30/61, memory and eviction
+35/61 samples. Restart and OOM signals had 60/61 samples. Latest samples were
+approximately 30 seconds old. Thus current collection had recovered, while the
+historical window remained incomplete; the cause of the collection interruption
+was not established.
+
+The investigation also found a separate HTTP client defect: whole-second query
+and response timestamp truncation moved a fractional start sample outside the
+requested interval, causing partial provenance even with otherwise complete data.
+The client now uses millisecond boundaries contained within the requested interval
+and preserves response milliseconds. HTTP regression tests cover fractional,
+millisecond-aligned and whole-second windows. No quality threshold was relaxed.
+The live test now logs counts, latest age and largest gap before verification.
+Retry the unchanged live qualification after an uninterrupted fresh window;
+these diagnostics and the client fix do not establish a passing live workflow.
+
 Use clean detached worktrees or fresh clones. Record `git rev-parse HEAD`,
 `git status --short`, Go, Node and npm versions, commands, exit codes and CI run
 URLs. Never publish kubeconfig, environment values, database URLs, credentials or

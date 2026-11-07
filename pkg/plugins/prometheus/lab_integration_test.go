@@ -26,6 +26,9 @@ func TestLiveLabVerificationEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for signal, coverage := range snapshot.Coverage {
+		t.Logf("%s: %d/%d samples; latest age=%s; largest gap=%s", signal, coverage.ActualPoints, coverage.ExpectedPoints, snapshot.CollectedAt.Sub(coverage.LastSample), coverage.MaxGap)
+	}
 	cfg := bootstrap.VerificationConfig{Checks: []bootstrap.VerificationCheck{{Signal: "cpu_throttling_ratio", Statistic: "p95", Mode: "absolute", Threshold: .1}, {Signal: "oom_events_30m", Statistic: "max", Mode: "absolute", Threshold: 0}, {Signal: "evicted_pods", Statistic: "max", Mode: "absolute", Threshold: 0}}}
 	result := verification.New(cfg).Verify(snapshot, snapshot)
 	if result.Status != verification.StatusPassed {

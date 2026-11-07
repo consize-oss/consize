@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -48,8 +49,14 @@ func (p *HTTPClient) QueryRange(ctx context.Context, query string, start, end ti
 	}
 	q := u.Query()
 	q.Set("query", query)
-	q.Set("start", strconv.FormatInt(start.Unix(), 10))
-	q.Set("end", strconv.FormatInt(end.Unix(), 10))
+	// Prometheus returns millisecond timestamps. Keep the requested range
+	// inside the caller's interval rather than rounding its start backwards.
+	queryStart := start.Truncate(time.Millisecond)
+	if queryStart.Before(start) {
+		queryStart = queryStart.Add(time.Millisecond)
+	}
+	q.Set("start", queryStart.UTC().Format(time.RFC3339Nano))
+	q.Set("end", end.Truncate(time.Millisecond).UTC().Format(time.RFC3339Nano))
 	q.Set("step", fmt.Sprintf("%ds", int(step.Seconds())))
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
@@ -96,7 +103,7 @@ func (p *HTTPClient) QueryRange(ctx context.Context, query string, start, end ti
 			if err != nil {
 				continue
 			}
-			s.Points = append(s.Points, Point{Timestamp: time.Unix(int64(ts), 0).UTC(), Value: val})
+			s.Points = append(s.Points, Point{Timestamp: time.UnixMilli(int64(math.Round(ts * 1000))).UTC(), Value: val})
 		}
 		out = append(out, s)
 	}
