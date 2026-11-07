@@ -38,7 +38,7 @@ jobs:
       - name: Build Go for extraction
         if: matrix.language == 'go'
         run: go build -mod=readonly ./...
-      - uses: github/codeql-action/analyze@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           category: /language:${{ matrix.language }}
           upload: false
