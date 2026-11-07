@@ -6,7 +6,7 @@
     "@playwright/test": "https://registry.npmjs.org/@playwright/test/-/test-1.64.0.tgz",
     "eslint": "10.14.0",
     "eslint-config-next": "16.4.4",
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
     "zod": "4.6.7"
   },
   "overrides": {
