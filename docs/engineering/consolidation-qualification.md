@@ -191,6 +191,30 @@ Follow [the maintenance policy](../maintenance-0.2.md) for patch releases.
 
 ## Closeout checklist
 
+### Governed live run started — 7 November
+
+Source `17644c6` was built into a dedicated loopback API at port 18081 with
+private disposable state and a Docker Desktop-only kubeconfig. Discovery found
+`consize-demo/checkout-api`; real memory evidence produced a medium-confidence
+lab recommendation (ID 1) from 512 MiB to 384 MiB, retaining the 1 GiB limit.
+Dry-run action 1 passed QoS/HPA/VPA preflight. Explicit approved execution created
+job 1/action 2, and the live deployment reached three ready replicas at the target.
+
+The API was stopped with SIGTERM while the job was `applying`, then restarted
+with the same state. It resumed to `verifying`. A second restart during
+verification preserved the job/action IDs, window start and absolute deadline.
+Submitting the same approval again returned job 1. Durable action records showed
+`prepared`, `applying`, `waiting_rollout` and `verifying` correlated to action 2.
+
+The captured policy was unchanged: 30-minute isolation, 5-minute observation and
+10-minute timeout, with rollback on failure/timeout enabled. The window begins
+09:37:34 and becomes eligible for assessment at 09:42:34 Lagos time; its deadline
+is 09:52:34. At recording time the job was still `verifying`. No final verification
+or policy-driven rollback outcome is claimed. The worker remains running with
+the dedicated state; inspect its terminal result and audit before qualification.
+The separate plugin rollback test passed earlier but does not replace that
+governed rollback evidence.
+
 - [ ] Attach passing current-main CI for the exact reviewed commit.
 - [ ] Attach real live-workflow and restart/recovery evidence with no skipped stages.
 - [ ] Verify the supported UI/API path works rather than only showing error states.
