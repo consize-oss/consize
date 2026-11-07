@@ -4,8 +4,8 @@
   "private": true,
   "devDependencies": {
     "@playwright/test": "https://registry.npmjs.org/@playwright/test/-/test-1.64.0.tgz",
-    "eslint": "10.13.0",
-    "eslint-config-next": "16.4.3",
+    "eslint": "10.14.0",
+    "eslint-config-next": "16.4.4",
     "typescript": "5.9.3",
     "zod": "4.6.7"
   },
