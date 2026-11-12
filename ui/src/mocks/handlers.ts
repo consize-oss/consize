@@ -9,6 +9,7 @@ import {
   detailFor,
 } from "./fixtures";
 import { pluginDetailFor, pluginFixtures, pluginSummary } from "./plugins";
+import { createPolicyHandlers } from "./policies";
 
 export type Scenario =
   | "healthy"
@@ -293,5 +294,6 @@ export const handlers = [
   //   if (isDown()) return unavailable("Audit service unavailable");
   //   return HttpResponse.json({ items: isEmpty() ? [] : auditEvents });
   // }),
-  
+
+  ...createPolicyHandlers(() => scenario)
 ];
