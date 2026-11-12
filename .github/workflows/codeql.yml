@@ -29,7 +29,7 @@ jobs:
         with:
           go-version-file: .go-version
           cache-dependency-path: go.sum
-      - uses: github/codeql-action/init@a79638c6e166cca8d437da39b8b88cae58fed1f3 # v4.31.0
+      - uses: github/codeql-action/init@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.language == 'go' && 'manual' || 'none' }}
