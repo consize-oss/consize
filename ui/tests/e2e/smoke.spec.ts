@@ -1,37 +1,43 @@
 import { expect, test } from "../../../tools/ci/node_modules/@playwright/test/index.js";
+import AxeBuilder from "../../../tools/ci/node_modules/@axe-core/playwright/dist/index.js";
 
-test("real API reads and visible UI contract failure without mock data", async ({ page, request }) => {
-  const errors: string[] = [];
-  page.on("pageerror", error => errors.push(error.message));
-  const api = "http://127.0.0.1:18080";
-  expect((await request.get(`${api}/api/health`)).ok()).toBeTruthy();
-  const resources = await request.get(`${api}/api/resources`);
-  expect(resources.ok()).toBeTruthy();
-  expect((await resources.json()).resources ?? []).toEqual([]);
-  const summaryRequest = page.waitForRequest(request =>
-    request.url().startsWith(`${api}/api/v1/dashboard/summary`));
-  await page.goto("/");
-  // The current UI contract is not yet implemented by the Go API. Assert its
-  // real failure state explicitly; this smoke must not invent a happy path.
-  await summaryRequest;
-  expect((await request.get(`${api}/api/v1/dashboard/summary`)).status()).toBe(404);
-  await expect(page.getByRole("alert").filter({ hasText: "Couldn't load summary metrics" })).toBeVisible();
-  await expect(page.getByRole("alert").filter({ hasText: "Couldn't load recommendations" })).toBeVisible();
-  const originalTheme = await page.locator("html").getAttribute("data-theme");
-  await page.getByRole("button", { name: /Switch to (dark|light) theme/ }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", originalTheme === "dark" ? "light" : "dark");
-  await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Recommendations", exact: true }).click();
-  await expect(page).toHaveURL(/\/recommendations/);
-  await expect(page.getByRole("heading", { name: "Recommendations", exact: true })).toBeVisible();
-  const search = page.getByRole("searchbox", { name: "Search recommendations" });
-  await search.fill("synthetic");
-  await search.press("Enter");
-  await expect(page).toHaveURL(/q=synthetic/);
-  await page.getByRole("button", { name: "Reset Filters" }).click();
-  await expect(search).toHaveValue("");
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Recommendations", exact: true })).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", originalTheme === "dark" ? "light" : "dark");
-  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
-  expect(errors).toEqual([]);
+test("real API empty startup, filters, theme, disconnection and recovery",async({page,request})=>{
+ const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
+ expect((await request.get("http://127.0.0.1:18080/api/health")).ok()).toBeTruthy();
+ await page.goto("/");
+ await expect(page.getByText("No recommendations yet.",{exact:true})).toBeVisible();
+ await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
+ await expect(page.getByText("No applied changes yet",{exact:true})).toBeVisible();
+ const original=await page.locator("html").getAttribute("data-theme");
+ await page.getByRole("button",{name:/Switch to (dark|light) theme/}).click();
+ await expect(page.locator("html")).toHaveAttribute("data-theme",original==="dark"?"light":"dark");
+ await page.getByRole("navigation",{name:"Primary"}).getByRole("link",{name:"Recommendations",exact:true}).click();
+ const search=page.getByRole("searchbox",{name:"Search recommendations"});
+ await search.fill("synthetic");await search.press("Enter");await expect(page).toHaveURL(/q=synthetic/);
+ await page.getByRole("button",{name:"Reset Filters"}).click();await expect(search).toHaveValue("");
+ await page.route("**/api/dashboard",route=>route.abort("connectionrefused"));
+ await page.reload();await expect(page.getByRole("main").getByRole("alert").filter({hasText:"Couldn't load recommendations"})).toBeVisible();
+ await page.unroute("**/api/dashboard");
+ await page.getByRole("button",{name:"Retry",exact:true}).click();
+ await expect(page.getByRole("main").getByRole("alert").filter({hasText:"Couldn't load recommendations"})).toHaveCount(0);
+ await page.reload();await expect(page.getByRole("heading",{name:"Recommendations",exact:true})).toBeVisible();
+ expect(await page.evaluate(async()=>(await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+ expect(errors).toEqual([]);
 });
+for(const theme of ["light","dark"] as const){
+ for(const width of [390,768,1280,1440,1920]){
+  test(`real empty routes: ${theme} at ${width}px`,async({page},info)=>{
+   await page.setViewportSize({width,height:900});
+   await page.addInitScript(theme=>localStorage.setItem("consize-theme",theme),theme);
+   for(const path of ["/","/resources","/recommendations","/plugins"]){
+    await page.goto(path);await expect(page.getByRole("heading",{level:1})).toBeVisible();
+    await expect(page.locator('[aria-label="Loading overview"]')).toHaveCount(0);
+    await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+    const scan=await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze();
+    expect(scan.violations,JSON.stringify(scan.violations.map(x=>({id:x.id,nodes:x.nodes.map(n=>n.target)})))).toEqual([]);
+    await info.attach(`${path.replaceAll("/","")||"overview"}-${theme}-${width}`,{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
+   }
+  });
+ }
+}

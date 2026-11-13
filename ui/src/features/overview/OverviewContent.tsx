@@ -28,6 +28,7 @@ export function OverviewContent() {
   return (
     <>
       <OverviewHeader />
+      <p className="text-xs text-fg-muted">Current inventory and recorded workflow history. Date ranges and monetary totals are not available from this runtime.</p>
       <MetricsRow />
       <IntegrationsStrip />
       <RecommendationPanel />

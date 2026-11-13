@@ -23,13 +23,16 @@ export function DateRangeMenu() {
       <button
         ref={triggerRef}
         type="button"
+        disabled
+        title="Date filtering is not supported by the runtime API"
+        aria-label="Date range unavailable"
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 px-3 h-8 bg-app-surface border border-app-border hover:border-app-border-strong rounded-btn text-xs text-fg-secondary hover:text-fg transition-colors"
       >
         <Calendar className="w-3.5 h-3.5 text-fg-muted" aria-hidden />
-        <span>{current.label}</span>
+        <span>Current state</span>
         <ChevronDown className="w-3.5 h-3.5 text-fg-muted" aria-hidden />
       </button>
       {open && (

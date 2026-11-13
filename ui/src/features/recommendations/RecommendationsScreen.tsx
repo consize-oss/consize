@@ -4,7 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { prepareApiRetry, reloadForMockConnectionFailure } from "@/lib/api-client";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys, useRecommendationList } from "../overview/queries";
+import { useRecommendationList } from "../overview/queries";
 import { RecommendationsHeader } from "./RecommendationsHeader";
 import { RecommendationsFilters, type RecommendationFilterValues } from "./RecommendationsFilters";
 import {
@@ -86,7 +86,7 @@ export function RecommendationsScreen() {
       // Recover the table, category counts, header, and dropdown options together.
       await queryClient.refetchQueries(
         {
-          queryKey: queryKeys.recommendations.all,
+          queryKey: ["runtime-dashboard"],
           type: "active",
         },
         { throwOnError: true },

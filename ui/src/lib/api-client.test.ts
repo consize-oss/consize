@@ -11,7 +11,9 @@ describe("API reads", () => {
     assert.deepEqual(await apiGet("/test", schema, controller.signal), { value: 0 });
     const args = fetch.mock.calls[0].arguments;
     assert.ok(String(args[0]).endsWith("/test"));
-    assert.deepEqual(args[1], { signal: controller.signal, cache: "no-store" });
+    assert.equal(args[1]?.cache, "no-store");
+    controller.abort();
+    assert.equal(args[1]?.signal?.aborted, true);
   });
   it("rejects malformed successful responses", async () => {
     mock.method(globalThis, "fetch", async () => new Response('{"value":"invalid"}'));
@@ -38,7 +40,9 @@ describe("API commands", () => {
     const fetch = mock.method(globalThis, "fetch", (async () => new Response('{"value":1}')) as typeof globalThis.fetch);
     const controller = new AbortController();
     assert.deepEqual(await apiPost("/api/discovery", schema, controller.signal), { value: 1 });
-    assert.deepEqual(fetch.mock.calls[0].arguments[1], { method: "POST", signal: controller.signal, cache: "no-store" });
+    assert.equal(fetch.mock.calls[0].arguments[1]?.method, "POST");
+    controller.abort();
+    assert.equal(fetch.mock.calls[0].arguments[1]?.signal?.aborted, true);
   });
   it("preserves permission refusal instead of reporting success", async () => {
     mock.method(globalThis, "fetch", async () => new Response(
@@ -57,4 +61,15 @@ describe("API commands", () => {
     mock.method(globalThis, "fetch", async () => { throw new TypeError("unreachable"); });
     await assert.rejects(apiPost("/api/discovery", schema), { status: 0 });
   });
+});
+
+it("preserves the documented backend error and request correlation", async () => {
+ mock.method(globalThis,"fetch",async()=>new Response(JSON.stringify({error:"Live preflight blocked"}),{status:400,headers:{"X-Request-ID":"request-123"}}));
+ await assert.rejects(apiPost("/execute",schema),{message:"Live preflight blocked",requestId:"request-123"});
+});
+it("serializes explicit approval and never retries a command", async () => {
+ const fetch=mock.method(globalThis,"fetch",async()=>new Response('{"value":1}'));
+ await apiPost("/execute",schema,undefined,{mode:"approved"});
+ assert.equal(fetch.mock.callCount(),1);
+ assert.equal(fetch.mock.calls[0].arguments[1]?.body,'{"mode":"approved"}');
 });

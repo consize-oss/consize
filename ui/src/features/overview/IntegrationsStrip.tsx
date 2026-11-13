@@ -12,7 +12,7 @@
 //   setup_required: { label: "Setup required", pill: "bg-app-surface-alt text-fg-secondary border-app-border" },
 // };
 
-// const VERIFIER_DOT = { healthy: "bg-emerald-400", degraded: "bg-amber-400", unavailable: "bg-rose-400" } as const;
+// const VERIFIER_DOT = { healthy: "bg-emerald-400", degraded: "bg-amber-400", unavailable: "bg-rose-400", unknown: "bg-slate-400" } as const;
 // const VERIFIER_LABEL = { healthy: "healthy", degraded: "degraded", unavailable: "unavailable" } as const;
 
 // export function IntegrationsStrip() {
@@ -101,7 +101,7 @@ import { PILL, SEVERITY, pluginStatus } from "../plugins/status";
 import { usePlugins } from "../plugins/queries";
 import { useDashboardSummary } from "./queries";
 
-const VERIFIER_DOT = { healthy: "bg-emerald-400", degraded: "bg-amber-400", unavailable: "bg-rose-400" } as const;
+const VERIFIER_DOT = { healthy: "bg-emerald-400", degraded: "bg-amber-400", unavailable: "bg-rose-400", unknown: "bg-slate-400" } as const;
 const MAX_SHOWN = 5;
 
 export function IntegrationsStrip() {

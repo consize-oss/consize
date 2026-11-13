@@ -39,7 +39,7 @@ export function OverviewHeader() {
 
       <div className="flex flex-wrap items-center gap-2.5 shrink-0">
         <div className="flex items-center gap-1.5 pr-1 text-[11px] text-fg-muted">
-          {data && (
+          {data?.last_evaluated_at && (
             <span title={new Date(data.last_evaluated_at).toLocaleString()}>
               Last evaluated {relativeTime(data.last_evaluated_at)}
             </span>
@@ -66,11 +66,11 @@ export function OverviewHeader() {
         </button>
         <Link
           href={carry("/approvals")}
-          className="h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-btn text-xs font-medium flex items-center gap-2 shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+          className="h-9 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-btn text-xs font-medium flex items-center gap-2 shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
         >
           <CheckCircle2 className="w-4 h-4" aria-hidden />
           <span>Review approvals</span>
-          {data && data.pending_approvals_mine > 0 && (
+          {data && (data.pending_approvals_mine ?? 0) > 0 && (
             <span className="px-1.5 py-0.5 rounded bg-white/15 text-[10px]">{data.pending_approvals_mine}</span>
           )}
         </Link>

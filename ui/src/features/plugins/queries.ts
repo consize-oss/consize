@@ -1,40 +1,19 @@
+import type { PluginDetail } from "@/schemas";
 import { useQuery } from "@tanstack/react-query";
-import { ApiError, apiGet } from "@/lib/api-client";
-import { pluginDetailSchema, pluginListSchema } from "@/schemas";
-
-export type PluginFilters = { category?: string; q?: string };
-
-export const pluginKeys = {
-  list: (f: PluginFilters) => ["plugins", "list", f] as const,
-  detail: (id: string) => ["plugins", "detail", id] as const,
-};
-
-function toQuery(f: PluginFilters) {
-  const q = new URLSearchParams(
-    Object.entries(f).filter((e): e is [string, string] => Boolean(e[1])),
-  ).toString();
-  return q ? `?${q}` : "";
+import { ApiError } from "@/lib/api-client";
+import { pluginsView, readDashboard } from "@/lib/runtime-api";
+export type PluginFilters={category?:string;q?:string};
+export const pluginKeys={list:(f:PluginFilters)=>["plugins","list",f] as const,detail:(id:string)=>["plugins","detail",id] as const};
+export function usePlugins(filters:PluginFilters={}) {
+ return useQuery({queryKey:["runtime-dashboard"],queryFn:({signal})=>readDashboard(signal),select:data=>{
+  const out=pluginsView(data);
+  return {...out,items:out.items.filter(x=>(!filters.category||x.category===filters.category)&&(!filters.q||[x.id,x.display_name,x.description].join(" ").toLowerCase().includes(filters.q.toLowerCase())))};
+ },refetchInterval:30_000});
 }
-
-export function usePlugins(filters: PluginFilters = {}) {
-  return useQuery({
-    queryKey: pluginKeys.list(filters),
-    queryFn: ({ signal }) => apiGet(`/api/v1/plugins${toQuery(filters)}`, pluginListSchema, signal),
-    // Keep the last list on screen while a filter refetches so tab counts
-    // and cards don't flash to skeletons on every keystroke.
-    placeholderData: (prev) => prev,
-    refetchInterval: 30_000,
-  });
-}
-
-// No placeholderData: a plugin's panel must never show another plugin's data.
-export function usePluginDetail(id: string | undefined) {
-  return useQuery({
-    queryKey: pluginKeys.detail(id ?? ""),
-    queryFn: ({ signal }) =>
-      apiGet(`/api/v1/plugins/${encodeURIComponent(id!)}`, pluginDetailSchema, signal),
-    enabled: Boolean(id),
-    retry: (count, err) => !(err instanceof ApiError && err.status === 404) && count < 1,
-    refetchInterval: 30_000,
-  });
+export function usePluginDetail(id:string|undefined) {
+ return useQuery({queryKey:pluginKeys.detail(id??""),queryFn:async({signal}):Promise<PluginDetail>=>{
+  const p=pluginsView(await readDashboard(signal)).items.find(x=>x.id===id);
+  if(!p)throw new ApiError(404,{title:"Plugin not found",status:404});
+  return {...p,overview:p.description,scope_stats:[],guardrail:null,credentials:null};
+ },enabled:Boolean(id),refetchInterval:30_000});
 }

@@ -261,7 +261,7 @@ export function MetricsRow() {
             label="Pending approvals"
             icon={AlertCircle}
             tone="warn"
-            footer={`${data.pending_approvals_mine} assigned directly to you`}
+            footer={data.pending_approvals_mine === null ? "Assignment data unavailable" : `${data.pending_approvals_mine} assigned directly to you`}
           >
             <div className="flex items-baseline gap-2">
               <span className="text-[24px] font-semibold tracking-tight text-fg font-num">{data.pending_approvals}</span>

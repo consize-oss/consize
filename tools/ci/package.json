@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "https://registry.npmjs.org/@playwright/test/-/test-1.64.0.tgz",
     "eslint": "10.14.0",
     "eslint-config-next": "16.4.4",

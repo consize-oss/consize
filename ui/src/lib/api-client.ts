@@ -7,6 +7,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     public problem?: z.infer<typeof problemSchema>,
+    public requestId?: string,
   ) {
     super(problem?.title ?? (status === 0 ? "Network unreachable" : `Request failed (${status})`));
   }
@@ -45,7 +46,8 @@ async function readApiResponse<T>(res: Response, schema: z.ZodType<T>): Promise<
   if (!res.ok) {
     const body = await res.json().catch(() => undefined);
     const parsed = problemSchema.safeParse(body);
-    throw new ApiError(res.status, parsed.success ? parsed.data : undefined);
+    const backendError = typeof body?.error === "string" ? { title: body.error, status: res.status } : undefined;
+    throw new ApiError(res.status, parsed.success ? parsed.data : backendError, res.headers.get("X-Request-ID") ?? undefined);
   }
 
   let json: unknown;
@@ -66,25 +68,32 @@ async function readApiResponse<T>(res: Response, schema: z.ZodType<T>): Promise<
   }
   return parsed.data;
 }
-export async function apiGet<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+function endpoint(path: string): string {
+  try {
+    const url = new URL(API_BASE);
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new Error("Invalid API URL");
+    return `${API_BASE.replace(/\/$/, "")}${path}`;
+  } catch {
+    throw new ApiError(-2, { title: "Invalid NEXT_PUBLIC_CONSIZE_API_BASE_URL: use an HTTP or HTTPS URL without credentials, query or fragment", status: -2 });
+  }
+}
+async function request<T>(path: string, schema: z.ZodType<T>, signal: AbortSignal | undefined, method: "GET" | "POST", body?: unknown): Promise<T> {
+  const url = endpoint(path);
+  const timeout = AbortSignal.timeout(30_000);
+  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
   let res: Response;
   try {
     await prepareApiRetry();
-    res = await fetch(`${API_BASE}${path}`, { signal, cache: "no-store" });
+    res = await fetch(url, { ...(method === "POST" ? { method } : {}), signal: combined, cache: "no-store", ...(body === undefined ? {} : { body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }) });
   } catch {
-    throw new ApiError(0);
+    if (signal?.aborted) throw signal.reason;
+    throw new ApiError(0, timeout.aborted ? { title: "API request timed out", status: 0 } : undefined);
   }
   return readApiResponse(res, schema);
 }
-
-// Commands such as discovery use POST without a request body.
-export async function apiPost<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    await prepareApiRetry();
-    res = await fetch(`${API_BASE}${path}`, { method: "POST", signal, cache: "no-store" });
-  } catch {
-    throw new ApiError(0);
-  }
-  return readApiResponse(res, schema);
+export function apiGet<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  return request(path, schema, signal, "GET");
+}
+export function apiPost<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal, body?: unknown): Promise<T> {
+  return request(path, schema, signal, "POST", body);
 }
