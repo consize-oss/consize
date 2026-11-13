@@ -194,3 +194,13 @@ it("unimplemented API commands and missing recommendations never pass through", 
     { status: 404 },
   );
 });
+
+it("no-recommendations inventory does not advertise recommendation links or actions", async () => {
+  setScenario("no-recommendations");
+  const data = await apiGet("/api/resources", resourceListSchema);
+  for (const resource of data.resources) {
+    const inventory = resource.metadata.inventory as { recommendation_ids: string[]; optimization_status: string };
+    assert.deepEqual(inventory.recommendation_ids, []);
+    assert.notEqual(inventory.optimization_status, "recommendations");
+  }
+});

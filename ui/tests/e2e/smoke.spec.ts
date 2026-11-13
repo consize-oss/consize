@@ -14,6 +14,7 @@ test("real API empty startup, filters, theme, disconnection and recovery", async
     (await request.get("http://127.0.0.1:18080/api/health")).ok(),
   ).toBeTruthy();
   await page.goto("/");
+  await expect(page.getByRole("combobox", { name: "Mock scenario" })).toHaveCount(0);
   await expect(
     page.getByText("No recommendations yet.", { exact: true }),
   ).toBeVisible();

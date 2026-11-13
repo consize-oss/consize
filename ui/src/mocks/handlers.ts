@@ -84,7 +84,7 @@ function resourceInventoryForScenario() {
         ...resource.metadata,
         inventory: {
           ...inventory,
-          ...(scenario === "no-recommendations" ? { recommendation_ids: [] } : {}),
+          ...(scenario === "no-recommendations" ? { recommendation_ids: [], optimization_status: inventory.optimization_status === "recommendations" ? "no_action_needed" : inventory.optimization_status } : {}),
           ...(scenario === "stale" && inventory.telemetry?.status === "healthy" ? {
             telemetry: {
               ...inventory.telemetry, status: "stale",
