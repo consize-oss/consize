@@ -65,9 +65,35 @@ is disabled because the runtime provides current state and recorded history, not
 windowed summaries. The Policies screen shows the configured foundation policy;
 it does not invent an editable policy inventory, exception counts or coverage.
 
-The production runtime never imports fixture rows. Explicit development MSW
-scenarios remain isolated and use their own design API; they do not represent
-real-runtime integration validation.
+The production runtime never imports fixture rows. For explicit simulated development:
+
+```sh
+NEXT_PUBLIC_USE_MOCKS=true npm --prefix ui run dev -- --hostname 127.0.0.1 --port 3030
+```
+
+The visible "Simulated data · no real changes" selector switches healthy,
+empty-cluster, no-recommendations, stale, partial-failure and backend-down states.
+Its MSW handlers implement the same `/api/...` shapes as the runtime adapter.
+Healthy supports simulated evaluation, dry-run, explicit approval, job progression
+and audit. Stale evidence blocks simulated execution. Partial failure keeps a
+readable dashboard with degraded plugin health while inventory and audit fail.
+Switching scenarios clears simulated recommendations/jobs and resets query state.
+Mock jobs advance deterministically when read, not through a real verification
+worker; scenario/browser reload resets them. Unknown simulated API commands return
+501 instead of passing through to a live backend. These simulations do not provide
+live qualification evidence. Normal development uses `NEXT_PUBLIC_USE_MOCKS=false`;
+production excludes the scenario selector even if that flag is mistakenly true.
+
+Run the separate development-browser checks without a backend:
+
+```sh
+npm --prefix ui run test:scenarios
+```
+
+These use port 3032 and a deliberately unused API address on 18089, allow the MSW
+service worker, and check both scenario switching and confirmed simulated apply.
+The production browser suite below continues blocking service workers and using
+the real API.
 
 ## Validation
 

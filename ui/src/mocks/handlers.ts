@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { createRuntimeHandlers } from "./runtime";
 import type { RecommendationListItem, ScopeOptions } from "@/schemas";
 import type { ResourceInventoryDetails } from "@/features/resources/resourceInventory";
 import { baseResources } from "./resources";
@@ -22,6 +23,7 @@ export type Scenario =
 let scenario: Scenario = "healthy";
 export function setScenario(next: Scenario) {
   scenario = next;
+  runtime.reset();
 }
 
 const unavailable = (title: string) =>
@@ -95,7 +97,10 @@ function resourceInventoryForScenario() {
   });
 }
 
+const runtime = createRuntimeHandlers(() => scenario, resourceInventoryForScenario);
+
 export const handlers = [
+  ...runtime.handlers,
   http.get("*/api/resources", () => {
     if (isDown()) return unavailable("Resource inventory unavailable");
     return HttpResponse.json({ resources: resourceInventoryForScenario() });
@@ -295,5 +300,7 @@ export const handlers = [
   //   return HttpResponse.json({ items: isEmpty() ? [] : auditEvents });
   // }),
 
-  ...createPolicyHandlers(() => scenario)
+  ...createPolicyHandlers(() => scenario),
+  // Never let an unimplemented simulated command reach a real local backend.
+  http.all("*/api/*", () => HttpResponse.json({ error: "Not implemented by the development simulator" }, { status: 501 })),
 ];

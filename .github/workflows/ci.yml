@@ -416,6 +416,10 @@ jobs:
         working-directory: ui
         run: npm run test:e2e
 
+      - name: Exercise explicit development scenarios
+        working-directory: ui
+        run: npm run test:scenarios
+
       - name: Reject tracked-file drift
         run: git diff --exit-code
 
@@ -426,6 +430,7 @@ jobs:
           name: browser-smoke-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ui/playwright-report/
+            ui/playwright-scenarios-report/
             ui/test-results/
           if-no-files-found: warn
           retention-days: 7

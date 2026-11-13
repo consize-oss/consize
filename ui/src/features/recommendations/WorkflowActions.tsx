@@ -59,7 +59,7 @@ export function WorkflowActions({
         { mode: "approved" },
       ),
     retry: false,
-    onSettled: () => client.invalidateQueries({ queryKey: ["workflow-jobs", id] }),
+    onError: () => client.invalidateQueries({ queryKey: ["workflow-jobs", id] }),
     onSuccess: async (result) => {
       setConfirm(false);
       client.setQueryData(["workflow-jobs", id], { jobs: [result.job] });
