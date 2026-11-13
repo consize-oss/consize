@@ -122,6 +122,7 @@ nav:
       - API Reference: reference/api.md
       - Audit Subsystem: engineering/audit-subsystem.md
       - Runtime Data and Demo Isolation: engineering/runtime-data.md
+      - Consolidation Qualification: engineering/consolidation-qualification.md
 
   - Resources:
       - Contributing: resources/contributing.md

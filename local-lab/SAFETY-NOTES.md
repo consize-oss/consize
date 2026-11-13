@@ -2,8 +2,8 @@
 
 Recommendations propose staged request reductions of at most 25% per change.
 Memory limits remain unchanged. Reservation reductions are not billing savings.
-Confidence is a sample-count heuristic; low-confidence built-in recommendations
-can be reviewed but cannot be executed.
+Confidence uses evidence history, coverage, freshness and peak-safety checks.
+See `internal/recommender/confidence.go` for the current eligibility rules.
 
 Review Change prepares a dry-run plan. Apply requires a separate confirmation.
 The backend repeats planning and reads current deployment values at execution.
@@ -58,10 +58,10 @@ the state file and its directory on a local filesystem with working fsync and
 locking, back it up, and keep `state_path` stable across restarts. Run either the
 API worker or the CLI worker for a given state file; two owners are rejected.
 
-To resume CLI work after interruption:
+To resume pending work after interruption, restart the API with the same configuration:
 
 ```bash
-go run ./cmd/consize worker -config examples/local-kind.config.json
+go run ./cmd/consize serve -config examples/local-kind.config.json -demo=false -addr 127.0.0.1:8080
 ```
 
 The API starts this worker automatically. Verification deadlines are absolute:
