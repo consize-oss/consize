@@ -78,6 +78,7 @@ export const recommendationListItemSchema = z.object({
   // The score is supplied independently from the legacy confidence category.
   confidence_percentage: z.number().min(0).max(100).nullable().optional(),
   confidence_note: z.string().optional(),
+  workflow_state: z.string().optional(),
   change_summary: z.object({ current: z.string(), proposed: z.string() }).optional(),
   savings_note: z.string().optional(),
   estimated_savings: moneySchema,
@@ -167,6 +168,7 @@ export const auditEventSchema = z.object({
     "blocked",
     "failed",
     "manual_intervention",
+    "pending",
   ]),
 });
 export const auditEventListSchema = z.object({ items: z.array(auditEventSchema) });

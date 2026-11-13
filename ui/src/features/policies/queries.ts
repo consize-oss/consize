@@ -2,23 +2,40 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { ApiError, apiGet } from "@/lib/api-client";
+import { readDashboard } from "@/lib/runtime-api";
+import { ApiError } from "@/lib/api-client";
 
 // Backend-owned wording: the API says "30% headroom / Max 25% per cycle"; the
 // UI never reconstructs rule text from numbers it doesn't own.
-const textPair = z.object({ summary: z.string(), detail: z.string().optional() });
+const textPair = z.object({
+  summary: z.string(),
+  detail: z.string().optional(),
+});
 
 export const policySchema = z.object({
   id: z.string(),
   name: z.string(),
   version: z.string(),
   owner_team: z.string(),
-  kind: z.enum(["guardrail", "automation", "database", "gitops", "storage", "ai"]),
+  kind: z.enum([
+    "guardrail",
+    "automation",
+    "database",
+    "gitops",
+    "storage",
+    "ai",
+  ]),
   status: z.enum(["active", "draft", "disabled"]),
   scope: textPair.extend({ environments: z.array(z.string()) }),
   safety: textPair,
   action_path: z.object({
-    method: z.enum(["gitops_pr", "terraform_pr", "direct_apply", "scheduled", "gateway_route"]),
+    method: z.enum([
+      "gitops_pr",
+      "terraform_pr",
+      "direct_apply",
+      "scheduled",
+      "gateway_route",
+    ]),
     label: z.string(),
     approval: z.string(),
   }),
@@ -39,7 +56,10 @@ export const policySummarySchema = z.object({
   window: z.string(),
   active: z.number().int().nonnegative(),
   drafts: z.number().int().nonnegative(),
-  coverage: z.object({ covered: z.number().int().nonnegative(), total: z.number().int().nonnegative() }),
+  coverage: z.object({
+    covered: z.number().int().nonnegative(),
+    total: z.number().int().nonnegative(),
+  }),
   exceptions: z.object({
     open: z.number().int().nonnegative(),
     expiring_soon: z.number().int().nonnegative(),
@@ -58,15 +78,20 @@ export const policyListSchema = z.object({
 
 export const POLICY_QUERY_KEY = ["policies", "inventory"] as const;
 
-export function usePolicyList(window?: string) {
+export function usePolicyList(_window?: string) {
+  void _window;
   return useQuery({
-    queryKey: [...POLICY_QUERY_KEY, { window: window ?? null }],
-    queryFn: ({ signal }) =>
-      apiGet(`/api/v1/policies${window ? `?window=${encodeURIComponent(window)}` : ""}`, policyListSchema, signal),
-    // Keep the table steady while the date window changes the summary.
-    placeholderData: (previous) => previous,
+    queryKey: ["runtime-dashboard"],
+    queryFn: ({ signal }) => readDashboard(signal),
+    select: (data) => ({
+      policies: [] as Policy[],
+      summary: undefined as PolicySummary | undefined,
+      runtimePolicy: data.policy,
+    }),
     retry: (count, error) =>
-      !(error instanceof ApiError && [401, 403, -1].includes(error.status)) && count < 1,
+      !(
+        error instanceof ApiError && [401, 403, -1, -2].includes(error.status)
+      ) && count < 1,
     refetchInterval: 30_000,
   });
 }

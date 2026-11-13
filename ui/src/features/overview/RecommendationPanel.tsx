@@ -61,7 +61,7 @@ export function RecommendationPanel() {
   });
   const { data: summary } = useDashboardSummary(summaryParamsOf(scope, range));
 
-  const items = data?.items ?? [];
+  const items = (data?.items ?? []).slice(0, 6);
 
   return (
     <div aria-busy={isRefetching} className="bg-app-surface border border-app-border rounded-btn overflow-hidden shadow-card">
@@ -76,7 +76,7 @@ export function RecommendationPanel() {
             )}
           </div>
           <p className="text-xs text-fg-muted mt-0.5">
-            Prioritized by projected savings, risk tier, and policy eligibility.
+            Current recommendations. Review evidence, risk and policy before applying.
           </p>
         </div>
 

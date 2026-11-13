@@ -118,7 +118,7 @@ export function RecommendationDetail({ id }: { id: string }) {
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold tracking-tight text-fg">{rec.title}</h1>
-          <Pill tone={statusTone(rec.status)}>{titleCase(rec.status)}</Pill>
+          <Pill tone={statusTone(rec.status)}>{titleCase(rec.workflow_state ?? rec.status)}</Pill>
         </div>
         <p className="text-sm text-fg-muted">
           {rec.resource.name} · {rec.resource.provider} · {rec.resource.environment}
@@ -157,6 +157,15 @@ export function RecommendationDetail({ id }: { id: string }) {
             key={t.key}
             role="tab"
             id={`tab-${t.key}`}
+            tabIndex={tab === t.key ? 0 : -1}
+            onKeyDown={event => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const index = TABS.findIndex(item => item.key === tab);
+              const next = event.key === "Home" ? 0 : event.key === "End" ? TABS.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
+              setTab(TABS[next].key);
+              document.getElementById(`tab-${TABS[next].key}`)?.focus();
+            }}
             aria-selected={tab === t.key}
             aria-controls={`panel-${t.key}`}
             onClick={() => setTab(t.key)}
