@@ -7,8 +7,10 @@ test("development chooser drives the runtime screens without a running API", asy
   page,
 }) => {
   const responses: boolean[] = [];
+  const realApiRequests: string[] = [];
+  page.on("request", request => { if (request.url().startsWith("http://127.0.0.1:18089")) realApiRequests.push(request.url()); });
   page.on("response", (response) => {
-    if (response.url().includes("127.0.0.1:18089/api/"))
+    if (response.url().includes("consize-mock.invalid/api/"))
       responses.push(response.fromServiceWorker());
   });
   await page.goto("/");
@@ -53,7 +55,7 @@ test("development chooser drives the runtime screens without a running API", asy
   const status = await page.evaluate(
     async () =>
       (
-        await fetch("http://127.0.0.1:18089/api/unimplemented-command", {
+        await fetch("https://consize-mock.invalid/api/unimplemented-command", {
           method: "POST",
         })
       ).status,
@@ -61,6 +63,17 @@ test("development chooser drives the runtime screens without a running API", asy
   expect(status).toBe(501);
   expect(responses.length).toBeGreaterThan(0);
   expect(responses.every(Boolean)).toBeTruthy();
+  expect(realApiRequests).toEqual([]);
+  // Losing the worker must fail locally, never use the configured real API.
+  await page.route("https://consize-mock.invalid/**", route => route.abort("connectionrefused"));
+  await page.evaluate(() => {
+    const runtime = (globalThis as typeof globalThis & { __consizeMockWorker?: { worker: { stop(): void } } }).__consizeMockWorker;
+    if (!runtime) throw new Error("Mock worker was not initialized");
+    runtime.worker.stop();
+  });
+  await chooser.selectOption("backend-down");
+  await expect(page.getByRole("main").getByRole("alert").first()).toBeVisible();
+  expect(realApiRequests).toEqual([]);
 });
 
 test("simulated apply uses a dry-run and confirmation, then shows mock job and audit", async ({

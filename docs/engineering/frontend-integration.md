@@ -80,7 +80,9 @@ readable dashboard with degraded plugin health while inventory and audit fail.
 Switching scenarios clears simulated recommendations/jobs and resets query state.
 Mock jobs advance deterministically when read, not through a real verification
 worker; scenario/browser reload resets them. Unknown simulated API commands return
-501 instead of passing through to a live backend. These simulations do not provide
+501 instead of passing through to a live backend. All mock-mode API calls use
+the reserved `https://consize-mock.invalid` origin, ignoring the configured real
+API URL. If the service worker disconnects, those calls cannot reach the real API. These simulations do not provide
 live qualification evidence. Normal development uses `NEXT_PUBLIC_USE_MOCKS=false`;
 production excludes the scenario selector even if that flag is mistakenly true.
 
@@ -90,7 +92,8 @@ Run the separate development-browser checks without a backend:
 npm --prefix ui run test:scenarios
 ```
 
-These use port 3032 and a deliberately unused API address on 18089, allow the MSW
+These use port 3032 and the reserved mock origin (with the real API deliberately
+configured differently on 18089), allow the MSW
 service worker, and check both scenario switching and confirmed simulated apply.
 The production browser suite below continues blocking service workers and using
 the real API.

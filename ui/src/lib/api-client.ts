@@ -1,8 +1,12 @@
 import type { z } from "zod";
 import { problemSchema } from "@/schemas";
 
+// Mock requests use a reserved, non-routable origin even if the service worker
+// disconnects. A development simulation must never fall back to the real API.
 const API_BASE =
-  process.env.NEXT_PUBLIC_CONSIZE_API_BASE_URL ?? "http://127.0.0.1:8080";
+  process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCKS === "true"
+    ? "https://consize-mock.invalid"
+    : process.env.NEXT_PUBLIC_CONSIZE_API_BASE_URL ?? "http://127.0.0.1:8080";
 
 export class ApiError extends Error {
   constructor(
