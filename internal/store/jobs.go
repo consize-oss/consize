@@ -15,6 +15,14 @@ import (
 )
 
 type Job struct {
+	Version     uint64       `json:"version,omitempty"`
+	Fence       uint64       `json:"fence,omitempty"`
+	Lease       *JobLease    `json:"lease,omitempty"`
+	History     []JobAttempt `json:"history,omitempty"`
+	FailureCode string       `json:"failure_code,omitempty"`
+	PlanDigest  string       `json:"plan_digest,omitempty"`
+	DispatchID  string       `json:"dispatch_id,omitempty"`
+
 	Result           *verification.Result         `json:"verification_result,omitempty"`
 	PluginResult     *plugin.ActionResult         `json:"plugin_result,omitempty"`
 	ID               int64                        `json:"id"`
@@ -42,6 +50,10 @@ func Terminal(state string) bool {
 type JobStore interface {
 	Store
 	Durable() bool
+	ClaimJob(context.Context, Job, string, time.Duration) (Job, error)
+	RenewJobLease(context.Context, Job, time.Duration) error
+	ReleaseJobLease(context.Context, Job, string) error
+	CancelJob(context.Context, int64, string) (Job, error)
 	CreateJob(context.Context, Job) (Job, error)
 	SaveJob(context.Context, Job, string) error
 	ListJobs(context.Context) ([]Job, error)
@@ -76,6 +88,7 @@ func (m *Memory) CreateJob(_ context.Context, job Job) (Job, error) {
 	if _, exists := m.activeJobByResource[job.Resource.ID]; exists {
 		return Job{}, errors.New("resource already has an active or unresolved action")
 	}
+	job.Version = 1
 	job.State = "prepared"
 	job.UpdatedAt = m.now().UTC()
 	job.NextRun = job.UpdatedAt
@@ -85,7 +98,7 @@ func (m *Memory) CreateJob(_ context.Context, job Job) (Job, error) {
 	return clone(job), m.persistLocked()
 }
 
-func (m *Memory) SaveJob(_ context.Context, job Job, message string) error {
+func (m *Memory) SaveJob(ctx context.Context, job Job, message string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.poison != nil {
@@ -95,9 +108,17 @@ func (m *Memory) SaveJob(_ context.Context, job Job, message string) error {
 		return ErrNotFound
 	}
 	existing := m.jobs[job.ID]
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if job.ID != existing.ID || job.ActionID != existing.ActionID || job.RecommendationID != existing.RecommendationID || job.Resource.ID != existing.Resource.ID {
 		return errors.New("immutable job identity cannot be changed")
 	}
+	if err := validateJobWrite(existing, job, m.now()); err != nil {
+		return err
+	}
+	preserveWorkerFields(&job, existing)
+	job.Version = existing.Version + 1
 	job.UpdatedAt = m.now().UTC()
 	m.jobs[job.ID] = clone(job)
 	if Terminal(job.State) && job.State != "manual_intervention" {
@@ -128,8 +149,14 @@ func (m *Memory) jobEventLocked(job Job, message string) {
 	m.auditEvents[auditEvent.ID] = clone(auditEvent)
 	m.auditIdempotencyIndex[auditEvent.IdempotencyKey] = auditEvent.ID
 	rec := m.recs[job.RecommendationID]
-	if next := recommendationStatusForJob(job.State); next != "" && ValidRecommendationTransition(rec.Status, next) {
-		rec.Status = next
+	nextRecommendation := recommendationStatusForJob(job.State)
+	// Dispatch intent can exist even when a later preflight prevented the actual write.
+	if job.State == "cancelled" && rec.Status == RecommendationExecuting {
+		nextRecommendation = RecommendationFailed
+	}
+	if nextRecommendation != "" && ValidRecommendationTransition(rec.Status, nextRecommendation) {
+		rec.Status = nextRecommendation
+		rec.StatusReason = message
 	}
 	rec.PolicyID = job.Policy.PolicyID
 	rec.UpdatedAt = m.now().UTC()
@@ -143,6 +170,8 @@ func (m *Memory) jobEventLocked(job Job, message string) {
 			}
 			if ActionTerminal(next) {
 				action.FinishedAt = action.UpdatedAt
+			} else {
+				action.FinishedAt = time.Time{}
 			}
 			if next == ActionFailed || next == ActionManualIntervention {
 				action.FailureMessage = message

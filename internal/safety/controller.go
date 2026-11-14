@@ -18,6 +18,10 @@ import (
 )
 
 type Controller struct {
+	workerID                                                    string
+	pollInterval, leaseDuration, heartbeatInterval, stepTimeout time.Duration
+	maxAttempts, maxJobsPerTick, offset                         int
+
 	recommendationCfg bootstrap.RecommenderConfig
 	mu                sync.Mutex
 	st                store.JobStore
@@ -32,7 +36,7 @@ func New(st store.JobStore, plugins *plugin.Manager, policies *policy.Engine, cf
 	if len(recommendationConfig) > 0 {
 		rc = recommendationConfig[0]
 	}
-	return &Controller{st: st, plugins: plugins, policies: policies, cfg: cfg, now: time.Now, recommendationCfg: rc}
+	return &Controller{workerID: randomWorkerID(), pollInterval: 5 * time.Second, leaseDuration: time.Minute, heartbeatInterval: 5 * time.Second, stepTimeout: 20 * time.Second, maxAttempts: 8, maxJobsPerTick: 32, st: st, plugins: plugins, policies: policies, cfg: cfg, now: time.Now, recommendationCfg: rc}
 }
 
 func durations(cfg bootstrap.VerificationConfig) (time.Duration, time.Duration, time.Duration, error) {
@@ -213,17 +217,20 @@ func (c *Controller) Submit(ctx context.Context, id int64, actor string, idempot
 			return store.Job{}, err
 		}
 	}
-	return c.st.CreateJob(ctx, store.Job{ID: id, ActionID: actionRecord.ID, RecommendationID: id, Resource: res, Plan: plan, Baseline: baseline, Verification: c.cfg, Policy: decision, Actor: actor, Deadline: c.now().Add(10 * time.Minute)})
+	return c.st.CreateJob(ctx, store.Job{PlanDigest: digestPlan(plan), DispatchID: fmt.Sprintf("action-%d", actionRecord.ID), ID: id, ActionID: actionRecord.ID, RecommendationID: id, Resource: res, Plan: plan, Baseline: baseline, Verification: c.cfg, Policy: decision, Actor: actor, Deadline: c.now().Add(10 * time.Minute)})
 }
 
 func (c *Controller) Run(ctx context.Context) error {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(c.pollInterval)
 	defer ticker.Stop()
 	for {
 		if ctx.Err() != nil {
 			return nil
 		}
 		if err := c.Tick(ctx); err != nil {
+			if ctx.Err() != nil {
+				return nil
+			}
 			return err
 		}
 		select {
@@ -235,7 +242,7 @@ func (c *Controller) Run(ctx context.Context) error {
 }
 
 // Recover requires a new operator approval and still refuses external drift.
-func (c *Controller) Recover(ctx context.Context, id int64, actor string) (store.Job, error) {
+func (c *Controller) Recover(ctx context.Context, id int64, actor string) (out store.Job, resultErr error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if actor == "" {
@@ -255,6 +262,31 @@ func (c *Controller) Recover(ctx context.Context, id int64, actor string) (store
 		if job.State != "manual_intervention" {
 			return store.Job{}, errors.New("only unresolved actions can be recovered")
 		}
+		claimed, err := c.st.ClaimJob(ctx, job, c.workerID, c.leaseDuration)
+		if err != nil {
+			return store.Job{}, err
+		}
+		job = claimed
+		defer func() {
+			releaseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+			defer cancel()
+			if err := c.st.ReleaseJobLease(releaseCtx, claimed, "operator_recovery"); err != nil && resultErr == nil {
+				resultErr = err
+			}
+			if resultErr == nil {
+				jobs, err := c.st.ListJobs(releaseCtx)
+				if err != nil {
+					resultErr = err
+					return
+				}
+				for _, latest := range jobs {
+					if latest.ID == claimed.ID {
+						out = latest
+						break
+					}
+				}
+			}
+		}()
 		action, err := c.plugins.ActionPlugin(job.Plan.PluginID, job.Resource.Type, job.Plan.ActionType)
 		if err != nil {
 			return store.Job{}, err
@@ -302,14 +334,26 @@ func (c *Controller) Tick(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	for _, job := range jobs {
-		if store.Terminal(job.State) || c.now().Before(job.NextRun) {
+	start, processed := c.offset, 0
+	for i := 0; i < len(jobs) && processed < c.maxJobsPerTick; i++ {
+		index := (start + i) % len(jobs)
+		candidate := jobs[index]
+		c.offset = (index + 1) % len(jobs)
+		if ctx.Err() != nil {
+			return nil
+		}
+		if store.Terminal(candidate.State) || c.now().Before(candidate.NextRun) {
 			continue
 		}
-		jobCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
-		err := c.step(jobCtx, job)
-		cancel()
+		job, err := c.st.ClaimJob(ctx, candidate, c.workerID, c.leaseDuration)
+		if errors.Is(err, store.ErrJobBusy) || errors.Is(err, store.ErrJobChanged) {
+			continue
+		}
 		if err != nil {
+			return err
+		}
+		processed++
+		if err := c.runClaimed(ctx, job); err != nil {
 			return err
 		}
 	}
@@ -319,8 +363,10 @@ func (c *Controller) Tick(ctx context.Context) error {
 func (c *Controller) save(ctx context.Context, job store.Job, state, message string) error {
 	job.State = state
 	job.LastError = ""
+	job.FailureCode = ""
 	if state == "manual_intervention" {
 		job.LastError = message
+		job.FailureCode = "manual_intervention"
 	}
 	job.Attempts = 0
 	job.NextRun = c.now().Add(5 * time.Second)
@@ -329,15 +375,19 @@ func (c *Controller) save(ctx context.Context, job store.Job, state, message str
 
 func (c *Controller) retry(ctx context.Context, job store.Job, err error) error {
 	job.Attempts++
-	job.LastError = err.Error()
-	job.NextRun = c.now().Add(time.Duration(min(job.Attempts, 12)) * 5 * time.Second)
+	job.FailureCode = retryClass(err, job.State)
+	job.LastError = retryMessage(job.FailureCode)
+	job.NextRun = c.now().Add(retryDelay(job.ID, job.Attempts))
+	if job.Attempts >= c.maxAttempts {
+		return c.save(ctx, job, "manual_intervention", "Retry limit reached; reconcile provider state before operator recovery")
+	}
 	if !job.Deadline.IsZero() && !c.now().Before(job.Deadline) {
 		if job.State == "verifying" || job.State == "waiting_rollout" || job.State == "applying" {
-			return c.fail(ctx, job, "timeout: "+err.Error(), job.Verification.RollbackOnTimeout)
+			return c.fail(ctx, job, "timeout: "+retryMessage(job.FailureCode), job.Verification.RollbackOnTimeout)
 		}
-		return c.save(ctx, job, "manual_intervention", "Recovery deadline exceeded: "+err.Error())
+		return c.save(ctx, job, "manual_intervention", "Recovery deadline exceeded: "+retryMessage(job.FailureCode))
 	}
-	return c.st.SaveJob(ctx, job, "Retry scheduled: "+err.Error())
+	return c.st.SaveJob(ctx, job, "Retry scheduled: "+retryMessage(job.FailureCode))
 }
 
 func (c *Controller) fail(ctx context.Context, job store.Job, message string, rollback bool) error {
@@ -398,6 +448,9 @@ func (c *Controller) step(ctx context.Context, job store.Job) error {
 		return c.save(ctx, job, "manual_intervention", "Plugin returned an unknown resource state")
 	}
 	if !job.Deadline.IsZero() && !c.now().Before(job.Deadline) {
+		if job.State == "prepared" {
+			return c.save(ctx, job, "cancelled", "Prepared action expired before dispatch")
+		}
 		if job.State == "rollback_pending" || job.State == "rolling_back" || job.State == "rollback_verifying" {
 			return c.save(ctx, job, "manual_intervention", "Rollback deadline exceeded; recovery requires operator attention")
 		}
@@ -420,6 +473,12 @@ func (c *Controller) step(ctx context.Context, job store.Job) error {
 			job.Plan.Preflight = checks
 			if err = plugin.RequirePreflight(checks); err != nil {
 				return c.save(ctx, job, "cancelled", err.Error()+"; no mutation performed")
+			}
+			if err := c.revalidateDispatch(ctx, job, action); err != nil {
+				return c.save(ctx, job, "cancelled", "Dispatch prerequisites changed; refresh and approve a new recommendation")
+			}
+			if err := c.st.RenewJobLease(ctx, job, c.leaseDuration); err != nil {
+				return err
 			}
 			result, err := action.Execute(ctx, job.Plan)
 			if err != nil {
@@ -515,6 +574,9 @@ func (c *Controller) step(ctx context.Context, job store.Job) error {
 		return c.save(ctx, job, "rolling_back", "Rollback intent persisted before restoration")
 	case "rolling_back":
 		if state == plugin.StateApplied {
+			if err := c.st.RenewJobLease(ctx, job, c.leaseDuration); err != nil {
+				return err
+			}
 			result, err := recovery.Rollback(ctx, job.Plan)
 			if err != nil {
 				return c.retry(ctx, job, err)

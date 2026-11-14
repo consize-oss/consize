@@ -94,6 +94,9 @@ func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine,
 	}
 	if durable, ok := st.(store.JobStore); ok {
 		s.controller = safety.New(durable, plugins, policies, cfg.Verification, cfg.Recommender)
+		if err := s.controller.ConfigureWorker(cfg.Worker); err != nil {
+			return nil, err
+		}
 	}
 	return s, nil
 }
@@ -156,7 +159,7 @@ func (s *Server) handleJobs(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusServiceUnavailable, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"jobs": jobs})
+	writeJSON(w, http.StatusOK, map[string]any{"jobs": jobs, "worker": store.SummarizeJobs(jobs, time.Now().UTC())})
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -392,6 +395,28 @@ func (s *Server) handleRecommendationAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	actor := identity.Subject
+	if op == "cancel" {
+		st, ok := s.st.(store.JobStore)
+		if !ok {
+			writeError(w, http.StatusServiceUnavailable, "job store unavailable")
+			return
+		}
+		job, err := st.CancelJob(r.Context(), id, actor)
+		if errors.Is(err, store.ErrNotFound) {
+			writeError(w, http.StatusNotFound, "job not found")
+			return
+		}
+		if errors.Is(err, store.ErrCannotCancel) {
+			writeError(w, http.StatusConflict, "Job has been claimed or dispatched; cancellation cannot guarantee no mutation")
+			return
+		}
+		if err != nil {
+			writeError(w, http.StatusServiceUnavailable, "cancellation could not be persisted")
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"job": job})
+		return
+	}
 	if op == "recover" {
 		if req.Mode != "approved" || s.controller == nil {
 			writeError(w, http.StatusBadRequest, "recovery requires explicit approval and durable controller")
@@ -533,7 +558,7 @@ func parseRecommendationPath(path string) (int64, string, error) {
 	if err != nil || id <= 0 {
 		return 0, "", fmt.Errorf("invalid recommendation id")
 	}
-	if parts[3] != "plan" && parts[3] != "execute" && parts[3] != "recover" {
+	if parts[3] != "plan" && parts[3] != "execute" && parts[3] != "recover" && parts[3] != "cancel" {
 		return 0, "", fmt.Errorf("unknown recommendation operation")
 	}
 	return id, parts[3], nil

@@ -29,7 +29,7 @@ type diskState struct {
 
 const (
 	minimumStateVersion = 1
-	currentStateVersion = 6
+	currentStateVersion = 7
 )
 
 // OpenDurable owns one local state file for its entire lifetime; other processes fail closed.
@@ -196,9 +196,16 @@ func migrateState(state *diskState) (bool, error) {
 		state.Version = 6
 		migrated = true
 	}
+	if state.Version == 6 {
+		state.Version = 7
+		state.Migrations = append(state.Migrations, MigrationRecord{FromVersion: 6, ToVersion: 7, Name: "durable-worker-fencing"})
+		migrated = true
+	}
+
 	if state.Version != currentStateVersion {
 		return false, fmt.Errorf("unsupported state schema version %d", state.Version)
 	}
+
 	return migrated, nil
 }
 

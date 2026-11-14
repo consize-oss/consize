@@ -12,6 +12,10 @@ This page is the reference list of configuration options. For task-based walkthr
 
 The JSON `state_path` configuration is limited to the single-process local lab. PostgreSQL owns production migrations, constraints, restart recovery, and concurrent API/worker access. See [Durable storage and schema evolution](../engineering/durable-storage.md).
 
+## Action worker
+
+The `worker` object in local JSON configuration controls polling, claim leases, heartbeat intervals, phase timeouts and retry limits. See [Durable workers](../engineering/durable-workers.md) for defaults, validation and upgrade procedures. These settings do not change verification thresholds or permit automatic approval.
+
 ## Collection
 
 | Variable | Default | Description |

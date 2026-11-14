@@ -74,7 +74,11 @@ func run(ctx context.Context, args []string) error {
 		if !st.Durable() {
 			return fmt.Errorf("worker requires database_url or state_path")
 		}
-		return safety.New(st, plugins, policies, cfg.Verification, cfg.Recommender).Run(ctx)
+		controller := safety.New(st, plugins, policies, cfg.Verification, cfg.Recommender)
+		if err := controller.ConfigureWorker(cfg.Worker); err != nil {
+			return err
+		}
+		return controller.Run(ctx)
 	case "plugins":
 		fs := flag.NewFlagSet("plugins", flag.ExitOnError)
 		configPath := fs.String("config", "", "Path to Consize plugin config JSON")
@@ -629,6 +633,9 @@ func validateListenAddress(addr string, authenticationEnabled bool) error {
 
 func runDurableJob(ctx context.Context, st store.RuntimeStore, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config, id int64, actor string) error {
 	controller := safety.New(st, plugins, policies, cfg.Verification, cfg.Recommender)
+	if err := controller.ConfigureWorker(cfg.Worker); err != nil {
+		return err
+	}
 	if _, err := controller.Submit(ctx, id, actor); err != nil {
 		return err
 	}

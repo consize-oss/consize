@@ -205,6 +205,23 @@ paths:
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
         '503': {$ref: '#/components/responses/ErrorResponse'}
+  /api/recommendations/{recommendation_id}/cancel:
+    post:
+      tags: [Product]
+      operationId: cancelRecommendationJob
+      summary: Cancel a prepared unclaimed job
+      description: Atomically cancels before worker ownership. Returns a conflict once a worker has claimed or dispatched the job; it never claims an uncertain mutation was cancelled.
+      parameters: [{$ref: '#/components/parameters/RecommendationId'}]
+      responses:
+        '200':
+          description: Job cancelled, or already cancelled.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content: {application/json: {schema: {type: object, required: [job], properties: {job: {$ref: '#/components/schemas/Job'}}}}}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
   /api/recommendations/{recommendation_id}/recover:
     post:
       tags: [Product]
@@ -365,7 +382,7 @@ components:
     JobsResponse:
       description: Durable action jobs.
       headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
-      content: {application/json: {schema: {type: object, required: [jobs], properties: {jobs: {type: array, items: {$ref: '#/components/schemas/Job'}}}}}}
+      content: {application/json: {schema: {type: object, required: [jobs], properties: {jobs: {type: array, items: {$ref: '#/components/schemas/Job'}}, worker: {$ref: '#/components/schemas/WorkerSummary'}}}}}
     JobAcceptedResponse:
       description: Durable job accepted.
       headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
@@ -633,6 +650,7 @@ components:
       type: object
       required: [plugin_id, resource_id, action_type, summary, diff, rollback_available, requires_approval]
       properties:
+        execution: {$ref: '#/components/schemas/ExecutionEnvelope'}
         preflight: {type: array, items: {$ref: '#/components/schemas/PreflightCheck'}}
         plugin_artifact_digest: {type: string}
         plugin_version: {type: string}
@@ -788,10 +806,54 @@ components:
         after: {$ref: '#/components/schemas/MetricsSnapshot'}
         checked_at: {type: string, format: date-time}
         thresholds: {$ref: '#/components/schemas/JsonObject'}
+    JobLease:
+      type: object
+      required: [owner, token, until]
+      properties:
+        owner: {type: string}
+        token: {type: integer, format: int64}
+        until: {type: string, format: date-time}
+    JobAttempt:
+      type: object
+      required: [token, worker, phase, started_at]
+      properties:
+        token: {type: integer, format: int64}
+        worker: {type: string}
+        phase: {type: string}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        outcome: {type: string}
+    WorkerSummary:
+      type: object
+      description: Durable queue snapshot, not a liveness claim for idle remote workers. Attempts counts phase claims; completed includes verified, rolled-back and cancelled jobs.
+      required: [queued, active_leases, expired_leases, manual_attention, completed, attempts]
+      properties:
+        queued: {type: integer}
+        active_leases: {type: integer}
+        expired_leases: {type: integer}
+        manual_attention: {type: integer}
+        completed: {type: integer}
+        attempts: {type: integer}
+        oldest_due_at: {type: string, format: date-time}
+    ExecutionEnvelope:
+      type: object
+      required: [dispatch_id, plan_digest, attempt_token, lease_until]
+      properties:
+        dispatch_id: {type: string}
+        plan_digest: {type: string}
+        attempt_token: {type: integer, format: int64}
+        lease_until: {type: string, format: date-time}
     Job:
       type: object
       required: [id, resource, plan, baseline, verification, policy, actor, state, attempts, next_run, window_start, deadline, updated_at]
       properties:
+        version: {type: integer, format: int64}
+        fence: {type: integer, format: int64}
+        lease: {$ref: '#/components/schemas/JobLease'}
+        history: {type: array, items: {$ref: '#/components/schemas/JobAttempt'}}
+        failure_code: {type: string}
+        plan_digest: {type: string}
+        dispatch_id: {type: string}
         id: {type: integer, format: int64}
         action_id: {type: integer, format: int64}
         recommendation_id: {type: integer, format: int64}

@@ -14,6 +14,7 @@ import (
 )
 
 type Config struct {
+	Worker          WorkerConfig                 `json:"worker,omitempty"`
 	ExternalPlugins []marketplace.ExternalConfig `json:"external_plugins,omitempty"`
 	AllowedOrigins  []string                     `json:"allowed_origins"`
 	DatabaseURL     string                       `json:"database_url,omitempty"`
@@ -25,6 +26,16 @@ type Config struct {
 	Audit           AuditConfig                  `json:"audit"`
 	Auth            auth.Config                  `json:"auth"`
 	Pricing         PricingConfig                `json:"pricing"`
+}
+
+// WorkerConfig bounds orchestration work; verification policy remains independent.
+type WorkerConfig struct {
+	PollInterval      string `json:"poll_interval,omitempty"`
+	LeaseDuration     string `json:"lease_duration,omitempty"`
+	HeartbeatInterval string `json:"heartbeat_interval,omitempty"`
+	StepTimeout       string `json:"step_timeout,omitempty"`
+	MaxAttempts       int    `json:"max_attempts,omitempty"`
+	MaxJobsPerTick    int    `json:"max_jobs_per_tick,omitempty"`
 }
 
 type PricingConfig struct {

@@ -106,22 +106,24 @@ var (
 )
 
 var recommendationTransitions = map[RecommendationStatus]map[RecommendationStatus]bool{
-	RecommendationPending:   {RecommendationPlanned: true, RecommendationApproved: true, RecommendationRejected: true, RecommendationExpired: true, RecommendationSuperseded: true},
-	RecommendationPlanned:   {RecommendationApproved: true, RecommendationRejected: true, RecommendationExpired: true, RecommendationSuperseded: true},
-	RecommendationApproved:  {RecommendationExecuting: true, RecommendationRejected: true, RecommendationExpired: true, RecommendationSuperseded: true},
-	RecommendationExecuting: {RecommendationVerified: true, RecommendationFailed: true, RecommendationRolledBack: true, RecommendationManualIntervention: true},
+	RecommendationManualIntervention: {RecommendationExecuting: true},
+	RecommendationPending:            {RecommendationPlanned: true, RecommendationApproved: true, RecommendationRejected: true, RecommendationExpired: true, RecommendationSuperseded: true},
+	RecommendationPlanned:            {RecommendationApproved: true, RecommendationRejected: true, RecommendationExpired: true, RecommendationSuperseded: true},
+	RecommendationApproved:           {RecommendationManualIntervention: true, RecommendationExecuting: true, RecommendationRejected: true, RecommendationExpired: true, RecommendationSuperseded: true},
+	RecommendationExecuting:          {RecommendationVerified: true, RecommendationFailed: true, RecommendationRolledBack: true, RecommendationManualIntervention: true},
 }
 
 var actionTransitions = map[ActionStatus]map[ActionStatus]bool{
-	ActionRequested:       {ActionPlanning: true, ActionPlanned: true, ActionApproved: true, ActionFailed: true, ActionCancelled: true},
-	ActionPlanning:        {ActionPlanned: true, ActionFailed: true, ActionCancelled: true},
-	ActionPlanned:         {ActionApproved: true, ActionCancelled: true, ActionFailed: true},
-	ActionApproved:        {ActionExecuting: true, ActionCancelled: true, ActionFailed: true},
-	ActionExecuting:       {ActionVerifying: true, ActionSucceeded: true, ActionFailed: true, ActionRollbackPending: true, ActionManualIntervention: true},
-	ActionVerifying:       {ActionSucceeded: true, ActionFailed: true, ActionRollbackPending: true, ActionManualIntervention: true},
-	ActionFailed:          {ActionRollbackPending: true, ActionManualIntervention: true},
-	ActionRollbackPending: {ActionRollingBack: true, ActionManualIntervention: true},
-	ActionRollingBack:     {ActionRolledBack: true, ActionManualIntervention: true},
+	ActionManualIntervention: {ActionRollbackPending: true},
+	ActionRequested:          {ActionPlanning: true, ActionPlanned: true, ActionApproved: true, ActionFailed: true, ActionCancelled: true},
+	ActionPlanning:           {ActionPlanned: true, ActionFailed: true, ActionCancelled: true},
+	ActionPlanned:            {ActionApproved: true, ActionCancelled: true, ActionFailed: true},
+	ActionApproved:           {ActionManualIntervention: true, ActionExecuting: true, ActionCancelled: true, ActionFailed: true},
+	ActionExecuting:          {ActionCancelled: true, ActionVerifying: true, ActionSucceeded: true, ActionFailed: true, ActionRollbackPending: true, ActionManualIntervention: true},
+	ActionVerifying:          {ActionSucceeded: true, ActionFailed: true, ActionRollbackPending: true, ActionManualIntervention: true},
+	ActionFailed:             {ActionRollbackPending: true, ActionManualIntervention: true},
+	ActionRollbackPending:    {ActionRollingBack: true, ActionManualIntervention: true},
+	ActionRollingBack:        {ActionRolledBack: true, ActionManualIntervention: true},
 }
 
 func ValidRecommendationTransition(from, to RecommendationStatus) bool {
