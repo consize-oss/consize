@@ -124,3 +124,16 @@ test("populated Overview and Resources keep every approved column visible on des
   }
   }
 });
+
+
+test("simulated Overview retains the existing summary sample figures", async ({page}) => {
+  await page.goto("/");
+  await expect(page.getByText("$148,250", {exact:true})).toBeVisible();
+  await expect(page.getByText("$92,400", {exact:true})).toBeVisible();
+  await expect(page.getByText("34 verified changes", {exact:true})).toBeVisible();
+  await expect(page.getByText("3 assigned directly to you", {exact:true})).toBeVisible();
+  await expect(page.getByText("Current inventory and recorded workflow history.", {exact:false})).toHaveCount(0);
+  await page.getByRole("combobox", {name:"Mock scenario"}).selectOption("empty-cluster");
+  await expect(page.getByText("34 verified changes", {exact:true})).toHaveCount(0);
+  await expect(page.getByText("0 verified changes", {exact:true})).toBeVisible();
+});

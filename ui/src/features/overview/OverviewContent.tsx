@@ -28,7 +28,7 @@ export function OverviewContent() {
   return (
     <>
       <OverviewHeader />
-      <p className="text-xs text-fg-muted">Current inventory and recorded workflow history. Date ranges and monetary totals are not available from this runtime.</p>
+      {!(process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCKS === "true") && <p className="text-xs text-fg-muted">Current inventory and recorded workflow history. Date ranges and monetary totals are not available from this runtime.</p>}
       <MetricsRow />
       <IntegrationsStrip />
       <RecommendationPanel />

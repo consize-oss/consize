@@ -1,6 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { apiGet, ApiError } from "@/lib/api-client";
+import { dashboardSummarySchema } from "@/schemas";
 import {
   actionEventsSchema,
   auditView,
@@ -34,13 +35,24 @@ const retry = (count: number, error: unknown) =>
   !(error instanceof ApiError && [401, 403, 404, -1].includes(error.status)) &&
   count < 1;
 export function useDashboardSummary(params: SummaryParams = {}) {
-  return useQuery({
+  const simulated = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCKS === "true";
+  const realSummary = useQuery({
     queryKey: ["runtime-dashboard"],
     queryFn: ({ signal }) => readDashboard(signal),
     select: (data) => summaryView(data, params),
+    enabled: !simulated,
     refetchInterval: 30_000,
     retry,
   });
+  const query = new URLSearchParams(Object.entries(params).filter((entry): entry is [string, string] => entry[1] !== undefined)).toString();
+  const sampleSummary = useQuery({
+    queryKey: ["simulation-summary", params],
+    queryFn: ({ signal }) => apiGet(`/api/v1/dashboard/summary${query ? `?${query}` : ""}`, dashboardSummarySchema, signal),
+    enabled: simulated,
+    refetchInterval: 30_000,
+    retry,
+  });
+  return simulated ? sampleSummary : realSummary;
 }
 export function useRecommendationList(
   filters: Record<string, string | undefined> = {},
