@@ -228,6 +228,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recommendations/{recommendation_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a prepared unclaimed job
+         * @description Atomically cancels before worker ownership. Returns a conflict once a worker has claimed or dispatched the job; it never claims an uncertain mutation was cancelled.
+         */
+        post: operations["cancelRecommendationJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/recommendations/{recommendation_id}/recover": {
         parameters: {
             query?: never;
@@ -585,6 +605,7 @@ export interface components {
             details?: components["schemas"]["JsonObject"];
         };
         ActionPlan: {
+            execution?: components["schemas"]["ExecutionEnvelope"];
             preflight?: components["schemas"]["PreflightCheck"][];
             plugin_artifact_digest?: string;
             plugin_version?: string;
@@ -752,7 +773,53 @@ export interface components {
             checked_at: string;
             thresholds: components["schemas"]["JsonObject"];
         };
+        JobLease: {
+            owner: string;
+            /** Format: int64 */
+            token: number;
+            /** Format: date-time */
+            until: string;
+        };
+        JobAttempt: {
+            /** Format: int64 */
+            token: number;
+            worker: string;
+            phase: string;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            finished_at?: string;
+            outcome?: string;
+        };
+        /** @description Durable queue snapshot, not a liveness claim for idle remote workers. Attempts counts phase claims; completed includes verified, rolled-back and cancelled jobs. */
+        WorkerSummary: {
+            queued: number;
+            active_leases: number;
+            expired_leases: number;
+            manual_attention: number;
+            completed: number;
+            attempts: number;
+            /** Format: date-time */
+            oldest_due_at?: string;
+        };
+        ExecutionEnvelope: {
+            dispatch_id: string;
+            plan_digest: string;
+            /** Format: int64 */
+            attempt_token: number;
+            /** Format: date-time */
+            lease_until: string;
+        };
         Job: {
+            /** Format: int64 */
+            version?: number;
+            /** Format: int64 */
+            fence?: number;
+            lease?: components["schemas"]["JobLease"];
+            history?: components["schemas"]["JobAttempt"][];
+            failure_code?: string;
+            plan_digest?: string;
+            dispatch_id?: string;
             /** Format: int64 */
             id: number;
             /** Format: int64 */
@@ -934,6 +1001,7 @@ export interface components {
             content: {
                 "application/json": {
                     jobs: components["schemas"]["Job"][];
+                    worker?: components["schemas"]["WorkerSummary"];
                 };
             };
         };
@@ -1273,6 +1341,37 @@ export interface operations {
             400: components["responses"]["ErrorResponse"];
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
+        };
+    };
+    cancelRecommendationJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Numeric recommendation identifier. */
+                recommendation_id: components["parameters"]["RecommendationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Job cancelled, or already cancelled. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        job: components["schemas"]["Job"];
+                    };
+                };
+            };
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
             503: components["responses"]["ErrorResponse"];
         };
     };

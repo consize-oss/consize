@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/consize-oss/consize/pkg/resource"
 	"github.com/jackc/pgx/v5"
@@ -37,6 +38,7 @@ func (p *Postgres) CreateJob(ctx context.Context, job Job) (Job, error) {
 	if job.Resource.ID != rec.ResourceID || job.Plan.ResourceID != rec.ResourceID || job.Plan.PluginID != rec.PluginID || job.Plan.ActionType != rec.ActionType {
 		return Job{}, errors.New("job resource or plan does not match its recommendation")
 	}
+	job.Version = 1
 	job.State, job.UpdatedAt, job.NextRun = "prepared", p.now().UTC(), p.now().UTC()
 	payload, _ := marshal(job)
 	if _, err := tx.Exec(ctx, `INSERT INTO jobs(id,action_id,recommendation_id,resource_id,state,next_run,payload,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, job.ID, job.ActionID, job.RecommendationID, job.Resource.ID, job.State, job.NextRun, payload, job.UpdatedAt); err != nil {
@@ -72,7 +74,16 @@ func (p *Postgres) SaveJob(ctx context.Context, job Job, message string) error {
 	if err != nil {
 		return err
 	}
-	job.UpdatedAt = p.now().UTC()
+	var now time.Time
+	if err := tx.QueryRow(ctx, `SELECT clock_timestamp()`).Scan(&now); err != nil {
+		return err
+	}
+	if err := validateJobWrite(existing, job, now); err != nil {
+		return err
+	}
+	preserveWorkerFields(&job, existing)
+	job.Version = existing.Version + 1
+	job.UpdatedAt = now.UTC()
 	payload, _ := marshal(job)
 	if _, err := tx.Exec(ctx, `UPDATE jobs SET state=$2,next_run=$3,payload=$4,updated_at=$5 WHERE id=$1`, job.ID, job.State, job.NextRun, payload, job.UpdatedAt); err != nil {
 		return err
@@ -104,8 +115,14 @@ func (p *Postgres) persistJobEffects(ctx context.Context, tx pgx.Tx, job Job, me
 	if err := insertAuditEvent(ctx, tx, canonicalActionAudit(event, correlationID, previousID)); err != nil {
 		return err
 	}
-	if next := recommendationStatusForJob(job.State); next != "" && ValidRecommendationTransition(rec.Status, next) {
-		rec.Status = next
+	nextRecommendation := recommendationStatusForJob(job.State)
+	// Dispatch intent can exist even when a later preflight prevented the actual write.
+	if job.State == "cancelled" && rec.Status == RecommendationExecuting {
+		nextRecommendation = RecommendationFailed
+	}
+	if nextRecommendation != "" && ValidRecommendationTransition(rec.Status, nextRecommendation) {
+		rec.Status = nextRecommendation
+		rec.StatusReason = message
 	}
 	rec.PolicyID, rec.UpdatedAt = job.Policy.PolicyID, now
 	recPayload, _ := marshal(rec)
@@ -119,6 +136,8 @@ func (p *Postgres) persistJobEffects(ctx context.Context, tx pgx.Tx, job Job, me
 		}
 		if ActionTerminal(next) {
 			action.FinishedAt = now
+		} else {
+			action.FinishedAt = time.Time{}
 		}
 		if next == ActionFailed || next == ActionManualIntervention {
 			action.FailureMessage = message

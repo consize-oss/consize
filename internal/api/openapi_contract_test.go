@@ -36,7 +36,7 @@ func TestOpenAPITracksImplementedRoutes(t *testing.T) {
 		"GET /api/plugins", "GET /api/resources", "POST /api/discovery",
 		"POST /api/recommendations/generate", "POST /api/recommendations/{recommendation_id}/execute",
 		"POST /api/recommendations/{recommendation_id}/plan", "POST /api/recommendations/{recommendation_id}/recover",
-		"POST /api/resources",
+		"POST /api/resources", "POST /api/recommendations/{recommendation_id}/cancel",
 	}
 	sort.Strings(want)
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {

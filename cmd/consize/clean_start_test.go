@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/consize-oss/consize/internal/api"
+	"github.com/consize-oss/consize/internal/store"
 )
 
 func TestCleanStart(t *testing.T) {
@@ -41,6 +42,13 @@ func TestCleanStart(t *testing.T) {
 				t.Fatal(err)
 			}
 			for key, raw := range response {
+				if endpoint == "jobs" && key == "worker" {
+					var summary store.WorkerSummary
+					if err := json.Unmarshal(raw, &summary); err != nil || summary != (store.WorkerSummary{}) {
+						t.Fatalf("seeded worker diagnostics: %s", raw)
+					}
+					continue
+				}
 				var items []any
 				if err := json.Unmarshal(raw, &items); err != nil || len(items) != 0 {
 					t.Fatalf("seeded %s.%s: %s", endpoint, key, raw)

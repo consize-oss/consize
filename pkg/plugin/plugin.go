@@ -57,7 +57,17 @@ type ActionInput struct {
 	Parameters map[string]any    `json:"parameters"`
 }
 
+// ExecutionEnvelope carries workflow intent and ownership; providers still must reconcile uncertain writes.
+type ExecutionEnvelope struct {
+	DispatchID string    `json:"dispatch_id"`
+	PlanDigest string    `json:"plan_digest"`
+	LeaseEpoch uint64    `json:"attempt_token"`
+	LeaseUntil time.Time `json:"lease_until"`
+}
+
 type ActionPlan struct {
+	Execution *ExecutionEnvelope `json:"execution,omitempty"`
+
 	Preflight            []PreflightCheck `json:"preflight,omitempty"`
 	PluginArtifactDigest string           `json:"plugin_artifact_digest,omitempty"`
 	PluginVersion        string           `json:"plugin_version,omitempty"`

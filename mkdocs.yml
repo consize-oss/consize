@@ -116,6 +116,7 @@ nav:
       - Evidence and Provenance: reference/evidence.md
       - Recommendation and Action Contracts: engineering/recommendation-action-contracts.md
       - Durable Storage: engineering/durable-storage.md
+      - Durable Workers: engineering/durable-workers.md
       - Resource Identity Decision: engineering/adr-0001-universal-resource-identity.md
       - Proposal and Attempt Decision: engineering/adr-0002-proposals-attempts-and-evidence.md
       - Supported Platforms: reference/supported-platforms.md
