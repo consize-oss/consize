@@ -18,13 +18,13 @@ var (
 // Token increases on every claim. A process ID alone cannot fence a restarted worker.
 type JobLease struct {
 	Owner string    `json:"owner"`
-	Token uint64    `json:"token"`
+	Epoch uint64    `json:"token"`
 	Until time.Time `json:"until"`
 }
 
 // Each claim is one bounded phase attempt, not another logical action.
 type JobAttempt struct {
-	Token      uint64    `json:"token"`
+	Epoch      uint64    `json:"token"`
 	Worker     string    `json:"worker"`
 	Phase      string    `json:"phase"`
 	StartedAt  time.Time `json:"started_at"`
@@ -41,7 +41,7 @@ func validateLeaseOptions(owner string, ttl time.Duration) error {
 
 func ownsLease(existing, candidate Job, now time.Time) bool {
 	return existing.Lease != nil && candidate.Lease != nil &&
-		existing.Lease.Owner == candidate.Lease.Owner && existing.Lease.Token == candidate.Lease.Token &&
+		existing.Lease.Owner == candidate.Lease.Owner && existing.Lease.Epoch == candidate.Lease.Epoch &&
 		now.Before(existing.Lease.Until)
 }
 
@@ -64,8 +64,8 @@ func claimJob(existing, candidate Job, owner string, ttl time.Duration, now time
 	}
 	existing.Fence++
 	existing.Version++
-	existing.Lease = &JobLease{Owner: owner, Token: existing.Fence, Until: now.Add(ttl)}
-	existing.History = append(existing.History, JobAttempt{Token: existing.Fence, Worker: owner, Phase: existing.State, StartedAt: now})
+	existing.Lease = &JobLease{Owner: owner, Epoch: existing.Fence, Until: now.Add(ttl)}
+	existing.History = append(existing.History, JobAttempt{Epoch: existing.Fence, Worker: owner, Phase: existing.State, StartedAt: now})
 	existing.UpdatedAt = now
 	return existing, nil
 }
@@ -113,7 +113,7 @@ func releaseJob(existing, candidate Job, outcome string, now time.Time) (Job, er
 		return Job{}, errors.New("invalid attempt outcome")
 	}
 	n := len(existing.History)
-	if n == 0 || existing.History[n-1].Token != candidate.Lease.Token {
+	if n == 0 || existing.History[n-1].Epoch != candidate.Lease.Epoch {
 		return Job{}, ErrLeaseLost
 	}
 	existing.History[n-1].FinishedAt = now

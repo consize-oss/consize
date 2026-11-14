@@ -267,7 +267,7 @@ func TestPostgresWorkerContentionSoak(t *testing.T) {
 		t.Fatalf("inconsistent soak completion: %d %+v", completed.Load(), jobs[0])
 	}
 	for i, a := range jobs[0].History {
-		if a.Token != uint64(i+1) || a.Outcome != "completed" || a.FinishedAt.IsZero() {
+		if a.Epoch != uint64(i+1) || a.Outcome != "completed" || a.FinishedAt.IsZero() {
 			t.Fatalf("lost/repeated fence or attempt: %+v", a)
 		}
 	}

@@ -309,7 +309,7 @@ func TestWorkerAttemptTimelineSurvivesFullRecovery(t *testing.T) {
 		t.Fatal("ambiguous write duplicated")
 	}
 	for _, attempt := range job.History {
-		if attempt.Token == 0 || attempt.Worker == "" || attempt.FinishedAt.IsZero() {
+		if attempt.Epoch == 0 || attempt.Worker == "" || attempt.FinishedAt.IsZero() {
 			t.Fatalf("incomplete attempt: %+v", attempt)
 		}
 	}

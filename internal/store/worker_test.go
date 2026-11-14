@@ -21,7 +21,7 @@ func TestWorkerClaimFencingHeartbeatAndCancellation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if claimed.Lease.Token != 1 || len(claimed.History) != 1 {
+	if claimed.Lease.Epoch != 1 || len(claimed.History) != 1 {
 		t.Fatalf("missing durable claim: %+v", claimed)
 	}
 	if _, err := st.ClaimJob(ctx, job, "worker-b", time.Minute); !errors.Is(err, ErrJobBusy) {
@@ -49,7 +49,7 @@ func TestWorkerClaimFencingHeartbeatAndCancellation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if next.Lease.Token != 2 || next.History[0].Outcome != "lease_expired" {
+	if next.Lease.Epoch != 2 || next.History[0].Outcome != "lease_expired" {
 		t.Fatalf("takeover not recorded: %+v", next)
 	}
 	claimed.State = "applying"

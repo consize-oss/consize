@@ -59,10 +59,10 @@ type ActionInput struct {
 
 // ExecutionEnvelope carries workflow intent and ownership; providers still must reconcile uncertain writes.
 type ExecutionEnvelope struct {
-	DispatchID   string    `json:"dispatch_id"`
-	PlanDigest   string    `json:"plan_digest"`
-	AttemptToken uint64    `json:"attempt_token"`
-	LeaseUntil   time.Time `json:"lease_until"`
+	DispatchID string    `json:"dispatch_id"`
+	PlanDigest string    `json:"plan_digest"`
+	LeaseEpoch uint64    `json:"attempt_token"`
+	LeaseUntil time.Time `json:"lease_until"`
 }
 
 type ActionPlan struct {

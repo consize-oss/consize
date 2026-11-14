@@ -37,7 +37,7 @@ func digestPlan(plan plugin.ActionPlan) string {
 }
 
 func (c *Controller) runClaimed(parent context.Context, job store.Job) error {
-	job.Plan.Execution = &plugin.ExecutionEnvelope{DispatchID: job.DispatchID, PlanDigest: job.PlanDigest, AttemptToken: job.Lease.Token, LeaseUntil: job.Lease.Until}
+	job.Plan.Execution = &plugin.ExecutionEnvelope{DispatchID: job.DispatchID, PlanDigest: job.PlanDigest, LeaseEpoch: job.Lease.Epoch, LeaseUntil: job.Lease.Until}
 	ctx, cancel := context.WithTimeout(parent, c.stepTimeout)
 	finished := make(chan struct{})
 	heartbeat := make(chan error, 1)
@@ -70,7 +70,7 @@ func (c *Controller) runClaimed(parent context.Context, job store.Job) error {
 	if interrupted || err != nil || hbErr != nil {
 		outcome = "interrupted"
 	}
-	slog.Info("worker phase finished", "worker_id", c.workerID, "job_id", job.ID, "action_id", job.ActionID, "dispatch_id", job.DispatchID, "attempt_token", job.Lease.Token, "phase", job.State, "outcome", outcome)
+	slog.Info("worker phase finished", "worker_id", c.workerID, "job_id", job.ID, "action_id", job.ActionID, "dispatch_id", job.DispatchID, "attempt_token", job.Lease.Epoch, "phase", job.State, "outcome", outcome)
 	releaseCtx, releaseCancel := context.WithTimeout(context.WithoutCancel(parent), 5*time.Second)
 	defer releaseCancel()
 	releaseErr := c.st.ReleaseJobLease(releaseCtx, job, outcome)
