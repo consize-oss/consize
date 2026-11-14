@@ -1,6 +1,7 @@
 import type { Money } from "@/schemas";
 
 export function formatMoney(m: Money) {
+  if (m.basis === "unavailable" || !m.currency) return { display: "—", basisLabel: "Pricing unavailable" };
   const display = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: m.currency,
@@ -37,6 +38,7 @@ export function relativeTimeShort(iso: string, now = Date.now()) {
 
 // Compact money for tight spaces: $28.1k/mo style.
 export function formatMoneyCompact(m: { amount_minor: number; currency: string }) {
+  if (!m.currency) return "—";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: m.currency,

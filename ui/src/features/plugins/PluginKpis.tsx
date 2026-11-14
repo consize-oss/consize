@@ -76,15 +76,17 @@ export function PluginKpis({ summary }: { summary: PluginSummary }) {
       <Kpi
         label="Package trust"
         chip={
-          untrusted === 0 ? (
+          trust.assessed === false ? (
+            <span className={CHIP_WARN}>Not assessed</span>
+          ) : untrusted === 0 ? (
             <span className={CHIP_OK}>Verified</span>
           ) : (
             <span className={CHIP_WARN}>{untrusted} untrusted</span>
           )
         }
-        value={`${trust.trusted} of ${trust.total} trusted`}
-        footer={untrusted === 0 ? "Signatures and checksums valid" : "Review packages without a valid signature"}
-        footerTone={untrusted === 0 ? "ok" : "warn"}
+        value={trust.assessed === false ? "Unavailable" : `${trust.trusted} of ${trust.total} trusted`}
+        footer={trust.assessed === false ? "Package trust is not supplied by the runtime API" : untrusted === 0 ? "Signatures and checksums valid" : "Review packages without a valid signature"}
+        footerTone={trust.assessed === false ? "muted" : untrusted === 0 ? "ok" : "warn"}
       />
     </section>
   );

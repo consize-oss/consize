@@ -5,7 +5,7 @@ export const moneySchema = z.object({
   amount_minor: z.number(),
   currency: z.string(),
   period: z.literal("month"),
-  basis: z.enum(["estimated", "verified_operational", "billing_realized"]),
+  basis: z.enum(["estimated", "verified_operational", "billing_realized", "unavailable"]),
 });
 export type Money = z.infer<typeof moneySchema>;
 
@@ -78,6 +78,7 @@ export const recommendationListItemSchema = z.object({
   // The score is supplied independently from the legacy confidence category.
   confidence_percentage: z.number().min(0).max(100).nullable().optional(),
   confidence_note: z.string().optional(),
+  workflow_state: z.string().optional(),
   change_summary: z.object({ current: z.string(), proposed: z.string() }).optional(),
   savings_note: z.string().optional(),
   estimated_savings: moneySchema,
@@ -110,7 +111,7 @@ export const dashboardSummarySchema = z.object({
   verified_operational_savings: moneySchema,
   verified_changes: z.number(),
   pending_approvals: z.number(),
-  pending_approvals_mine: z.number(),
+  pending_approvals_mine: z.number().nullable(),
   pending_approvals_savings: moneySchema,
   // PRD §7.3: rollback rate shows numerator, denominator and window.
   rollback_rate: z.number(),
@@ -118,8 +119,8 @@ export const dashboardSummarySchema = z.object({
   guarded_changes: z.number(),
   open_recommendations: z.number(),
   // PRD §7.2/§7.8: these labels may only render when the backend says so.
-  policy_engine: z.enum(["enforcing", "unavailable"]),
-  verifier: z.enum(["healthy", "degraded", "unavailable"]),
+  policy_engine: z.enum(["enforcing", "unavailable", "unknown"]),
+  verifier: z.enum(["healthy", "degraded", "unavailable", "unknown"]),
   last_evaluated_at: z.string(),
   // Metrics the backend did NOT filter by the requested scope. The UI must
   // say so instead of implying they were (ticket: "state clearly when a view
@@ -167,6 +168,7 @@ export const auditEventSchema = z.object({
     "blocked",
     "failed",
     "manual_intervention",
+    "pending",
   ]),
 });
 export const auditEventListSchema = z.object({ items: z.array(auditEventSchema) });
@@ -240,7 +242,7 @@ export const pluginSchema = capabilitySchema.extend({
   version: z.string(),
   category: pluginCategorySchema,
   kind: pluginKindSchema,
-  source: z.enum(["built_in", "registry"]),
+  source: z.enum(["built_in", "registry", "unknown"]),
   trust: z.enum(["built_in", "verified_publisher", "unverified"]),
   description: z.string(),
   // Machine reason behind a bad/degraded health ("HTTP 401"), shown verbatim.
@@ -278,7 +280,7 @@ export const pluginSummarySchema = z.object({
     state: z.enum(["ready", "attention"]),
   }),
   recommendations: z.object({ active: z.number(), resources: z.number() }),
-  trust: z.object({ trusted: z.number(), total: z.number() }),
+  trust: z.object({ trusted: z.number(), total: z.number(), assessed: z.boolean().optional() }),
 });
 export type PluginSummary = z.infer<typeof pluginSummarySchema>;
  

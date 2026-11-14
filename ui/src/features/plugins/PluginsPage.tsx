@@ -133,9 +133,18 @@ export function PluginsPage() {
             </div>
           )}
 
-          <nav role="tablist" aria-label="Plugin sections" className="flex items-center gap-1 overflow-x-auto border-b border-app-border">
+          <nav role="tablist" aria-label="Plugin sections" onKeyDown={event => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)'));
+            const index = tabs.indexOf(event.target as HTMLButtonElement);
+            if (index < 0) return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+            tabs[next].focus(); tabs[next].click();
+          }} className="flex items-center gap-1 overflow-x-auto border-b border-app-border">
             <button
               role="tab"
+              tabIndex={!category ? 0 : -1}
               aria-selected={!category}
               aria-controls="plugin-panel"
               onClick={() => update({ category: undefined })}
@@ -162,6 +171,7 @@ export function PluginsPage() {
                 <button
                   key={c.key}
                   role="tab"
+                  tabIndex={on ? 0 : -1}
                   aria-selected={on}
                   aria-controls="plugin-panel"
                   onClick={() => update({ category: c.key })}
@@ -190,7 +200,7 @@ export function PluginsPage() {
                     className="h-9 w-full rounded-btn border border-app-border bg-app-field pl-9 pr-3 text-xs text-fg placeholder:text-fg-muted focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/40"
                   />
                 </div>
-                <div role="group" aria-label="Filter by plugin type" className="inline-flex rounded-btn border border-app-border bg-app-inset p-1 text-xs">
+                <div role="group" aria-label="Filter by plugin type" className="inline-flex max-w-full flex-wrap rounded-btn border border-app-border bg-app-inset p-1 text-xs">
                   <button
                     type="button"
                     aria-pressed={!category}

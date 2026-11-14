@@ -17,26 +17,27 @@ const SCENARIOS: Scenario[] = [
 export function ScenarioSwitcher() {
   const queryClient = useQueryClient();
 
-  function apply(next: Scenario) {
+  async function apply(next: Scenario) {
+    await queryClient.cancelQueries();
     setScenario(next);
-    void queryClient.invalidateQueries();
+    await queryClient.resetQueries();
   }
 
   return (
     <label className="flex items-center gap-2 text-xs text-fg-secondary">
-      Demo data
-    <select
-      aria-label="Mock scenario"
-      className="h-8 px-2 bg-app-surface border border-app-border rounded-lg text-xs font-mono text-slate-300"
-      defaultValue="healthy"
-      onChange={(e) => apply(e.target.value as Scenario)}
-    >
-      {SCENARIOS.map((s) => (
-        <option key={s} value={s}>
-          {s}
-        </option>
-      ))}
-    </select>
+      Simulated data · no real changes
+      <select
+        aria-label="Mock scenario"
+        className="h-8 px-2 bg-app-surface border border-app-border rounded-lg text-xs font-mono text-fg"
+        defaultValue="healthy"
+        onChange={(e) => void apply(e.target.value as Scenario)}
+      >
+        {SCENARIOS.map((s) => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }

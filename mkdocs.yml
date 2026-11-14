@@ -122,6 +122,7 @@ nav:
       - API Reference: reference/api.md
       - Audit Subsystem: engineering/audit-subsystem.md
       - Runtime Data and Demo Isolation: engineering/runtime-data.md
+      - Frontend Runtime Integration: engineering/frontend-integration.md
 
   - Resources:
       - Contributing: resources/contributing.md

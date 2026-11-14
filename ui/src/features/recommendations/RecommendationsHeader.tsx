@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { EvaluateRecommendation } from "./EvaluateRecommendation";
 import { Download } from "lucide-react";
 import { relativeTime } from "@/lib/format";
 import { useDashboardSummary } from "../overview/queries";
@@ -41,6 +42,7 @@ export function RecommendationsHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-3 lg:shrink-0">
+        <EvaluateRecommendation />
         <p className="text-[11px] text-fg-muted">
           Last evaluated{" "}
           <time
