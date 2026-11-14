@@ -61,7 +61,8 @@ pagination. All/Attention/Unmonitored counts are `summary.discovered`,
 resource once even when it has several reasons. Unmonitored overlaps Attention.
 Per-reason counts can overlap. Unknown assessments have their own attention
 reasons and are never counted as confirmed policy gaps. Supported action
-percentage is null for an empty inventory, rather than a fictitious measured 0%.
+percentage is null for an empty inventory or unavailable capability assessment,
+rather than a fictitious measured 0%.
 
 Rows and counts use one `assessed_at`, `assessment_version` and `snapshot_id`.
 Results are ordered by resource ID. Follow `next_cursor` with the same filters;

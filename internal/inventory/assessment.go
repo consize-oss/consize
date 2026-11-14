@@ -183,7 +183,11 @@ func assessActions(typ string, manifests []plugin.Manifest) Actions {
 		return out
 	}
 	for _, m := range manifests {
-		if m.Category == plugin.CategoryAction && plugin.Supports(m.SupportedResourceTypes, typ) && len(m.SupportedActionTypes) > 0 && plugin.Supports(m.Capabilities, plugin.CapabilityActionPlan) && plugin.Supports(m.Capabilities, plugin.CapabilityActionExecute) {
+		hasAction := false
+		for _, action := range m.SupportedActionTypes {
+			hasAction = hasAction || strings.TrimSpace(action) != ""
+		}
+		if m.ID != "" && m.Category == plugin.CategoryAction && plugin.Supports(m.SupportedResourceTypes, typ) && hasAction && plugin.Supports(m.Capabilities, plugin.CapabilityActionPlan) && plugin.Supports(m.Capabilities, plugin.CapabilityActionExecute) {
 			out.PluginIDs = append(out.PluginIDs, m.ID)
 		}
 	}

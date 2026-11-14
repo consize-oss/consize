@@ -580,7 +580,7 @@ export interface components {
             /** @description Overlapping subset of attention. */
             unmonitored: number;
             supported_actions: number;
-            /** @description supported_actions / discovered times 100; null when discovered is zero. */
+            /** @description supported_actions / discovered times 100; null when discovered is zero or action assessment is unavailable. */
             supported_action_percent: number | null;
             /** @description Per-reason resource counts; missing keys mean zero. These counts may overlap. */
             reasons: {

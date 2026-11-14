@@ -634,7 +634,7 @@ components:
         attention: {type: integer, minimum: 0, description: "Distinct resources with at least one attention reason."}
         unmonitored: {type: integer, minimum: 0, description: "Overlapping subset of attention."}
         supported_actions: {type: integer, minimum: 0}
-        supported_action_percent: {type: [number, 'null'], minimum: 0, maximum: 100, description: "supported_actions / discovered times 100; null when discovered is zero."}
+        supported_action_percent: {type: [number, 'null'], minimum: 0, maximum: 100, description: "supported_actions / discovered times 100; null when discovered is zero or action assessment is unavailable."}
         reasons:
           type: object
           description: Per-reason resource counts; missing keys mean zero. These counts may overlap.

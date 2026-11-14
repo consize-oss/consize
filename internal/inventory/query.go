@@ -169,7 +169,7 @@ func Filter(rows []Row, q Query) ([]Row, Summary) {
 		}
 		out = append(out, row)
 	}
-	if s.Discovered > 0 {
+	if s.Discovered > 0 && s.Reasons[ActionUnknown] == 0 {
 		pct := float64(s.SupportedActions) * 100 / float64(s.Discovered)
 		s.SupportedActionPercent = &pct
 	}

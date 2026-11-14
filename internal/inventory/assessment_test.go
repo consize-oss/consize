@@ -228,3 +228,18 @@ func TestDurableJobEvidenceFeedsInventory(t *testing.T) {
 		t.Fatal("job evidence crossed resource boundaries")
 	}
 }
+
+func TestUnavailableSupportIsNotMeasuredZeroAndBlankActionsAreNotSupported(t *testing.T) {
+	now := time.Now().UTC()
+	r := buildFixture(t, now, nil, nil, nil)
+	_, summary := Filter([]Row{r}, Query{Tab: "all"})
+	if summary.SupportedActionPercent != nil || summary.Reasons[ActionUnknown] != 1 {
+		t.Fatal("unavailable action assessment became measured 0%")
+	}
+	ms := manifestFixture()
+	ms[1].SupportedActionTypes = []string{"", " "}
+	r = buildFixture(t, now, nil, ms, nil)
+	if r.Assessment.Actions.Status != "unsupported" {
+		t.Fatal("blank action type established support")
+	}
+}
