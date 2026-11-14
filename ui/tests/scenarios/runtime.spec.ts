@@ -98,3 +98,29 @@ test("simulated apply uses a dry-run and confirmation, then shows mock job and a
     page.getByText("Simulated workflow: verified", { exact: true }),
   ).toBeVisible();
 });
+
+test("populated Overview and Resources keep every approved column visible on desktop", async ({page}, info) => {
+  for (const theme of ["light", "dark"]) {
+  await page.addInitScript(theme => localStorage.setItem("consize-theme", theme), theme);
+  for (const width of [1280, 1440, 1920]) {
+    await page.setViewportSize({width, height:900});
+    for (const view of [
+      {path:"/",region:"Prioritized recommendations table",columns:["Resource","Owner / policy","Change risk","Est. savings","Action"]},
+      {path:"/resources",region:"Resources table",columns:["Resource","Provider","Environment","Owner","Telemetry","Policy","Optimization status"]},
+    ]) {
+      await page.goto(view.path);
+      const region=page.getByRole("region",{name:view.region,exact:true});
+      await expect(region).toBeVisible();
+      await expect(region.getByRole("columnheader")).toHaveText(view.columns);
+      expect(await region.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBeTruthy();
+      const bounds=await region.boundingBox();expect(bounds).not.toBeNull();
+      for (const header of await region.getByRole("columnheader").all()) {
+        const box=await header.boundingBox();expect(box).not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(bounds!.x-1);
+        expect(box!.x+box!.width).toBeLessThanOrEqual(bounds!.x+bounds!.width+1);
+      }
+      await info.attach(`${view.path==="/"?"overview":"resources"}-populated-${theme}-${width}`,{body:await page.screenshot({fullPage:true}),contentType:"image/png"});
+    }
+  }
+  }
+});

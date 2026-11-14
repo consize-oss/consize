@@ -130,8 +130,9 @@ export function RecommendationPanel() {
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        <div role="region" aria-label="Prioritized recommendations table" tabIndex={0} className="overflow-x-auto">
+          <table className="w-full min-w-[840px] table-fixed text-left border-collapse text-xs">
+            <colgroup><col className="w-[40%]" /><col className="w-[20%]" /><col className="w-[12%]" /><col className="w-[14%]" /><col className="w-[14%]" /></colgroup>
             <thead>
               <tr className="h-9 bg-app-thead border-b border-app-border text-fg-muted uppercase tracking-wider text-[11px] font-medium">
                 <th className="px-4 font-medium">Resource</th>
@@ -158,11 +159,11 @@ export function RecommendationPanel() {
                     className="cursor-pointer hover:bg-app-hover transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         <div className={`w-7 h-7 rounded border flex items-center justify-center shrink-0 ${visual.tile}`}>
                           <Icon className={`w-3.5 h-3.5 ${visual.glyph}`} aria-hidden />
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <Link
                             href={href}
                             onClick={(e) => e.stopPropagation()}
@@ -170,13 +171,13 @@ export function RecommendationPanel() {
                           >
                             {rec.resource.name}
                           </Link>
-                          <div className="font-mono text-[10px] text-fg-muted truncate mt-0.5">{meta}</div>
+                          <div title={meta} className="font-mono text-[10px] text-fg-muted truncate mt-0.5">{meta}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="text-fg font-medium">{rec.owner}</div>
-                      <div className="font-mono text-[10px] text-fg-muted mt-0.5">{rec.policy_id}</div>
+                      <div title={rec.owner} className="truncate text-fg font-medium">{rec.owner}</div>
+                      <div title={rec.policy_id} className="truncate font-mono text-[10px] text-fg-muted mt-0.5">{rec.policy_id}</div>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${risk.pill}`}>
