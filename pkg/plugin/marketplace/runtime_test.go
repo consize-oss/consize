@@ -49,3 +49,44 @@ func TestBoundedOutput(t *testing.T) {
 		t.Fatal("unbounded output")
 	}
 }
+
+func TestExecutionEnvelopeNegotiationPreservesLegacyStrictDecoder(t *testing.T) {
+	plan := plugin.ActionPlan{PluginID: "action", Execution: &plugin.ExecutionEnvelope{DispatchID: "action-1", PlanDigest: "digest", LeaseEpoch: 7}}
+	for _, supported := range []bool{false, true} {
+		p := remote{executionEnvelope: supported}
+		req := p.prepareRequest(Request{Method: "inspect", Plan: plan})
+		wire, err := json.Marshal(req.Plan)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// The original v1 plan had only these required fields for this fixture.
+		var legacy struct {
+			PluginID          string         `json:"plugin_id"`
+			ResourceID        string         `json:"resource_id"`
+			ActionType        string         `json:"action_type"`
+			Summary           string         `json:"summary"`
+			Diff              map[string]any `json:"diff"`
+			RollbackAvailable bool           `json:"rollback_available"`
+			RequiresApproval  bool           `json:"requires_approval"`
+		}
+		decoder := json.NewDecoder(bytes.NewReader(wire))
+		decoder.DisallowUnknownFields()
+		err = decoder.Decode(&legacy)
+		if !supported && err != nil {
+			t.Fatalf("legacy executable rejected request: %v", err)
+		}
+		var modern plugin.ActionPlan
+		if err := json.Unmarshal(wire, &modern); err != nil {
+			t.Fatal(err)
+		}
+		if supported && (modern.Execution == nil || modern.Execution.DispatchID != "action-1") {
+			t.Fatal("negotiated dispatch identity lost")
+		}
+		if !supported && modern.Execution != nil {
+			t.Fatal("unnegotiated request field sent")
+		}
+		if plan.Execution == nil {
+			t.Fatal("adapter changed the worker's captured plan")
+		}
+	}
+}

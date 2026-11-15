@@ -40,11 +40,12 @@ type ExternalConfig struct {
 }
 
 type remote struct {
-	digest    string
-	directory string
-	key       ed25519.PublicKey
-	manifest  plugin.Manifest
-	config    json.RawMessage
+	executionEnvelope bool
+	digest            string
+	directory         string
+	key               ed25519.PublicKey
+	manifest          plugin.Manifest
+	config            json.RawMessage
 }
 
 func Load(cfg ExternalConfig) (*remote, error) {
@@ -58,10 +59,11 @@ func Load(cfg ExternalConfig) (*remote, error) {
 	}
 	p := &remote{directory: cfg.Directory, key: key, manifest: r.Manifest, config: cfg.Config, digest: r.SHA256}
 	var handshake struct {
-		Preflight bool            `json:"preflight"`
-		Manifest  plugin.Manifest `json:"manifest"`
-		Recovery  bool            `json:"recovery"`
-		Windowed  bool            `json:"windowed"`
+		ExecutionEnvelope bool            `json:"execution_envelope"`
+		Preflight         bool            `json:"preflight"`
+		Manifest          plugin.Manifest `json:"manifest"`
+		Recovery          bool            `json:"recovery"`
+		Windowed          bool            `json:"windowed"`
 	}
 	if err = p.call(context.Background(), Request{Method: "handshake"}, &handshake); err != nil {
 		return nil, err
@@ -69,6 +71,7 @@ func Load(cfg ExternalConfig) (*remote, error) {
 	if !reflect.DeepEqual(handshake.Manifest, p.manifest) || (p.manifest.Category == plugin.CategoryAction && (!handshake.Recovery || !handshake.Preflight)) || (p.manifest.Category == plugin.CategoryMetrics && !handshake.Windowed) {
 		return nil, errors.New("plugin handshake does not match signed contract")
 	}
+	p.executionEnvelope = handshake.ExecutionEnvelope
 	return p, nil
 }
 func Register(manager *plugin.Manager, cfg ExternalConfig) error {
@@ -93,6 +96,17 @@ func (b *limitedBuffer) Write(p []byte) (int, error) {
 	}
 	return b.Buffer.Write(p)
 }
+
+// Protocol v1 originally had no execution envelope. Negotiate this additive field
+// before sending it to an older executable whose decoder rejects unknown fields.
+func (p *remote) prepareRequest(req Request) Request {
+	req.Protocol, req.Config = Protocol, p.config
+	if !p.executionEnvelope {
+		req.Plan.Execution = nil
+	}
+	return req
+}
+
 func (p *remote) call(ctx context.Context, req Request, out any) error {
 	r, path, err := Installed(p.directory, p.key)
 	if err != nil {
@@ -101,8 +115,7 @@ func (p *remote) call(ctx context.Context, req Request, out any) error {
 	if !reflect.DeepEqual(r.Manifest, p.manifest) || r.SHA256 != p.digest {
 		return errors.New("installed release changed; restart with explicit configuration")
 	}
-	req.Protocol = Protocol
-	req.Config = p.config
+	req = p.prepareRequest(req)
 	b, err := json.Marshal(req)
 	if err != nil {
 		return err
@@ -238,11 +251,12 @@ func ServeOnce(ctx context.Context, in io.Reader, out io.Writer, factory func(js
 			switch req.Method {
 			case "handshake":
 				result = struct {
-					Preflight bool            `json:"preflight"`
-					Manifest  plugin.Manifest `json:"manifest"`
-					Recovery  bool            `json:"recovery"`
-					Windowed  bool            `json:"windowed"`
-				}{preflightOK, p.Manifest(), actionOK, metricsOK}
+					ExecutionEnvelope bool            `json:"execution_envelope"`
+					Preflight         bool            `json:"preflight"`
+					Manifest          plugin.Manifest `json:"manifest"`
+					Recovery          bool            `json:"recovery"`
+					Windowed          bool            `json:"windowed"`
+				}{true, preflightOK, p.Manifest(), actionOK, metricsOK}
 			case "preflight":
 				if preflightOK {
 					result, err = preflight.Preflight(ctx, req.Plan)

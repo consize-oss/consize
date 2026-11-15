@@ -36,7 +36,7 @@ These are the defaults. Polling must be 100ms–1m, leases 3s–5m, heartbeat at
 2. Reject a live lease. Otherwise increment its fencing token, start a durable attempt, and commit the claim with its audit event. PostgreSQL's clock determines lease validity.
 3. Inspect live provider state before deciding what to do. An expired lease is not evidence that a mutation failed.
 4. Persist apply or rollback intent before its external call. Immediately before forward mutation, check the captured plan digest, recommendation expiry, fresh baseline, current foundation-policy decision, plugin release and live provider preflight. Renew ownership again before mutation.
-5. Pass the stable dispatch ID, plan digest and attempt token to the provider in the execution envelope. Renew the lease during a slow phase; cancel its context if renewal fails.
+5. Pass the stable dispatch ID, plan digest and attempt token to supporting providers in the execution envelope. Executable plugins advertise support during handshake; older protocol-v1 executables retain their original request shape and idempotent captured-plan contract. Renew the lease during a slow phase; cancel its context if renewal fails.
 6. Save the phase result only if its fencing token and revision still match. Finish the attempt and release the claim. An interrupted process leaves a lease that another worker can take over after expiry.
 
 Heartbeats do not increment the workflow revision. A legitimate state save preserves the latest heartbeat instead of overwriting it with the worker's older copy. Captured mutation intent cannot change during a state transition.

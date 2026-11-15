@@ -68,6 +68,9 @@ func TestDownloadAndRunPackagedPrometheus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if !remote.executionEnvelope {
+		t.Fatal("packaged plugin envelope support was not negotiated")
+	}
 	if h := remote.Health(context.Background()); h.Status != "healthy" {
 		t.Fatalf("packaged health: %+v", h)
 	}
