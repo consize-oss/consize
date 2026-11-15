@@ -11,9 +11,9 @@ import (
 )
 
 func TestStandaloneConfigurationForwardsTransportAndRejectsUnsafeFields(t *testing.T) {
-	t.Setenv("CON17_PLUGIN_TOKEN", "private-test-credential")
+	t.Setenv("CON17_PLUGIN_TOKEN", "fixture-private-test-credential")
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer private-test-credential" {
+		if r.Header.Get("Authorization") != "Bearer fixture-private-test-credential" {
 			t.Error("transport credentials not forwarded")
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -35,8 +35,8 @@ func TestStandaloneConfigurationForwardsTransportAndRejectsUnsafeFields(t *testi
 	if health := p.Health(context.Background()); health.Status != "healthy" || health.Details == nil {
 		t.Fatalf("missing configured transport health: %+v", health)
 	}
-	for _, raw := range []string{`{"base_url":"http://localhost","transport":{"auth":{"password":"private-test-credential"}}}`, `{"base_url":"http://localhost","window":"private-test-credential"}`, `{"base_url":"http://localhost"} {}`, `null`} {
-		if _, err := configuredPlugin([]byte(raw)); err == nil || strings.Contains(err.Error(), "private-test-credential") {
+	for _, raw := range []string{`{"base_url":"http://localhost","transport":{"auth":{"password":"fixture-private-test-credential"}}}`, `{"base_url":"http://localhost","window":"fixture-private-test-credential"}`, `{"base_url":"http://localhost"} {}`, `null`} {
+		if _, err := configuredPlugin([]byte(raw)); err == nil || strings.Contains(err.Error(), "fixture-private-test-credential") {
 			t.Fatalf("unsafe config accepted/leaked: %v", err)
 		}
 	}
