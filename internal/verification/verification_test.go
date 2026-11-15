@@ -51,7 +51,7 @@ func snapshot(memory, cpu, restarts float64) plugin.MetricsSnapshot {
 
 func TestMissingMetricsAreInconclusive(t *testing.T) {
 	before := snapshot(100, 1, 0)
-	delete(before.Signals, "cpu_cores_points")
+	delete(before.Signals, "cpu_cores_p95")
 	if got := New(bootstrap.VerificationConfig{}).Verify(before, snapshot(100, 1, 0)); got.Status != StatusInconclusive {
 		t.Fatalf("missing metrics: %#v", got)
 	}

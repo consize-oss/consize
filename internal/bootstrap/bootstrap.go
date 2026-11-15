@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/internal/auth"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/plugin/marketplace"
 	"github.com/consize-oss/consize/pkg/plugins/kubernetes"
@@ -71,21 +72,23 @@ type PrometheusConfig struct {
 }
 
 type RecommenderConfig struct {
-	ConfidenceProfile string  `json:"confidence_profile,omitempty"`
-	Enabled           bool    `json:"enabled"`
-	MetricsPluginID   string  `json:"metrics_plugin_id"`
-	ActionPluginID    string  `json:"action_plugin_id"`
-	ActionType        string  `json:"action_type"`
-	ResourceKind      string  `json:"resource_kind"`
-	MetricKey         string  `json:"metric_key"`
-	CurrentRequestKey string  `json:"current_request_key"`
-	CurrentLimitKey   string  `json:"current_limit_key"`
-	HeadroomRatio     float64 `json:"headroom_ratio"`
-	MinReductionRatio float64 `json:"min_reduction_ratio"`
-	MaxReductionRatio float64 `json:"max_reduction_ratio"`
+	Quality           quality.Config `json:"quality,omitempty"`
+	ConfidenceProfile string         `json:"confidence_profile,omitempty"`
+	Enabled           bool           `json:"enabled"`
+	MetricsPluginID   string         `json:"metrics_plugin_id"`
+	ActionPluginID    string         `json:"action_plugin_id"`
+	ActionType        string         `json:"action_type"`
+	ResourceKind      string         `json:"resource_kind"`
+	MetricKey         string         `json:"metric_key"`
+	CurrentRequestKey string         `json:"current_request_key"`
+	CurrentLimitKey   string         `json:"current_limit_key"`
+	HeadroomRatio     float64        `json:"headroom_ratio"`
+	MinReductionRatio float64        `json:"min_reduction_ratio"`
+	MaxReductionRatio float64        `json:"max_reduction_ratio"`
 }
 
 type VerificationConfig struct {
+	Quality                   quality.Config      `json:"quality,omitempty"`
 	Checks                    []VerificationCheck `json:"checks,omitempty"`
 	RollbackOnFailure         bool                `json:"rollback_on_failure"`
 	RollbackOnTimeout         bool                `json:"rollback_on_timeout"`

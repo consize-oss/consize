@@ -125,7 +125,7 @@ func (s *Server) handleInventory(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusServiceUnavailable, message)
 		return
 	}
-	assessed, err := inventory.Build(ctx, input, s.plugins.Manifests(), s.policies, s.inventorySignals(), cursor.At)
+	assessed, err := inventory.BuildWithQuality(ctx, input, s.plugins.Manifests(), s.policies, s.inventorySignals(), s.cfg.Recommender.Quality, cursor.At)
 	if err != nil {
 		writeError(w, http.StatusServiceUnavailable, "inventory assessment timed out")
 		return

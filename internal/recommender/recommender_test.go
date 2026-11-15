@@ -30,9 +30,10 @@ func TestRecommendCreatesKubernetesPatchRecommendation(t *testing.T) {
 		Evidence: []plugin.MetricsSnapshot{testevidence.Attach(plugin.MetricsSnapshot{
 			ResourceID: "k8s:prod:checkout-api", PluginID: "prometheus-metrics",
 			Source: "prometheus",
-			Window: "24h",
+			Window: "168h",
 			Signals: map[string]any{
 				"memory_working_set_bytes_p95":    float64(4 * 1024 * 1024 * 1024),
+				"memory_working_set_bytes_max":    float64(4 * 1024 * 1024 * 1024),
 				"memory_working_set_bytes_points": float64(288),
 			},
 			CollectedAt: time.Now(),
@@ -51,7 +52,7 @@ func TestRecommendCreatesKubernetesPatchRecommendation(t *testing.T) {
 	if rec.AlgorithmID != BuiltInHeadroomAlgorithmID {
 		t.Fatalf("algorithm id = %q", rec.AlgorithmID)
 	}
-	if rec.Risk != "medium" || rec.Confidence != "low" {
+	if rec.Risk != "medium" || rec.Confidence != "medium" {
 		t.Fatalf("risk/confidence = %q/%q", rec.Risk, rec.Confidence)
 	}
 	patch := rec.Parameters["patch"].(map[string]any)
@@ -69,7 +70,7 @@ func TestRecommendCreatesKubernetesPatchRecommendation(t *testing.T) {
 func TestLargeReductionIsCapped(t *testing.T) {
 	rec, err := New(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action"}).RecommendOne(context.Background(), resource.Resource{
 		ID: "local", Type: resource.TypeKubernetesDeployment, Name: "test", CurrentState: map[string]any{"memory_request_bytes": int64(512 * 1024 * 1024), "memory_limit_bytes": int64(1024 * 1024 * 1024)},
-	}, testevidence.Attach(plugin.MetricsSnapshot{PluginID: "prometheus-metrics", ResourceID: "local", Signals: map[string]any{"memory_working_set_bytes_p95": float64(7 * 1024 * 1024)}}))
+	}, testevidence.Attach(plugin.MetricsSnapshot{PluginID: "prometheus-metrics", ResourceID: "local", Window: "24h", Signals: map[string]any{"memory_working_set_bytes_max": float64(7 * 1024 * 1024), "memory_working_set_bytes_p95": float64(7 * 1024 * 1024)}}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,13 +84,17 @@ func TestLargeReductionIsCapped(t *testing.T) {
 
 func TestRecommendationFreezesInputsAndRejectsUnusableProvenance(t *testing.T) {
 	res := resource.Resource{ID: "local", Type: resource.TypeKubernetesDeployment, Name: "test", CurrentState: map[string]any{"memory_request_bytes": int64(512 * 1024 * 1024)}}
-	s := testevidence.Attach(plugin.MetricsSnapshot{ResourceID: res.ID, PluginID: "prometheus-metrics", Signals: map[string]any{"memory_working_set_bytes_p95": 100.}})
+	s := testevidence.Attach(plugin.MetricsSnapshot{ResourceID: res.ID, PluginID: "prometheus-metrics", Window: "24h", Signals: map[string]any{"memory_working_set_bytes_max": 100., "memory_working_set_bytes_p95": 100.}})
 	engine := New(bootstrap.RecommenderConfig{MetricsPluginID: "prometheus-metrics", ActionPluginID: "kubernetes-action"})
 	rec, err := engine.RecommendOne(context.Background(), res, s)
 	if err != nil {
 		t.Fatal(err)
 	}
-	*s.Records[0].Value = 200
+	for i := range s.Records {
+		if s.Records[i].Signal == "memory_working_set_bytes_p95" {
+			*s.Records[i].Value = 200
+		}
+	}
 	if *rec.EvidenceSnapshot[0].Value != 100 || rec.AlgorithmVersion == "" || rec.EvidenceRefs[0] != rec.EvidenceSnapshot[0].ID {
 		t.Fatal("evidence not frozen")
 	}

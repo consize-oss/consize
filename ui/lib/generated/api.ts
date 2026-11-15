@@ -108,6 +108,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/evidence/quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assess evidence quality
+         * @description Operator-only on-demand assessment from the configured metrics provider. Unknown observations fail mandatory eligibility gates. The response excludes queries and credentials and is not cached.
+         */
+        get: operations["assessEvidenceQuality"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plugins": {
         parameters: {
             query?: never;
@@ -383,6 +403,7 @@ export interface components {
         };
         Error: {
             error: string;
+            quality?: components["schemas"]["EvidenceQualityAssessment"];
         };
         ActionRequest: {
             /** @enum {string} */
@@ -545,13 +566,14 @@ export interface components {
             attention_reasons: components["schemas"]["InventoryAttentionReason"][];
         };
         InventoryTelemetry: {
+            quality?: components["schemas"]["EvidenceQualityAssessment"];
             /** @enum {string} */
             status: "usable" | "stale" | "unmonitored" | "unknown";
             /** @description Registered evidence source identity; no provider URL or query is exposed. */
             source_plugin_ids: string[];
             /**
              * Format: date-time
-             * @description Latest successful persisted measurement window end for the selected source, not discovery last_seen or provider health.
+             * @description Latest successful persisted source observation time for the selected source, not discovery last_seen or provider health.
              */
             last_measurement_at: string | null;
             /** @enum {string} */
@@ -810,6 +832,7 @@ export interface components {
             threshold: number;
         };
         VerificationConfig: {
+            quality?: components["schemas"]["EvidenceQualityConfig"];
             checks?: components["schemas"]["VerificationCheck"][];
             rollback_on_failure: boolean;
             rollback_on_timeout: boolean;
@@ -821,6 +844,48 @@ export interface components {
             max_restart_increase: number;
             max_memory_p95_increase_ratio: number;
             max_cpu_p95_increase_ratio: number;
+        };
+        EvidenceQualityConfig: {
+            /** @description Duration of required observed history. Recommendation minimum is 30m; default is 24h or 168h for production. */
+            min_history?: string;
+            /** @description Maximum evidence collection age; default 2m. */
+            max_age?: string;
+            minimum_coverage?: number;
+            minimum_samples?: number;
+            maximum_gap_steps?: number;
+            maximum_peak_ratio?: number;
+        };
+        EvidenceQualityThresholds: components["schemas"]["EvidenceQualityConfig"] & {
+            require_topology: boolean;
+        };
+        EvidenceQualityDimension: {
+            name: string;
+            signal: string;
+            /** @enum {string} */
+            status: "pass" | "fail" | "unknown";
+            mandatory: boolean;
+            code: string;
+            message: string;
+            expected?: number | null;
+            observed: number | null;
+            required: number | null;
+            unit: string;
+        };
+        EvidenceQualityAssessment: {
+            /** @enum {string} */
+            version: "evidence-quality-v1";
+            /** @enum {string} */
+            purpose: "reporting" | "recommendation" | "verification";
+            resource_id: string;
+            plugin_id: string;
+            /** Format: date-time */
+            assessed_at: string;
+            /** @enum {string} */
+            state: "valid" | "unknown" | "partial" | "stale" | "missing" | "unavailable" | "invalid";
+            eligible: boolean;
+            thresholds: components["schemas"]["EvidenceQualityThresholds"];
+            evidence_ids: string[];
+            dimensions: components["schemas"]["EvidenceQualityDimension"][];
         };
         /** @description Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero. */
         EvidenceRecord: {
@@ -869,6 +934,7 @@ export interface components {
         VerificationResult: {
             status: string;
             reasons: string[];
+            quality?: components["schemas"]["EvidenceQualityAssessment"][];
             before: components["schemas"]["MetricsSnapshot"];
             after: components["schemas"]["MetricsSnapshot"];
             /** Format: date-time */
@@ -1347,6 +1413,37 @@ export interface operations {
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
             502: components["responses"]["ErrorResponse"];
+        };
+    };
+    assessEvidenceQuality: {
+        parameters: {
+            query: {
+                resource_id: string;
+                purpose?: "reporting" | "recommendation" | "verification";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versioned quality assessment, including failed and unknown dimensions. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceQualityAssessment"];
+                };
+            };
+            400: components["responses"]["ErrorResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            405: components["responses"]["ErrorResponse"];
+            502: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
         };
     };
     listPlugins: {

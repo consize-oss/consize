@@ -68,9 +68,9 @@ func (m apiMetrics) ReadMetrics(ctx context.Context, res resource.Resource) (plu
 func (apiMetrics) ReadMetricsBetween(_ context.Context, res resource.Resource, start, end time.Time) (plugin.MetricsSnapshot, error) {
 	coverage := map[string]plugin.MetricCoverage{}
 	for _, key := range []string{"memory_working_set_bytes", "cpu_cores", "restarts_30m"} {
-		coverage[key] = plugin.MetricCoverage{FirstSample: start, LastSample: end, ExpectedPoints: 60, ActualPoints: 60, Step: 30 * time.Second}
+		coverage[key] = plugin.MetricCoverage{FirstSample: start, LastSample: end, ExpectedPoints: 61, ActualPoints: 61, Step: 30 * time.Second, MaxGap: 30 * time.Second}
 	}
-	return testevidence.Attach(plugin.MetricsSnapshot{PluginID: "metrics", ResourceID: res.ID, CollectedAt: end, Coverage: coverage, Signals: map[string]any{"memory_working_set_bytes_p95": 100.0, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 60, "cpu_cores_points": 60, "restarts_30m_points": 60}}), nil
+	return testevidence.Attach(plugin.MetricsSnapshot{PluginID: "metrics", ResourceID: res.ID, CollectedAt: end, Coverage: coverage, Signals: map[string]any{"memory_working_set_bytes_max": 100.0, "memory_working_set_bytes_p95": 100.0, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 60, "cpu_cores_points": 60, "restarts_30m_points": 60}}), nil
 }
 
 func apiFixture(t *testing.T) (*Server, *store.Memory, *fake.Clientset) {
@@ -276,6 +276,7 @@ func TestAuditHealthAndIntegrityEndpoints(t *testing.T) {
 func TestRecommendationAPIExposesImmutableProvenance(t *testing.T) {
 	server, _, _ := apiFixture(t)
 	server.cfg.Recommender.Enabled = true
+	server.cfg.Recommender.ConfidenceProfile = "lab"
 	server.cfg.Recommender.MetricsPluginID = "metrics"
 	server.cfg.Recommender.ActionPluginID = "kubernetes-action"
 	w := httptest.NewRecorder()

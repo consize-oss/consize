@@ -143,6 +143,27 @@ paths:
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
         '502': {$ref: '#/components/responses/ErrorResponse'}
+  /api/evidence/quality:
+    get:
+      tags: [Product]
+      operationId: assessEvidenceQuality
+      summary: Assess evidence quality
+      description: Operator-only on-demand assessment from the configured metrics provider. Unknown observations fail mandatory eligibility gates. The response excludes queries and credentials and is not cached.
+      parameters:
+        - {name: resource_id, in: query, required: true, schema: {type: string, minLength: 1, maxLength: 512}}
+        - {name: purpose, in: query, schema: {type: string, enum: [reporting, recommendation, verification], default: reporting}}
+      responses:
+        '200':
+          description: Versioned quality assessment, including failed and unknown dimensions.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content: {application/json: {schema: {$ref: '#/components/schemas/EvidenceQualityAssessment'}}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '502': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
   /api/plugins:
     get:
       tags: [Product]
@@ -452,7 +473,7 @@ components:
       type: string
       enum: [info, warning, error, critical]
     JsonObject: {type: object, additionalProperties: true}
-    Error: {type: object, required: [error], properties: {error: {type: string}}}
+    Error: {type: object, required: [error], properties: {error: {type: string}, quality: {$ref: '#/components/schemas/EvidenceQualityAssessment'}}}
     ActionRequest: {type: object, additionalProperties: false, properties: {mode: {type: string, enum: [approved]}}}
     AuditActor:
       type: object
@@ -607,9 +628,10 @@ components:
       type: object
       required: [status, source_plugin_ids, last_measurement_at, reason]
       properties:
+        quality: {$ref: '#/components/schemas/EvidenceQualityAssessment'}
         status: {type: string, enum: [usable, stale, unmonitored, unknown]}
         source_plugin_ids: {type: array, items: {type: string}, description: "Registered evidence source identity; no provider URL or query is exposed."}
-        last_measurement_at: {type: [string, 'null'], format: date-time, description: "Latest successful persisted measurement window end for the selected source, not discovery last_seen or provider health."}
+        last_measurement_at: {type: [string, 'null'], format: date-time, description: "Latest successful persisted source observation time for the selected source, not discovery last_seen or provider health."}
         reason: {type: string, enum: [metrics_not_configured, capability_assessment_unavailable, no_trusted_evidence, measurements_missing, incomplete_or_invalid_evidence, measurements_stale, required_measurements_usable]}
     InventoryPolicy:
       type: object
@@ -861,6 +883,7 @@ components:
       type: object
       required: [rollback_on_failure, rollback_on_timeout, timeout, isolation, enabled, metrics_plugin_id, wait, max_restart_increase, max_memory_p95_increase_ratio, max_cpu_p95_increase_ratio]
       properties:
+        quality: {$ref: '#/components/schemas/EvidenceQualityConfig'}
         checks: {type: array, items: {$ref: '#/components/schemas/VerificationCheck'}}
         rollback_on_failure: {type: boolean}
         rollback_on_timeout: {type: boolean}
@@ -872,6 +895,50 @@ components:
         max_restart_increase: {type: number}
         max_memory_p95_increase_ratio: {type: number}
         max_cpu_p95_increase_ratio: {type: number}
+    EvidenceQualityConfig:
+      type: object
+      properties:
+        min_history: {type: string, description: Duration of required observed history. Recommendation minimum is 30m; default is 24h or 168h for production.}
+        max_age: {type: string, description: Maximum evidence collection age; default 2m.}
+        minimum_coverage: {type: number, minimum: 0.5, maximum: 1}
+        minimum_samples: {type: integer, minimum: 2, maximum: 1000000}
+        maximum_gap_steps: {type: integer, minimum: 1, maximum: 100}
+        maximum_peak_ratio: {type: number, minimum: 1, maximum: 100}
+    EvidenceQualityThresholds:
+      allOf:
+        - {$ref: '#/components/schemas/EvidenceQualityConfig'}
+        - type: object
+          required: [min_history, max_age, minimum_coverage, minimum_samples, maximum_gap_steps, maximum_peak_ratio, require_topology]
+          properties:
+            require_topology: {type: boolean}
+    EvidenceQualityDimension:
+      type: object
+      required: [name, signal, status, mandatory, code, message, observed, required, unit]
+      properties:
+        name: {type: string}
+        signal: {type: string}
+        status: {type: string, enum: [pass, fail, unknown]}
+        mandatory: {type: boolean}
+        code: {type: string}
+        message: {type: string}
+        expected: {type: [number, 'null']}
+        observed: {type: [number, 'null']}
+        required: {type: [number, 'null']}
+        unit: {type: string}
+    EvidenceQualityAssessment:
+      type: object
+      required: [version, purpose, resource_id, plugin_id, assessed_at, state, eligible, thresholds, dimensions, evidence_ids]
+      properties:
+        version: {type: string, enum: [evidence-quality-v1]}
+        purpose: {type: string, enum: [reporting, recommendation, verification]}
+        resource_id: {type: string}
+        plugin_id: {type: string}
+        assessed_at: {type: string, format: date-time}
+        state: {type: string, enum: [valid, unknown, partial, stale, missing, unavailable, invalid]}
+        eligible: {type: boolean}
+        thresholds: {$ref: '#/components/schemas/EvidenceQualityThresholds'}
+        evidence_ids: {type: array, items: {type: string}}
+        dimensions: {type: array, items: {$ref: '#/components/schemas/EvidenceQualityDimension'}}
     EvidenceRecord:
       type: object
       description: Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero.
@@ -916,6 +983,7 @@ components:
       properties:
         status: {type: string}
         reasons: {type: array, items: {type: string}}
+        quality: {type: array, maxItems: 2, items: {$ref: '#/components/schemas/EvidenceQualityAssessment'}}
         before: {$ref: '#/components/schemas/MetricsSnapshot'}
         after: {$ref: '#/components/schemas/MetricsSnapshot'}
         checked_at: {type: string, format: date-time}

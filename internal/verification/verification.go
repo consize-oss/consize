@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/internal/bootstrap"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 )
 
@@ -21,6 +22,7 @@ type Result struct {
 	Before     plugin.MetricsSnapshot `json:"before"`
 	After      plugin.MetricsSnapshot `json:"after"`
 	CheckedAt  time.Time              `json:"checked_at"`
+	Quality    []quality.Assessment   `json:"quality,omitempty"`
 	Thresholds map[string]any         `json:"thresholds"`
 }
 
@@ -58,60 +60,26 @@ func RequiredSignals(cfg bootstrap.VerificationConfig) []string {
 	return keys
 }
 
-func (s *Service) Verify(before, after plugin.MetricsSnapshot) Result {
+func (s *Service) Verify(before, after plugin.MetricsSnapshot) (result Result) {
+	defer func() {
+		result.Quality = []quality.Assessment{s.AssessQuality(before, before.CollectedAt), s.AssessQuality(after, after.CollectedAt)}
+	}()
 	reasons := []string{}
+	if before.ResourceID != after.ResourceID || before.PluginID != after.PluginID || after.CollectedAt.Before(before.CollectedAt) {
+		return Result{Status: StatusInconclusive, Reasons: []string{"baseline and after evidence identities or chronology differ"}, Before: before, After: after, CheckedAt: time.Now().UTC()}
+	}
 	if err := ValidateChecks(s.cfg); err != nil {
 		return Result{Status: StatusInconclusive, Reasons: []string{err.Error()}, Before: before, After: after, CheckedAt: time.Now().UTC()}
 	}
 	for _, snapshot := range []plugin.MetricsSnapshot{before, after} {
-		for _, key := range RequiredSignals(s.cfg) {
-			if signal(snapshot, key+"_points") < 2 {
-				reasons = append(reasons, "insufficient samples for "+key)
-			}
-			if coverage, ok := snapshot.Coverage[key]; ok {
-				if coverage.ExpectedPoints < 2 || coverage.ActualPoints < 2 || float64(coverage.ActualPoints)/float64(coverage.ExpectedPoints) < 0.8 || coverage.LastSample.IsZero() || coverage.Step <= 0 || snapshot.CollectedAt.Sub(coverage.LastSample) > 3*coverage.Step {
-					reasons = append(reasons, "insufficient or stale coverage for "+key)
-				}
-			}
-			metric := key + "_p95"
-			if key == "restarts_30m" {
-				metric = key + "_max"
-			}
-			for _, check := range s.cfg.Checks {
-				if check.Signal == key {
-					metric = key + "_" + check.Statistic
-				}
-			}
-			unit := "count"
-			if key == "memory_working_set_bytes" {
-				unit = "bytes"
-			}
-			if key == "cpu_cores" {
-				unit = "cores"
-			}
-			if key == "cpu_throttling_ratio" {
-				unit = "ratio"
-			}
-			if key == "error_rate" {
-				unit = "ratio"
-			}
-			if key == "latency_seconds" {
-				unit = "seconds"
-			}
-			for _, check := range s.cfg.Checks {
-				if check.Signal == key && check.Unit != "" {
-					unit = check.Unit
-				}
-			}
-			if _, err := snapshot.Measurement(metric, unit, snapshot.CollectedAt); err != nil {
-				reasons = append(reasons, "missing or untrustworthy provenance: "+metric)
-			}
-			value, exists := numericSignal(snapshot, metric)
-			if !exists || value < 0 || math.IsNaN(value) || math.IsInf(value, 0) {
-				reasons = append(reasons, "missing or invalid signal: "+metric)
+		assessment := s.AssessQuality(snapshot, snapshot.CollectedAt)
+		for _, dimension := range assessment.Dimensions {
+			if dimension.Mandatory && dimension.Status != "pass" {
+				reasons = append(reasons, dimension.Signal+": "+dimension.Code+": "+dimension.Message)
 			}
 		}
 	}
+
 	if len(reasons) > 0 {
 		return Result{Status: StatusInconclusive, Reasons: reasons, Before: before, After: after, CheckedAt: time.Now().UTC()}
 	}
@@ -203,4 +171,41 @@ func numericSignal(snapshot plugin.MetricsSnapshot, key string) (float64, bool) 
 
 type jsonNumber interface {
 	Float64() (float64, error)
+}
+
+func (s *Service) AssessQuality(snapshot plugin.MetricsSnapshot, at time.Time) quality.Assessment {
+	thresholds, err := quality.Resolve(s.cfg.Quality, quality.Verification, false, false)
+	if err != nil {
+		return quality.Assess(quality.Input{Invalid: true}, quality.Verification, thresholds, at)
+	}
+	signals := []quality.Signal{}
+	for _, key := range RequiredSignals(s.cfg) {
+		statistic := "p95"
+		unit := "count"
+		switch key {
+		case "memory_working_set_bytes":
+			unit = "bytes"
+		case "cpu_cores":
+			unit = "cores"
+		case "restarts_30m":
+			statistic = "max"
+		case "cpu_throttling_ratio", "error_rate":
+			unit = "ratio"
+		case "latency_seconds":
+			unit = "seconds"
+		}
+		for _, check := range s.cfg.Checks {
+			if check.Signal == key {
+				statistic = check.Statistic
+				if check.Unit != "" {
+					unit = check.Unit
+				}
+			}
+		}
+		signals = append(signals, quality.Signal{Name: key + "_" + statistic, Unit: unit})
+	}
+	if s.cfg.MetricsPluginID != "" && snapshot.PluginID != s.cfg.MetricsPluginID {
+		snapshot.Records = nil
+	}
+	return snapshot.AssessQuality(signals, quality.Verification, thresholds, at)
 }

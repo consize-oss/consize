@@ -34,3 +34,16 @@ func TestEnabledWorkflowsRequireExplicitRegisteredCapabilities(t *testing.T) {
 		}
 	}
 }
+
+func TestInvalidQualityThresholdsPreventStartup(t *testing.T) {
+	cfg := Config{}
+	cfg.Recommender.Quality.MinHistory = "garbage"
+	if err := ValidateCapabilities(plugin.NewManager(), cfg); err == nil || !strings.Contains(err.Error(), "recommender.quality") {
+		t.Fatalf("invalid recommendation quality accepted: %v", err)
+	}
+	cfg = Config{}
+	cfg.Verification.Quality.MinimumCoverage = .1
+	if err := ValidateCapabilities(plugin.NewManager(), cfg); err == nil || !strings.Contains(err.Error(), "verification.quality") {
+		t.Fatalf("invalid verification quality accepted: %v", err)
+	}
+}
