@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -13,29 +12,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type deploymentDiscoverer interface {
-	ListDeployments(context.Context) ([]appsv1.Deployment, error)
-}
-
 func (p *Plugin) Discover(ctx context.Context) ([]plugin.ProviderObservation, error) {
-	discoverer, ok := p.patcher.(deploymentDiscoverer)
-	if !ok {
-		return nil, errors.New("kubernetes client does not support discovery")
-	}
-	deployments, err := discoverer.ListDeployments(ctx)
+	snapshot, err := p.DiscoverSnapshot(ctx)
 	if err != nil {
 		return nil, err
 	}
-	now := time.Now().UTC()
-	out := make([]plugin.ProviderObservation, 0, len(deployments))
-	for _, deployment := range deployments {
-		res := p.deploymentResource(deployment, now)
-		out = append(out, plugin.ProviderObservation{
-			PluginID: ID, Provider: resource.ProviderKubernetes,
-			ObservedAt: now, Resource: res,
-		})
-	}
-	return out, nil
+	return snapshot.Observations, nil
 }
 
 func (p *Plugin) deploymentResource(deployment appsv1.Deployment, observedAt time.Time) resource.Resource {
@@ -70,12 +52,24 @@ func (p *Plugin) deploymentResource(deployment appsv1.Deployment, observedAt tim
 	}
 }
 
-func (k *K8sPatcher) ListDeployments(ctx context.Context) ([]appsv1.Deployment, error) {
-	items, err := k.client.AppsV1().Deployments(metav1.NamespaceAll).List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("list kubernetes deployments: %w", err)
+func (k *K8sPatcher) ListDeploymentPage(ctx context.Context, namespace string, options metav1.ListOptions) (*appsv1.DeploymentList, error) {
+	if k.client == nil {
+		return nil, scanFailure("unsupported_client")
 	}
-	return items.Items, nil
+	return k.client.AppsV1().Deployments(namespace).List(ctx, options)
+}
+
+// ListDeployments retains the existing convenience API with bounded enumeration.
+func (k *K8sPatcher) ListDeployments(ctx context.Context) ([]appsv1.Deployment, error) {
+	options, _ := discoveryDefaults(DiscoveryConfig{})
+	ctx, cancel := context.WithTimeout(ctx, options.timeout)
+	defer cancel()
+	scan := plugin.DiscoveryScan{SnapshotVersions: map[string]string{}}
+	items, err := collectDeployments(ctx, k, options, &scan)
+	if err != nil {
+		return nil, safeScanError(err)
+	}
+	return items, nil
 }
 
 func cloneLabels(in map[string]string) map[string]string {

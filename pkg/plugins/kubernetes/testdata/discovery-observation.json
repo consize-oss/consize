@@ -1,0 +1,77 @@
+{
+  "annotation_keys": [
+    "example.io/team",
+    "kubectl.kubernetes.io/last-applied-configuration"
+  ],
+  "annotation_values_omitted": 1,
+  "annotations": {
+    "example.io/team": "platform"
+  },
+  "available_replicas": 1,
+  "cluster_id": "cluster-one",
+  "containers": [
+    {
+      "kind": "container",
+      "limits": {
+        "memory": "1Gi"
+      },
+      "name": "app",
+      "requests": {
+        "cpu": "500m",
+        "memory": "512Mi"
+      },
+      "restart_policy": null
+    },
+    {
+      "kind": "init_container",
+      "limits": {},
+      "name": "bootstrap",
+      "requests": {
+        "cpu": "10m"
+      },
+      "restart_policy": "Always"
+    }
+  ],
+  "created_at": "2026-11-15T00:00:00Z",
+  "desired_replicas": 2,
+  "generation": 3,
+  "labels": {
+    "app": "chosen"
+  },
+  "name": "api",
+  "namespace": "alpha",
+  "observed_generation": 2,
+  "owner_references": [
+    {
+      "api_version": "argoproj.io/v1alpha1",
+      "block_owner_deletion": null,
+      "controller": true,
+      "kind": "Rollout",
+      "name": "api",
+      "uid": "owner-1"
+    }
+  ],
+  "ready_replicas": 1,
+  "replicas": 2,
+  "resource_version": "12",
+  "selector": {
+    "matchLabels": {
+      "app": "chosen"
+    }
+  },
+  "template_annotation_keys": [
+    "example.io/note",
+    "example.io/team"
+  ],
+  "template_annotation_values_omitted": 1,
+  "template_annotations": {
+    "example.io/team": "worker"
+  },
+  "template_labels": {
+    "app": "chosen"
+  },
+  "uid": "uid-1",
+  "unavailable_replicas": 1,
+  "updated_replicas": 1,
+  "version": "kubernetes-deployment-discovery-v1"
+}

@@ -309,8 +309,15 @@ jobs:
           test_bin="$(scripts/ci/install-prometheus-test.sh "$RUNNER_TEMP/prometheus-test")"
           printf 'CONSIZE_PROMETHEUS_BIN=%s\n' "$test_bin" >> "$GITHUB_ENV"
 
+      - name: Create isolated Kubernetes discovery test cluster
+        run: scripts/ci/discovery-cluster.sh create "$RUNNER_TEMP/discovery-cluster"
+
       - name: Run formatting, vet, unit and race checks
         run: scripts/ci/backend.sh
+
+      - name: Delete isolated Kubernetes discovery test cluster
+        if: always()
+        run: scripts/ci/discovery-cluster.sh delete "$RUNNER_TEMP/discovery-cluster"
 
       - name: Reject tracked-file drift
         run: git diff --exit-code
