@@ -81,6 +81,48 @@ paths:
         '400': {$ref: '#/components/responses/ErrorResponse'}
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
+  /api/resources/inventory:
+    get:
+      tags: [Product]
+      operationId: listResourceInventory
+      summary: Read assessed resource inventory and consistent coverage counts
+      description: >-
+        Read-only composition of persisted registry records, trusted evidence, effective policy coverage and configured action capabilities.
+        Requires viewer authorization and never queries infrastructure providers. All filters except tab, limit and cursor affect summary/tab counts.
+        filtered_total follows the selected tab; unmonitored overlaps attention. Deleted resources are excluded unless lifecycle_state selects them.
+        Rows and counts share assessed_at and snapshot_id. Signed cursors expire after five minutes and are bound to filters and this server instance.
+        Changing inputs between pages returns 409 instead of mixing assessments; restart without a cursor. Fresh first-page requests reassess freshness.
+        The current global foundation policy is reported as matching coverage, not permission to execute.
+        Reads exceeding 10000 entities per input collection or 32 MiB of persisted input return 503, never partial totals.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 100}}
+        - {name: cursor, in: query, schema: {type: string, maxLength: 2048}, description: "Opaque signed continuation; repeat the original filters."}
+        - {name: provider, in: query, schema: {type: string, maxLength: 512}}
+        - {name: account, in: query, schema: {type: string, maxLength: 512}}
+        - {name: region, in: query, schema: {type: string, maxLength: 512}}
+        - {name: type, in: query, schema: {type: string, maxLength: 512}}
+        - {name: source_plugin_id, in: query, schema: {type: string, maxLength: 512}}
+        - {name: environment, in: query, schema: {type: string, enum: [production, staging, development]}}
+        - {name: lifecycle_state, in: query, schema: {type: string, enum: [active, stale, deleted]}}
+        - {name: owner, in: query, schema: {type: string, maxLength: 512}, description: "Exact owner or unassigned for missing ownership."}
+        - {name: search, in: query, schema: {type: string, maxLength: 512}, description: "Case-insensitive substring in resource ID, name, account, assessed owner or labels."}
+        - {name: telemetry, in: query, schema: {type: string, enum: [usable, stale, unmonitored, unknown]}}
+        - {name: policy, in: query, schema: {type: string, enum: [covered, uncovered, unknown]}}
+        - {name: actions, in: query, schema: {type: string, enum: [supported, unsupported, unknown]}}
+        - {name: tab, in: query, schema: {type: string, enum: [all, attention, unmonitored], default: all}}
+      responses:
+        '200':
+          description: Assessment page. Unknown values are explicit and no financial estimates are added.
+          headers:
+            X-Request-ID: {$ref: '#/components/headers/RequestId'}
+            Cache-Control: {schema: {type: string, const: no-store}, description: "Do not cache authenticated inventory responses."}
+          content: {application/json: {schema: {$ref: '#/components/schemas/InventoryPage'}}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
   /api/discovery:
     post:
       tags: [Product]
@@ -526,6 +568,78 @@ components:
         lifecycle_observed_at: {type: string, format: date-time}
         created_at: {type: string, format: date-time}
         updated_at: {type: string, format: date-time}
+    InventoryPage:
+      type: object
+      required: [resources, summary, filtered_total, assessment_version, assessed_at, snapshot_id, next_cursor, has_more]
+      properties:
+        resources: {type: array, maxItems: 200, items: {$ref: '#/components/schemas/InventoryRow'}}
+        summary: {$ref: '#/components/schemas/InventorySummary'}
+        filtered_total: {type: integer, minimum: 0, description: "Total matching the selected tab before pagination."}
+        assessment_version: {type: string, const: inventory-v1}
+        assessed_at: {type: string, format: date-time}
+        snapshot_id: {type: string, pattern: '^[a-f0-9]{64}$'}
+        next_cursor: {type: string, description: "Empty on the last page."}
+        has_more: {type: boolean}
+    InventoryRow:
+      type: object
+      required: [resource, assessment]
+      properties:
+        resource: {$ref: '#/components/schemas/Resource'}
+        assessment: {$ref: '#/components/schemas/InventoryAssessment'}
+    InventoryAttentionReason:
+      type: string
+      description: Unknown reasons request assessment attention and are not confirmed coverage gaps.
+      enum: [unowned, telemetry_stale, telemetry_unmonitored, telemetry_unknown, policy_gap, policy_unknown, action_unsupported, action_unknown]
+    InventoryAssessment:
+      type: object
+      required: [version, assessed_at, owner, telemetry, policy, actions, active_recommendation_ids, optimization_status, attention_reasons]
+      properties:
+        version: {type: string, const: inventory-v1}
+        assessed_at: {type: string, format: date-time}
+        owner: {type: [string, 'null'], description: "Missing or unassigned ownership is null."}
+        telemetry: {$ref: '#/components/schemas/InventoryTelemetry'}
+        policy: {$ref: '#/components/schemas/InventoryPolicy'}
+        actions: {$ref: '#/components/schemas/InventoryActions'}
+        active_recommendation_ids: {type: array, items: {type: integer, format: int64}, description: "Pending, planned, approved or executing recommendations excluding expired or superseded records."}
+        optimization_status: {type: string, enum: [awaiting_evidence, no_active_recommendations, recommendations_available, executing]}
+        attention_reasons: {type: array, uniqueItems: true, items: {$ref: '#/components/schemas/InventoryAttentionReason'}}
+    InventoryTelemetry:
+      type: object
+      required: [status, source_plugin_ids, last_measurement_at, reason]
+      properties:
+        status: {type: string, enum: [usable, stale, unmonitored, unknown]}
+        source_plugin_ids: {type: array, items: {type: string}, description: "Registered evidence source identity; no provider URL or query is exposed."}
+        last_measurement_at: {type: [string, 'null'], format: date-time, description: "Latest successful persisted measurement window end for the selected source, not discovery last_seen or provider health."}
+        reason: {type: string, enum: [metrics_not_configured, capability_assessment_unavailable, no_trusted_evidence, measurements_missing, incomplete_or_invalid_evidence, measurements_stale, required_measurements_usable]}
+    InventoryPolicy:
+      type: object
+      required: [status, policy_ids, reason]
+      properties:
+        status: {type: string, enum: [covered, uncovered, unknown]}
+        policy_ids: {type: array, items: {type: string}, description: "Matching policy references; not approval or authorization."}
+        reason: {type: string}
+    InventoryActions:
+      type: object
+      required: [status, plugin_ids, reason]
+      properties:
+        status: {type: string, enum: [supported, unsupported, unknown]}
+        plugin_ids: {type: array, items: {type: string}, description: "Configured plugins supporting planning and execution for this resource type."}
+        reason: {type: string, enum: [no_registered_action_path, capability_assessment_unavailable, registered_action_path]}
+    InventorySummary:
+      type: object
+      required: [discovered, reporting, attention, unmonitored, supported_actions, supported_action_percent, reasons]
+      properties:
+        discovered: {type: integer, minimum: 0}
+        reporting: {type: integer, minimum: 0}
+        attention: {type: integer, minimum: 0, description: "Distinct resources with at least one attention reason."}
+        unmonitored: {type: integer, minimum: 0, description: "Overlapping subset of attention."}
+        supported_actions: {type: integer, minimum: 0}
+        supported_action_percent: {type: [number, 'null'], minimum: 0, maximum: 100, description: "supported_actions / discovered times 100; null when discovered is zero or action assessment is unavailable."}
+        reasons:
+          type: object
+          description: Per-reason resource counts; missing keys mean zero. These counts may overlap.
+          propertyNames: {$ref: '#/components/schemas/InventoryAttentionReason'}
+          additionalProperties: {type: integer, minimum: 0}
     ResourceInput:
       type: object
       description: Resource observation accepted from an administrator or trusted discovery adapter. Server-managed model and lifecycle fields are returned in Resource.

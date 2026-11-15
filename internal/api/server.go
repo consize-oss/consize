@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,14 +31,16 @@ import (
 )
 
 type Server struct {
-	controller *safety.Controller
-	auth       *auth.Authorizer
-	audit      *audit.Writer
-	actionMu   sync.Mutex
-	st         store.Store
-	plugins    *plugin.Manager
-	policies   *policy.Engine
-	cfg        bootstrap.Config
+	inventoryKey [32]byte
+	inventoryNow func() time.Time
+	controller   *safety.Controller
+	auth         *auth.Authorizer
+	audit        *audit.Writer
+	actionMu     sync.Mutex
+	st           store.Store
+	plugins      *plugin.Manager
+	policies     *policy.Engine
+	cfg          bootstrap.Config
 }
 
 var requestSequence atomic.Uint64
@@ -89,6 +92,10 @@ func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine,
 		return nil, err
 	}
 	s := &Server{st: st, plugins: plugins, policies: policies, cfg: cfg, auth: authorizer}
+	if _, err := rand.Read(s.inventoryKey[:]); err != nil {
+		return nil, fmt.Errorf("initialize inventory cursor key: %w", err)
+	}
+	s.inventoryNow = time.Now
 	if auditStore, ok := st.(audit.Store); ok {
 		s.audit = audit.NewWriter(auditStore)
 	}
@@ -113,6 +120,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/health", s.withCORS(s.handleHealth))
 	mux.HandleFunc("/api/dashboard", s.protect(auth.RoleViewer, s.handleDashboard))
 	mux.HandleFunc("/api/resources", s.protect(s.resourceRole, s.handleResources))
+	mux.HandleFunc("/api/resources/inventory", s.protect(auth.RoleViewer, s.handleInventory))
 	mux.HandleFunc("/api/discovery", s.protect(auth.RoleAdmin, s.handleDiscovery))
 	mux.HandleFunc("/api/plugins", s.protect(auth.RoleViewer, s.handlePlugins))
 	mux.HandleFunc("/api/recommendations/generate", s.protect(auth.RoleOperator, s.handleGenerateRecommendation))

@@ -68,6 +68,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/resources/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read assessed resource inventory and consistent coverage counts
+         * @description Read-only composition of persisted registry records, trusted evidence, effective policy coverage and configured action capabilities. Requires viewer authorization and never queries infrastructure providers. All filters except tab, limit and cursor affect summary/tab counts. filtered_total follows the selected tab; unmonitored overlaps attention. Deleted resources are excluded unless lifecycle_state selects them. Rows and counts share assessed_at and snapshot_id. Signed cursors expire after five minutes and are bound to filters and this server instance. Changing inputs between pages returns 409 instead of mixing assessments; restart without a cursor. Fresh first-page requests reassess freshness. The current global foundation policy is reported as matching coverage, not permission to execute. Reads exceeding 10000 entities per input collection or 32 MiB of persisted input return 503, never partial totals.
+         */
+        get: operations["listResourceInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/discovery": {
         parameters: {
             query?: never;
@@ -484,6 +504,88 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        InventoryPage: {
+            resources: components["schemas"]["InventoryRow"][];
+            summary: components["schemas"]["InventorySummary"];
+            /** @description Total matching the selected tab before pagination. */
+            filtered_total: number;
+            /** @constant */
+            assessment_version: "inventory-v1";
+            /** Format: date-time */
+            assessed_at: string;
+            snapshot_id: string;
+            /** @description Empty on the last page. */
+            next_cursor: string;
+            has_more: boolean;
+        };
+        InventoryRow: {
+            resource: components["schemas"]["Resource"];
+            assessment: components["schemas"]["InventoryAssessment"];
+        };
+        /**
+         * @description Unknown reasons request assessment attention and are not confirmed coverage gaps.
+         * @enum {string}
+         */
+        InventoryAttentionReason: "unowned" | "telemetry_stale" | "telemetry_unmonitored" | "telemetry_unknown" | "policy_gap" | "policy_unknown" | "action_unsupported" | "action_unknown";
+        InventoryAssessment: {
+            /** @constant */
+            version: "inventory-v1";
+            /** Format: date-time */
+            assessed_at: string;
+            /** @description Missing or unassigned ownership is null. */
+            owner: string | null;
+            telemetry: components["schemas"]["InventoryTelemetry"];
+            policy: components["schemas"]["InventoryPolicy"];
+            actions: components["schemas"]["InventoryActions"];
+            /** @description Pending, planned, approved or executing recommendations excluding expired or superseded records. */
+            active_recommendation_ids: number[];
+            /** @enum {string} */
+            optimization_status: "awaiting_evidence" | "no_active_recommendations" | "recommendations_available" | "executing";
+            attention_reasons: components["schemas"]["InventoryAttentionReason"][];
+        };
+        InventoryTelemetry: {
+            /** @enum {string} */
+            status: "usable" | "stale" | "unmonitored" | "unknown";
+            /** @description Registered evidence source identity; no provider URL or query is exposed. */
+            source_plugin_ids: string[];
+            /**
+             * Format: date-time
+             * @description Latest successful persisted measurement window end for the selected source, not discovery last_seen or provider health.
+             */
+            last_measurement_at: string | null;
+            /** @enum {string} */
+            reason: "metrics_not_configured" | "capability_assessment_unavailable" | "no_trusted_evidence" | "measurements_missing" | "incomplete_or_invalid_evidence" | "measurements_stale" | "required_measurements_usable";
+        };
+        InventoryPolicy: {
+            /** @enum {string} */
+            status: "covered" | "uncovered" | "unknown";
+            /** @description Matching policy references; not approval or authorization. */
+            policy_ids: string[];
+            reason: string;
+        };
+        InventoryActions: {
+            /** @enum {string} */
+            status: "supported" | "unsupported" | "unknown";
+            /** @description Configured plugins supporting planning and execution for this resource type. */
+            plugin_ids: string[];
+            /** @enum {string} */
+            reason: "no_registered_action_path" | "capability_assessment_unavailable" | "registered_action_path";
+        };
+        InventorySummary: {
+            discovered: number;
+            reporting: number;
+            /** @description Distinct resources with at least one attention reason. */
+            attention: number;
+            /** @description Overlapping subset of attention. */
+            unmonitored: number;
+            supported_actions: number;
+            /** @description supported_actions / discovered times 100; null when discovered is zero or action assessment is unavailable. */
+            supported_action_percent: number | null;
+            /** @description Per-reason resource counts; missing keys mean zero. These counts may overlap. */
+            reasons: {
+                [key: string]: number;
+            };
         };
         /** @description Resource observation accepted from an administrator or trusted discovery adapter. Server-managed model and lifecycle fields are returned in Resource. */
         ResourceInput: {
@@ -1171,6 +1273,54 @@ export interface operations {
             400: components["responses"]["ErrorResponse"];
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
+        };
+    };
+    listResourceInventory: {
+        parameters: {
+            query?: {
+                limit?: number;
+                /** @description Opaque signed continuation; repeat the original filters. */
+                cursor?: string;
+                provider?: string;
+                account?: string;
+                region?: string;
+                type?: string;
+                source_plugin_id?: string;
+                environment?: "production" | "staging" | "development";
+                lifecycle_state?: "active" | "stale" | "deleted";
+                /** @description Exact owner or unassigned for missing ownership. */
+                owner?: string;
+                /** @description Case-insensitive substring in resource ID, name, account, assessed owner or labels. */
+                search?: string;
+                telemetry?: "usable" | "stale" | "unmonitored" | "unknown";
+                policy?: "covered" | "uncovered" | "unknown";
+                actions?: "supported" | "unsupported" | "unknown";
+                tab?: "all" | "attention" | "unmonitored";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Assessment page. Unknown values are explicit and no financial estimates are added. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    /** @description Do not cache authenticated inventory responses. */
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryPage"];
+                };
+            };
+            400: components["responses"]["ErrorResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            405: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
         };
     };
     runDiscovery: {
