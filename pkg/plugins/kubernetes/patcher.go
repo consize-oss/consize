@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"net/http"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -22,24 +23,39 @@ type K8sPatcher struct {
 }
 
 func NewK8sPatcher(kubeconfig string) (*K8sPatcher, error) {
+	return NewK8sPatcherForContext(kubeconfig, "")
+}
+func NewK8sPatcherForContext(kubeconfig, contextName string) (*K8sPatcher, error) {
 	var cfg *rest.Config
 	var err error
 	if kubeconfig != "" {
-		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		rules := &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig}
+		overrides := &clientcmd.ConfigOverrides{CurrentContext: contextName}
+		cfg, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(rules, overrides).ClientConfig()
 	} else {
+		if contextName != "" {
+			return nil, scanFailure("configuration")
+		}
 		cfg, err = rest.InClusterConfig()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("kube config: %w", err)
+		return nil, scanFailure("configuration")
 	}
 	cfg.Timeout = 15 * time.Second
+	previousWrap := cfg.WrapTransport
+	cfg.WrapTransport = func(next http.RoundTripper) http.RoundTripper {
+		if previousWrap != nil {
+			next = previousWrap(next)
+		}
+		return deploymentListTransport{next: next}
+	}
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("kube client: %w", err)
+		return nil, scanFailure("configuration")
 	}
 	dynamicClient, err := dynamic.NewForConfig(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("dynamic kube client: %w", err)
+		return nil, scanFailure("configuration")
 	}
 	return &K8sPatcher{client: clientset, dynamic: dynamicClient}, nil
 }
@@ -53,6 +69,12 @@ func NewK8sPatcherFromClient(client kubernetes.Interface) *K8sPatcher {
 }
 
 func (k *K8sPatcher) Health(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if client := k.client.Discovery().RESTClient(); client != nil {
+		return client.Get().AbsPath("/version").Do(ctx).Error()
+	}
 	_, err := k.client.Discovery().ServerVersion()
 	return err
 }

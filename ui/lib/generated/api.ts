@@ -1074,7 +1074,32 @@ export interface components {
             };
             error?: string;
         };
+        /** @description Provider enumeration metadata. Complete does not authorize deletion or claim an atomic registry transaction. Per-namespace resource versions do not imply a globally atomic multi-namespace snapshot. */
+        DiscoveryScan: {
+            /** @enum {string} */
+            version: "discovery-scan-v1";
+            id: string;
+            plugin_id: string;
+            scope: {
+                [key: string]: string;
+            };
+            scope_digest: string;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            finished_at: string;
+            /** Format: int64 */
+            duration_ms: number;
+            complete: boolean;
+            count: number;
+            pages: number;
+            snapshot_versions: {
+                [key: string]: string;
+            };
+            error_code?: string;
+        };
         DiscoveryResult: {
+            scan?: components["schemas"]["DiscoveryScan"];
             plugin_id: string;
             count: number;
             resources: components["schemas"]["Resource"][];

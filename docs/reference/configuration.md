@@ -83,3 +83,9 @@ Production installations use Helm values to configure Consize. See [Production I
 For the current plugin's JSON `prometheus.transport` configuration, secret
 references, TLS, limits, safe diagnostics and failure codes, see
 [Prometheus client configuration](prometheus-client.md).
+
+## v0.3 Kubernetes discovery
+
+For explicit kubeconfig context selection, namespace allowlists, Deployment label
+selectors, complete-scan diagnostics, limits and least-privilege RBAC, see
+[Kubernetes Deployment discovery](kubernetes-discovery.md).

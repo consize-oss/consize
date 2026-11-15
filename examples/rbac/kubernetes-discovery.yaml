@@ -1,0 +1,26 @@
+# Change the observed namespace and dedicated ServiceAccount subject before use.
+# The namespace and ServiceAccount must already exist. This adds permissions;
+# it does not remove any wider grants already held by the selected identity.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: consize-discovery
+  namespace: example-workloads
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: consize-discovery
+  namespace: example-workloads
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: consize-discovery
+subjects:
+  - kind: ServiceAccount
+    name: consize-discovery
+    namespace: consize

@@ -2,6 +2,9 @@ package discovery
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -12,9 +15,10 @@ import (
 )
 
 type Result struct {
-	PluginID  string              `json:"plugin_id"`
-	Count     int                 `json:"count"`
-	Resources []resource.Resource `json:"resources"`
+	Scan      *plugin.DiscoveryScan `json:"scan,omitempty"`
+	PluginID  string                `json:"plugin_id"`
+	Count     int                   `json:"count"`
+	Resources []resource.Resource   `json:"resources"`
 }
 
 type Service struct {
@@ -37,16 +41,35 @@ func (s *Service) Run(ctx context.Context) ([]Result, error) {
 	}
 	results := make([]Result, 0, len(plugins))
 	for _, provider := range plugins {
-		observations, err := provider.Discover(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("discover with %s: %w", provider.ID(), err)
+		var observations []plugin.ProviderObservation
+		var scan *plugin.DiscoveryScan
+		if snapshotProvider, ok := provider.(plugin.SnapshotDiscoveryPlugin); ok {
+			snapshot, err := snapshotProvider.DiscoverSnapshot(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("discover with %s: %w", provider.ID(), err)
+			}
+			if err := validateScan(snapshot, provider.ID(), s.now().UTC()); err != nil {
+				return nil, err
+			}
+			observations = snapshot.Observations
+			scan = &snapshot.Scan
+		} else {
+			var err error
+			observations, err = provider.Discover(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("discover with %s: %w", provider.ID(), err)
+			}
 		}
-		result := Result{PluginID: provider.ID(), Resources: make([]resource.Resource, 0, len(observations))}
+		result := Result{Scan: scan, PluginID: provider.ID(), Resources: make([]resource.Resource, 0, len(observations))}
+		normalized := make([]resource.Resource, 0, len(observations))
 		for _, observation := range observations {
 			res, err := normalize(provider, observation, s.now().UTC())
 			if err != nil {
 				return nil, err
 			}
+			normalized = append(normalized, res)
+		}
+		for _, res := range normalized {
 			persisted, err := s.store.UpsertResource(ctx, res)
 			if err != nil {
 				return nil, fmt.Errorf("register discovered resource %s: %w", res.ID, err)
@@ -81,4 +104,21 @@ func normalize(provider plugin.DiscoveryPlugin, observation plugin.ProviderObser
 		return resource.Resource{}, fmt.Errorf("discovery plugin %s returned invalid resource: %w", provider.ID(), err)
 	}
 	return res, nil
+}
+
+// Completeness is explicit and bound to the provider's declared scope. This does
+// not reconcile absence or make registry writes atomic; those remain core-owned.
+func validateScan(snapshot plugin.DiscoverySnapshot, providerID string, now time.Time) error {
+	scan := snapshot.Scan
+	scope, err := json.Marshal(scan.Scope)
+	digest := sha256.Sum256(scope)
+	if err != nil || scan.Version != plugin.DiscoveryScanVersion || scan.PluginID != providerID || scan.ID == "" || len(scan.ID) > 128 || !scan.Complete || scan.ErrorCode != "" || scan.Count != len(snapshot.Observations) || scan.Count < 0 || scan.Count > 100000 || scan.Pages < 0 || len(scan.Scope) == 0 || len(scan.Scope) > 64 || scan.ScopeDigest != hex.EncodeToString(digest[:]) || scan.StartedAt.IsZero() || scan.FinishedAt.Before(scan.StartedAt) || scan.FinishedAt.After(now.Add(time.Minute)) || scan.DurationMillis < 0 {
+		return errors.New("discovery snapshot is incomplete or invalid")
+	}
+	for key, value := range scan.Scope {
+		if len(key) > 256 || len(value) > 16384 {
+			return errors.New("discovery snapshot scope exceeds limits")
+		}
+	}
+	return nil
 }

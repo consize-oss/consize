@@ -1120,10 +1120,29 @@ components:
         indexes: {type: array, items: {type: string}}
         entity_counts: {type: object, additionalProperties: {type: integer}}
         error: {type: string}
+    DiscoveryScan:
+      type: object
+      description: Provider enumeration metadata. Complete does not authorize deletion or claim an atomic registry transaction. Per-namespace resource versions do not imply a globally atomic multi-namespace snapshot.
+      required: [version, id, plugin_id, scope, scope_digest, started_at, finished_at, duration_ms, complete, count, pages, snapshot_versions]
+      properties:
+        version: {type: string, enum: [discovery-scan-v1]}
+        id: {type: string, minLength: 1, maxLength: 128}
+        plugin_id: {type: string}
+        scope: {type: object, additionalProperties: {type: string}}
+        scope_digest: {type: string, pattern: '^[a-f0-9]{64}$'}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        duration_ms: {type: integer, format: int64, minimum: 0}
+        complete: {type: boolean}
+        count: {type: integer, minimum: 0}
+        pages: {type: integer, minimum: 0}
+        snapshot_versions: {type: object, additionalProperties: {type: string}}
+        error_code: {type: string}
     DiscoveryResult:
       type: object
       required: [plugin_id, count, resources]
       properties:
+        scan: {$ref: '#/components/schemas/DiscoveryScan'}
         plugin_id: {type: string}
         count: {type: integer}
         resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}
