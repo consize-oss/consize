@@ -9,6 +9,7 @@ import (
 
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/store"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -53,8 +54,18 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 	if snapshot.ResourceID != res.ID || snapshot.PluginID != r.cfg.MetricsPluginID {
 		return store.Recommendation{}, fmt.Errorf("metrics identity mismatch")
 	}
-	if _, err := snapshot.Measurement(r.cfg.MetricKey, "bytes", time.Now().UTC()); err != nil {
+	encoded, err := json.Marshal(snapshot)
+	if err != nil {
 		return store.Recommendation{}, err
+	}
+	var frozen plugin.MetricsSnapshot
+	if err = json.Unmarshal(encoded, &frozen); err != nil {
+		return store.Recommendation{}, err
+	}
+	snapshot = frozen
+	assessment := AssessQuality(r.cfg, res, snapshot, time.Now().UTC())
+	if !assessment.Eligible {
+		return store.Recommendation{}, &quality.BlockedError{Assessment: assessment}
 	}
 	currentReq, err := numberFromState(res.CurrentState, r.cfg.CurrentRequestKey)
 	if err != nil {
@@ -81,16 +92,10 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 		return store.Recommendation{}, fmt.Errorf("reduction %.2f is below minimum %.2f", reductionRatio, r.cfg.MinReductionRatio)
 	}
 	proposedLimit := currentLimit
-	encoded, err := json.Marshal(snapshot)
-	if err != nil {
-		return store.Recommendation{}, err
-	}
-	var frozen plugin.MetricsSnapshot
-	if err = json.Unmarshal(encoded, &frozen); err != nil {
-		return store.Recommendation{}, err
-	}
-	snapshot = frozen
 	confidence := AssessConfidence(r.cfg, res, snapshot, time.Now().UTC())
+	if confidence.Label == "low" {
+		return store.Recommendation{}, fmt.Errorf("confidence profile does not permit an actionable recommendation")
+	}
 	return store.Recommendation{
 		ResourceID:       res.ID,
 		PluginID:         r.cfg.ActionPluginID,
@@ -112,6 +117,7 @@ func (r *HeadroomRecommender) RecommendOne(_ context.Context, res resource.Resou
 		},
 		Parameters: map[string]any{
 			"confidence_assessment": confidence,
+			"quality_assessment":    assessment,
 			"patch": map[string]any{
 				"resource":         r.cfg.ResourceKind,
 				"current_request":  currentReq,

@@ -19,6 +19,7 @@ import (
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/store"
 	"github.com/consize-oss/consize/pkg/evidence"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -135,7 +136,12 @@ func TestInventoryRefreshesEvidenceWithoutDiscoveryAndDoesNotExposeQueries(t *te
 	records := []evidence.Record{}
 	refs := []string{}
 	for _, spec := range s.inventorySignals() {
-		r, err := evidence.Seal(evidence.Record{ResourceID: "a", PluginID: "metrics", Signal: spec.Name, Query: "secret-api-key-in-provider-query", Kind: evidence.Aggregated, Aggregation: "p95", Unit: spec.Unit, OriginalUnit: spec.Unit, Scale: 1, Value: evidence.Number(0), SampleCount: 30, WindowStart: now.Add(-time.Hour), WindowEnd: now.Add(-time.Minute), CollectedAt: now.Add(-30 * time.Second), FreshUntil: now.Add(time.Minute), Quality: evidence.Valid})
+		observed := now.Add(-time.Minute)
+		first := now.Add(-61 * time.Minute)
+		sourcePoints := 31
+		facts, _ := quality.EncodeContext(quality.Context{Mapping: "exact", LastObservationAt: &observed, ScrapeInterval: "2m", ObservedSamples: &sourcePoints, FirstObservationAt: &first, SourceMaxGap: "2m"})
+		extensions := map[string]string{quality.ContextKey: facts, "step": "2m", "max_gap": "2m", "expected_points": "31", "actual_points": "31", "first_sample": now.Add(-61 * time.Minute).Format(time.RFC3339Nano), "last_sample": observed.Format(time.RFC3339Nano)}
+		r, err := evidence.Seal(evidence.Record{Extensions: extensions, ResourceID: "a", PluginID: "metrics", Signal: spec.Name, Query: "secret-api-key-in-provider-query", Kind: evidence.Aggregated, Aggregation: "p95", Unit: spec.Unit, OriginalUnit: spec.Unit, Scale: 1, Value: evidence.Number(0), SampleCount: 31, WindowStart: now.Add(-61 * time.Minute), WindowEnd: now.Add(-time.Minute), CollectedAt: now.Add(-30 * time.Second), FreshUntil: now.Add(time.Minute), Quality: evidence.Valid})
 		if err != nil {
 			t.Fatal(err)
 		}

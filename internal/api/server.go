@@ -26,6 +26,7 @@ import (
 	"github.com/consize-oss/consize/internal/recommender"
 	"github.com/consize-oss/consize/internal/safety"
 	"github.com/consize-oss/consize/internal/store"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -122,6 +123,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/resources", s.protect(s.resourceRole, s.handleResources))
 	mux.HandleFunc("/api/resources/inventory", s.protect(auth.RoleViewer, s.handleInventory))
 	mux.HandleFunc("/api/discovery", s.protect(auth.RoleAdmin, s.handleDiscovery))
+	mux.HandleFunc("/api/evidence/quality", s.protect(auth.RoleOperator, s.handleEvidenceQuality))
 	mux.HandleFunc("/api/plugins", s.protect(auth.RoleViewer, s.handlePlugins))
 	mux.HandleFunc("/api/recommendations/generate", s.protect(auth.RoleOperator, s.handleGenerateRecommendation))
 	mux.HandleFunc("/api/recommendations/", s.protect(s.recommendationRole, s.handleRecommendationAction))
@@ -339,6 +341,12 @@ func (s *Server) handleGenerateRecommendation(w http.ResponseWriter, r *http.Req
 	}
 	recs, err := recommender.New(s.cfg.Recommender).Recommend(r.Context(), recommender.Input{Resource: res, Evidence: []plugin.MetricsSnapshot{snapshot}})
 	if err != nil {
+		var blocked *quality.BlockedError
+		if errors.As(err, &blocked) {
+			w.Header().Set("Cache-Control", "no-store")
+			writeJSON(w, http.StatusBadRequest, map[string]any{"error": blocked.Error(), "quality": blocked.Assessment})
+			return
+		}
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}

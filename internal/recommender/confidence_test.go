@@ -1,6 +1,7 @@
 package recommender
 
 import (
+	"github.com/consize-oss/consize/internal/testevidence"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 func history(now time.Time, window, step time.Duration) plugin.MetricsSnapshot {
 	count := int(window/step) + 1
-	return plugin.MetricsSnapshot{ResourceID: "test", PluginID: "prometheus-metrics", Window: window.String(), CollectedAt: now, Signals: map[string]any{"memory_working_set_bytes_p95": 100., "memory_working_set_bytes_max": 120.}, Coverage: map[string]plugin.MetricCoverage{"memory_working_set_bytes": {FirstSample: now.Add(-window), LastSample: now, Step: step, MaxGap: step, ActualPoints: count, ExpectedPoints: count}}}
+	return testevidence.Attach(plugin.MetricsSnapshot{ResourceID: "test", PluginID: "prometheus-metrics", Window: window.String(), CollectedAt: now, Signals: map[string]any{"memory_working_set_bytes_p95": 100., "memory_working_set_bytes_max": 120.}, Coverage: map[string]plugin.MetricCoverage{"memory_working_set_bytes": {FirstSample: now.Add(-window), LastSample: now, Step: step, MaxGap: step, ActualPoints: count, ExpectedPoints: count}}})
 }
 func TestConfidenceRequiresActualHistory(t *testing.T) {
 	now := time.Now()
@@ -49,7 +50,12 @@ func TestConfidenceRejectsBadEvidence(t *testing.T) {
 		{"stale", func(s *plugin.MetricsSnapshot) { s.CollectedAt = now.Add(-time.Hour) }},
 		{"wrong resource", func(s *plugin.MetricsSnapshot) { s.ResourceID = "other" }},
 		{"wrong plugin", func(s *plugin.MetricsSnapshot) { s.PluginID = "other" }},
-		{"missing coverage", func(s *plugin.MetricsSnapshot) { s.Coverage = nil }},
+		{"missing coverage", func(s *plugin.MetricsSnapshot) {
+			s.Coverage = nil
+			for i := range s.Records {
+				s.Records[i].Extensions = nil
+			}
+		}},
 		{"sparse", func(s *plugin.MetricsSnapshot) {
 			c := s.Coverage["memory_working_set_bytes"]
 			c.ActualPoints = 100

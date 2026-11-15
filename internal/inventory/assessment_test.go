@@ -9,6 +9,7 @@ import (
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/store"
 	"github.com/consize-oss/consize/pkg/evidence"
+	qualitymodel "github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -31,11 +32,20 @@ func manifestFixture() []plugin.Manifest {
 }
 func recordFixture(t *testing.T, now time.Time, quality string) evidence.Record {
 	t.Helper()
-	r := evidence.Record{ResourceID: "a", PluginID: "metrics", Signal: "cpu", Query: "private-query-not-for-the-api", Kind: evidence.Aggregated, Aggregation: "p95", Unit: "cores", OriginalUnit: "cores", Scale: 1, Value: evidence.Number(0), SampleCount: 30, WindowStart: now.Add(-time.Hour), WindowEnd: now.Add(-time.Minute), CollectedAt: now.Add(-30 * time.Second), FreshUntil: now.Add(time.Minute), Quality: quality}
+	r := evidence.Record{ResourceID: "a", PluginID: "metrics", Signal: "cpu", Query: "private-query-not-for-the-api", Kind: evidence.Aggregated, Aggregation: "p95", Unit: "cores", OriginalUnit: "cores", Scale: 1, Value: evidence.Number(0), SampleCount: 31, WindowStart: now.Add(-61 * time.Minute), WindowEnd: now.Add(-time.Minute), CollectedAt: now.Add(-30 * time.Second), FreshUntil: now.Add(time.Minute), Quality: quality}
 	if quality == evidence.Missing || quality == evidence.Unavailable || quality == evidence.Invalid {
 		r.Value = nil
 		r.SampleCount = 0
 	}
+	observed := r.WindowEnd
+	first := now.Add(-61 * time.Minute)
+	sourcePoints := 31
+	facts, _ := qualitymodel.EncodeContext(qualitymodel.Context{Mapping: "exact", LastObservationAt: &observed, ScrapeInterval: "2m", ObservedSamples: &sourcePoints, FirstObservationAt: &first, SourceMaxGap: "2m"})
+	actual := "31"
+	if r.SampleCount == 0 {
+		actual = "0"
+	}
+	r.Extensions = map[string]string{qualitymodel.ContextKey: facts, "step": "2m", "max_gap": "2m", "expected_points": "31", "actual_points": actual, "first_sample": r.WindowStart.Format(time.RFC3339Nano), "last_sample": r.WindowEnd.Format(time.RFC3339Nano)}
 	r, err := evidence.Seal(r)
 	if err != nil {
 		t.Fatal(err)
@@ -241,5 +251,29 @@ func TestUnavailableSupportIsNotMeasuredZeroAndBlankActionsAreNotSupported(t *te
 	r = buildFixture(t, now, nil, ms, nil)
 	if r.Assessment.Actions.Status != "unsupported" {
 		t.Fatal("blank action type established support")
+	}
+}
+
+func TestInventoryUsesSharedQualityAndDoesNotTrustQueryTime(t *testing.T) {
+	now := time.Now().UTC()
+	valid := recordFixture(t, now, evidence.Valid)
+	row := buildFixture(t, now, []evidence.Record{valid}, manifestFixture(), nil)
+	if row.Assessment.Telemetry.Quality == nil || row.Assessment.Telemetry.Quality.Version != qualitymodel.Version || !row.Assessment.Telemetry.Quality.Eligible {
+		t.Fatal("shared assessment missing")
+	}
+	// A valid, recently collected aggregate without source timing/mapping facts
+	// must not become reporting merely because its query finished recently.
+	delete(valid.Extensions, qualitymodel.ContextKey)
+	valid, err := evidence.Seal(valid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	row = buildFixture(t, now, []evidence.Record{valid}, manifestFixture(), nil)
+	if row.Assessment.Telemetry.Status != "unknown" || row.Assessment.Telemetry.LastMeasurementAt != nil || row.Assessment.Telemetry.Quality == nil || row.Assessment.Telemetry.Quality.Eligible {
+		t.Fatal("query time substituted for source observation")
+	}
+	_, summary := Filter([]Row{row}, Query{Tab: "all"})
+	if summary.Reporting != 0 {
+		t.Fatal("unproven observations counted as reporting")
 	}
 }

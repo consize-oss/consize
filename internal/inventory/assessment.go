@@ -11,6 +11,7 @@ import (
 	"github.com/consize-oss/consize/internal/policy"
 	"github.com/consize-oss/consize/internal/store"
 	"github.com/consize-oss/consize/pkg/evidence"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -31,10 +32,11 @@ const (
 )
 
 type Telemetry struct {
-	Status            string     `json:"status"`
-	SourcePluginIDs   []string   `json:"source_plugin_ids"`
-	LastMeasurementAt *time.Time `json:"last_measurement_at"`
-	Reason            string     `json:"reason"`
+	Quality           *quality.Assessment `json:"quality,omitempty"`
+	Status            string              `json:"status"`
+	SourcePluginIDs   []string            `json:"source_plugin_ids"`
+	LastMeasurementAt *time.Time          `json:"last_measurement_at"`
+	Reason            string              `json:"reason"`
 }
 type Actions struct {
 	Status    string   `json:"status"`
@@ -65,6 +67,16 @@ type PolicyReader interface {
 // must be from the configured manager, not resource-supplied metadata. A nil
 // manifest slice means capability assessment is unavailable; empty means none.
 func Build(ctx context.Context, input store.InventorySnapshot, manifests []plugin.Manifest, policies PolicyReader, signals []Signal, at time.Time) ([]Row, error) {
+	return BuildWithQuality(ctx, input, manifests, policies, signals, quality.Config{}, at)
+}
+
+// BuildWithQuality shares the versioned evidence gates with recommendations and
+// verification. It reads persisted evidence only and never contacts providers.
+func BuildWithQuality(ctx context.Context, input store.InventorySnapshot, manifests []plugin.Manifest, policies PolicyReader, signals []Signal, cfg quality.Config, at time.Time) ([]Row, error) {
+	thresholds, err := quality.Resolve(cfg, quality.Reporting, false, false)
+	if err != nil {
+		return nil, err
+	}
 	at = at.UTC()
 	recs := map[string][]store.Recommendation{}
 	records := map[string][]evidence.Record{}
@@ -106,7 +118,7 @@ func Build(ctx context.Context, input store.InventorySnapshot, manifests []plugi
 		} else {
 			a.AttentionReasons = append(a.AttentionReasons, Unowned)
 		}
-		telemetry, err := assessTelemetry(ctx, res, records[res.ID], manifests, signals, at)
+		telemetry, err := assessTelemetry(ctx, res, records[res.ID], manifests, signals, thresholds, at)
 		if err != nil {
 			return nil, err
 		}
@@ -198,7 +210,7 @@ func assessActions(typ string, manifests []plugin.Manifest) Actions {
 	return out
 }
 
-func assessTelemetry(ctx context.Context, res resource.Resource, records []evidence.Record, manifests []plugin.Manifest, signals []Signal, at time.Time) (Telemetry, error) {
+func assessTelemetry(ctx context.Context, res resource.Resource, records []evidence.Record, manifests []plugin.Manifest, signals []Signal, thresholds quality.Thresholds, at time.Time) (Telemetry, error) {
 	out := Telemetry{Status: "unmonitored", SourcePluginIDs: []string{}, Reason: "metrics_not_configured"}
 	if manifests == nil {
 		out.Status, out.Reason = "unknown", "capability_assessment_unavailable"
@@ -229,9 +241,14 @@ func assessTelemetry(ctx context.Context, res resource.Resource, records []evide
 			if r.ResourceID != res.ID || r.PluginID != id || r.Validate() != nil || r.CollectedAt.After(at) {
 				continue
 			}
-			if (r.Quality == evidence.Valid || r.Quality == evidence.Stale) && (lastSuccessful == nil || r.WindowEnd.After(*lastSuccessful)) {
-				t := r.WindowEnd
-				lastSuccessful = &t
+			if r.Quality == evidence.Valid || r.Quality == evidence.Stale {
+				facts, err := quality.DecodeContext(r.Extensions[quality.ContextKey])
+				if err == nil && facts.LastObservationAt != nil {
+					observed := *facts.LastObservationAt
+					if !observed.IsZero() && !observed.After(r.WindowEnd) && !observed.Before(r.WindowStart) && (lastSuccessful == nil || observed.After(*lastSuccessful)) {
+						lastSuccessful = &observed
+					}
+				}
 			}
 			prior, ok := latest[r.Signal]
 			if !ok || r.CollectedAt.After(prior.CollectedAt) {
@@ -244,33 +261,49 @@ func assessTelemetry(ctx context.Context, res resource.Resource, records []evide
 		candidate := Telemetry{Status: "unknown", SourcePluginIDs: []string{id}, Reason: "no_trusted_evidence"}
 		candidate.LastMeasurementAt = lastSuccessful
 		if len(latest) > 0 && len(signals) > 0 {
-			stale, incomplete, missing := false, false, 0
+			snapshot := plugin.MetricsSnapshot{ResourceID: res.ID, PluginID: id, Signals: map[string]any{}}
+			specs := make([]quality.Signal, 0, len(signals))
+			conflict := false
 			for _, spec := range signals {
-				r, ok := latest[spec.Name]
-				if !ok || conflicts[spec.Name] || spec.Unit != "" && r.Unit != spec.Unit {
-					incomplete = true
-					continue
+				record, ok := latest[spec.Name]
+				unit := spec.Unit
+				if ok {
+					snapshot.Records = append(snapshot.Records, record)
+					snapshot.Signals[record.Signal] = record.Value
+					if snapshot.CollectedAt.IsZero() || record.CollectedAt.After(snapshot.CollectedAt) {
+						snapshot.CollectedAt = record.CollectedAt
+						snapshot.Window = record.WindowEnd.Sub(record.WindowStart).String()
+					}
+					if unit == "" {
+						unit = record.Unit
+					}
 				}
-				switch {
-				case r.Quality == evidence.Missing:
-					missing++
-				case (r.Quality == evidence.Valid || r.Quality == evidence.Stale) && r.SampleCount < 2:
-					incomplete = true
-				case r.Quality == evidence.Stale || r.Quality == evidence.Valid && !r.Usable(at):
-					stale = true
-				case !r.Usable(at):
-					incomplete = true
-				}
+				conflict = conflict || conflicts[spec.Name]
+				specs = append(specs, quality.Signal{Name: spec.Name, Unit: unit})
 			}
+
+			assessment := snapshot.AssessQuality(specs, quality.Reporting, thresholds, at)
+			if conflict {
+				assessment = quality.Assess(quality.Input{ResourceID: res.ID, PluginID: id, Invalid: true}, quality.Reporting, thresholds, at)
+			}
+			candidate.Quality = &assessment
 			switch {
-			case missing == len(signals):
-				candidate.Status, candidate.Reason = "unmonitored", "measurements_missing"
-			case incomplete || missing > 0:
-				candidate.Reason = "incomplete_or_invalid_evidence"
-			case stale:
+			case assessment.Eligible:
+				candidate.Status, candidate.Reason = "usable", "required_measurements_usable"
+			case assessment.State == "stale":
 				candidate.Status, candidate.Reason = "stale", "measurements_stale"
 			default:
-				candidate.Status, candidate.Reason = "usable", "required_measurements_usable"
+				missing := 0
+				for _, spec := range signals {
+					if record, ok := latest[spec.Name]; ok && record.Quality == evidence.Missing && !conflicts[spec.Name] {
+						missing++
+					}
+				}
+				if missing == len(signals) {
+					candidate.Status, candidate.Reason = "unmonitored", "measurements_missing"
+				} else {
+					candidate.Reason = "incomplete_or_invalid_evidence"
+				}
 			}
 		}
 		rank := map[string]int{"unmonitored": 0, "unknown": 1, "stale": 2, "usable": 3}[candidate.Status]

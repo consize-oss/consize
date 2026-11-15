@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"github.com/consize-oss/consize/pkg/evidence/quality"
 
 	"github.com/consize-oss/consize/pkg/plugin"
 )
@@ -9,6 +10,12 @@ import (
 // ValidateCapabilities rejects enabled workflows that cannot use their configured
 // plugins. Disabled workflows may leave their bindings empty.
 func ValidateCapabilities(m *plugin.Manager, cfg Config) error {
+	if _, err := quality.Resolve(cfg.Recommender.Quality, quality.Recommendation, false, cfg.Recommender.ConfidenceProfile == "lab"); err != nil {
+		return fmt.Errorf("recommender.quality: %w", err)
+	}
+	if _, err := quality.Resolve(cfg.Verification.Quality, quality.Verification, false, false); err != nil {
+		return fmt.Errorf("verification.quality: %w", err)
+	}
 	bindings := []struct {
 		enabled               bool
 		field, id, capability string

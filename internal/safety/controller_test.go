@@ -106,22 +106,28 @@ func (m *testMetrics) ReadMetricsBetween(_ context.Context, _ resource.Resource,
 			s = m.snapshot(200)
 		}
 		if m.missing {
-			s.Signals["cpu_cores_points"] = 0
+			delete(s.Signals, "cpu_cores_p95")
 		}
 	}
 	for key, coverage := range s.Coverage {
 		coverage.FirstSample = start
 		coverage.LastSample = end
+		coverage.Step = end.Sub(start) / 20
+		coverage.MaxGap = coverage.Step
+		coverage.ExpectedPoints = int(end.Sub(start)/coverage.Step) + 1
+		coverage.ActualPoints = coverage.ExpectedPoints
 		s.Coverage[key] = coverage
 	}
-	return s, nil
+	s.Window = end.Sub(start).String()
+	s.CollectedAt = end
+	return testevidence.Attach(s), nil
 }
 func (m *testMetrics) snapshot(memory float64) plugin.MetricsSnapshot {
 	coverage := map[string]plugin.MetricCoverage{}
 	for _, key := range []string{"memory_working_set_bytes", "cpu_cores", "restarts_30m"} {
-		coverage[key] = plugin.MetricCoverage{FirstSample: m.now.Add(-10 * time.Minute), LastSample: *m.now, ExpectedPoints: 20, ActualPoints: 20, Step: 30 * time.Second}
+		coverage[key] = plugin.MetricCoverage{FirstSample: m.now.Add(-10 * time.Minute), LastSample: *m.now, ExpectedPoints: 21, ActualPoints: 21, Step: 30 * time.Second, MaxGap: 30 * time.Second}
 	}
-	return testevidence.Attach(plugin.MetricsSnapshot{Coverage: coverage, PluginID: m.ID(), ResourceID: "test", CollectedAt: *m.now, Signals: map[string]any{"memory_working_set_bytes_p95": memory, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 20, "cpu_cores_points": 20, "restarts_30m_points": 20}})
+	return testevidence.Attach(plugin.MetricsSnapshot{Window: "10m", Coverage: coverage, PluginID: m.ID(), ResourceID: "test", CollectedAt: *m.now, Signals: map[string]any{"memory_working_set_bytes_p95": memory, "cpu_cores_p95": 1.0, "restarts_30m_max": 0.0, "memory_working_set_bytes_points": 20, "cpu_cores_points": 20, "restarts_30m_points": 20}})
 }
 
 type harness struct {

@@ -12,14 +12,16 @@ discovery, or calculate financial values.
   transaction in PostgreSQL. No new persistence schema is introduced.
 - Telemetry comes from sealed evidence records already persisted with
   recommendations or job baseline/verification snapshots. Collection that has
-  not persisted evidence is not visible here. CON-21/22 own collection and its
+  not persisted evidence is not visible here. CON-22 owns collection and its
   future dedicated evidence read interface; this endpoint does not start a
   second collector. Legacy evidence strings and `metadata.inventory` assertions
   cannot establish reporting.
 - Evidence must match the resource and a currently registered metrics provider,
   validate its content identity, and satisfy the existing verification signal
   contract (CPU, memory, restarts and configured checks). Each required signal
-  must have the correct unit, valid samples and unexpired freshness. A measured
+  must satisfy the shared [CON-21 quality gates](../reference/evidence-quality.md),
+  including correct units, sealed coverage and fresh source observations. Raw
+  dimensions appear under `assessment.telemetry.quality`. A measured
   zero remains usable. Sparse providers are never combined into a fictional
   complete observation. New partial or invalid readings do not inherit an older
   reading's usable status. Equal-time conflicting observations remain unknown.
@@ -29,8 +31,8 @@ discovery, or calculate financial values.
   capability is configured for this resource type, or the provider explicitly
   recorded missing required measurements. Missing provenance, provider
   unavailability, invalid or partial measurements remain `unknown`.
-- `last_measurement_at` is the latest successful persisted measurement window
-  end for the selected source. It is not discovery `last_seen_at`. No provider
+- `last_measurement_at` is the latest successful persisted source observation
+  time for the selected source. It is not discovery `last_seen_at`. No provider
   endpoint, query, credential or measurement payload is added to the response.
 - The current foundation policy applies globally, so valid resources reference
   `oss-foundation-v1`. This is matching coverage, not approval. The coverage
