@@ -712,6 +712,7 @@ export interface components {
             health: components["schemas"]["PluginHealth"];
         };
         PluginHealth: {
+            details?: components["schemas"]["JsonObject"];
             status: string;
             message: string;
             /** Format: date-time */

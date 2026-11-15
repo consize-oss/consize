@@ -304,6 +304,11 @@ jobs:
       - name: Validate core model documentation and examples
         run: go test ./internal/modeldocs -count=1
 
+      - name: Install pinned Prometheus for transport integration
+        run: |
+          test_bin="$(scripts/ci/install-prometheus-test.sh "$RUNNER_TEMP/prometheus-test")"
+          printf 'CONSIZE_PROMETHEUS_BIN=%s\n' "$test_bin" >> "$GITHUB_ENV"
+
       - name: Run formatting, vet, unit and race checks
         run: scripts/ci/backend.sh
 

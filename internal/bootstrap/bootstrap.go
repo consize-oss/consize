@@ -63,12 +63,13 @@ type KubernetesConfig struct {
 }
 
 type PrometheusConfig struct {
-	Enabled bool              `json:"enabled"`
-	BaseURL string            `json:"base_url"`
-	Window  string            `json:"window"`
-	Step    string            `json:"step"`
-	Queries map[string]string `json:"queries"`
-	Units   map[string]string `json:"units"`
+	Transport prometheus.TransportConfig `json:"transport,omitempty"`
+	Enabled   bool                       `json:"enabled"`
+	BaseURL   string                     `json:"base_url"`
+	Window    string                     `json:"window"`
+	Step      string                     `json:"step"`
+	Queries   map[string]string          `json:"queries"`
+	Units     map[string]string          `json:"units"`
 }
 
 type RecommenderConfig struct {
@@ -150,11 +151,12 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 			return fmt.Errorf("prometheus step: %w", err)
 		}
 		p, err := prometheus.New(prometheus.Config{
-			BaseURL: cfg.Prometheus.BaseURL,
-			Window:  window,
-			Step:    step,
-			Queries: cfg.Prometheus.Queries,
-			Units:   cfg.Prometheus.Units,
+			BaseURL:   cfg.Prometheus.BaseURL,
+			Transport: cfg.Prometheus.Transport,
+			Window:    window,
+			Step:      step,
+			Queries:   cfg.Prometheus.Queries,
+			Units:     cfg.Prometheus.Units,
 		})
 		if err != nil {
 			return fmt.Errorf("configure prometheus plugin: %w", err)

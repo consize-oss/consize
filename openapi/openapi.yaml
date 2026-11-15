@@ -764,6 +764,7 @@ components:
       type: object
       required: [status, message, checked_at]
       properties:
+        details: {$ref: '#/components/schemas/JsonObject'}
         status: {type: string}
         message: {type: string}
         checked_at: {type: string, format: date-time}

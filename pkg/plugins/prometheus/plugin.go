@@ -17,11 +17,12 @@ import (
 const ID = "prometheus-metrics"
 
 type Config struct {
-	BaseURL string
-	Window  time.Duration
-	Step    time.Duration
-	Units   map[string]string
-	Queries map[string]string
+	Transport TransportConfig
+	BaseURL   string
+	Window    time.Duration
+	Step      time.Duration
+	Units     map[string]string
+	Queries   map[string]string
 }
 
 type Plugin struct {
@@ -33,11 +34,18 @@ type Plugin struct {
 }
 
 func New(cfg Config) (*Plugin, error) {
-	client, err := NewHTTPClient(cfg.BaseURL, nil)
+	if cfg.Window < 0 || cfg.Window > 365*24*time.Hour || cfg.Step < 0 || cfg.Step > 24*time.Hour || (cfg.Step > 0 && cfg.Step < time.Millisecond) {
+		return nil, failure("configuration")
+	}
+	client, err := NewConfiguredHTTPClient(cfg.BaseURL, cfg.Transport)
 	if err != nil {
 		return nil, err
 	}
-	return NewWithClient(client, cfg), nil
+	p := NewWithClient(client, cfg)
+	if p.window < p.step || p.window < time.Millisecond || int64(p.window/p.step)+1 > int64(client.limits.samples) {
+		return nil, failure("configuration")
+	}
+	return p, nil
 }
 
 func NewWithClient(client Client, cfg Config) *Plugin {
@@ -76,10 +84,26 @@ func (p *Plugin) Health(ctx context.Context) plugin.Health {
 	if p.client == nil {
 		return plugin.Health{Status: "unhealthy", Message: "prometheus client is not configured", CheckedAt: time.Now().UTC()}
 	}
+	if httpClient, ok := p.client.(*HTTPClient); ok {
+		ctx, cancel := context.WithTimeout(ctx, httpClient.limits.request)
+		defer cancel()
+		err := httpClient.Ready(ctx)
+		if err == nil {
+			_, err = httpClient.QueryInstant(ctx, "1", time.Now().UTC())
+		}
+		diagnostics := httpClient.Diagnostics()
+		status, message := "healthy", "Prometheus is ready and its query API is reachable; metric coverage is assessed separately."
+		if err != nil {
+			status, message = "unhealthy", safeError(err).Error()
+		} else if diagnostics.State == "degraded" {
+			status, message = "degraded", "Prometheus returned query warnings; inspect provider diagnostics."
+		}
+		return plugin.Health{Status: status, Message: message, CheckedAt: time.Now().UTC(), Details: map[string]any{"provider": diagnostics}}
+	}
 	end := time.Now().UTC()
 	_, err := p.client.QueryRange(ctx, "up", end.Add(-p.step), end, p.step)
 	if err != nil {
-		return plugin.Health{Status: "unhealthy", Message: err.Error(), CheckedAt: end}
+		return plugin.Health{Status: "unhealthy", Message: safeError(err).Error(), CheckedAt: end}
 	}
 	return plugin.Health{Status: "healthy", Message: "prometheus query API reachable", CheckedAt: end}
 }
@@ -126,7 +150,7 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		query := renderQuery(queryTemplate, namespace, podSelector)
 		series, err := p.client.QueryRange(ctx, query, start, end, p.step)
 		if err != nil {
-			return plugin.MetricsSnapshot{}, err
+			return plugin.MetricsSnapshot{}, safeError(err)
 		}
 		values := []float64{}
 		discarded := 0
