@@ -38,9 +38,10 @@ type Manifest struct {
 }
 
 type Health struct {
-	Status    string    `json:"status"`
-	Message   string    `json:"message"`
-	CheckedAt time.Time `json:"checked_at"`
+	Details   map[string]any `json:"details,omitempty"`
+	Status    string         `json:"status"`
+	Message   string         `json:"message"`
+	CheckedAt time.Time      `json:"checked_at"`
 }
 
 type Plugin interface {
