@@ -65,6 +65,7 @@ type KubernetesConfig struct {
 }
 
 type PrometheusConfig struct {
+	Mapping   prometheus.MappingConfig   `json:"mapping,omitempty"`
 	Transport prometheus.TransportConfig `json:"transport,omitempty"`
 	Enabled   bool                       `json:"enabled"`
 	BaseURL   string                     `json:"base_url"`
@@ -157,6 +158,7 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 		p, err := prometheus.New(prometheus.Config{
 			BaseURL:   cfg.Prometheus.BaseURL,
 			Transport: cfg.Prometheus.Transport,
+			Mapping:   cfg.Prometheus.Mapping,
 			Window:    window,
 			Step:      step,
 			Queries:   cfg.Prometheus.Queries,

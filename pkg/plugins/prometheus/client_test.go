@@ -38,14 +38,14 @@ func TestHTTPMetricsPreserveFractionalWindow(t *testing.T) {
 				for at := from; !at.After(to); at = at.Add(30 * time.Second) {
 					values = append(values, [2]any{float64(at.UnixMilli()) / 1000, "1"})
 				}
-				json.NewEncoder(w).Encode(map[string]any{"status": "success", "data": map[string]any{"resultType": "matrix", "result": []any{map[string]any{"metric": map[string]string{}, "values": values}}}})
+				json.NewEncoder(w).Encode(map[string]any{"status": "success", "data": map[string]any{"resultType": "matrix", "result": []any{map[string]any{"metric": mappingTestLabels("test", "checkout-api"), "values": values}}}})
 			}))
 			defer server.Close()
 			p, err := New(Config{BaseURL: server.URL, Step: 30 * time.Second})
 			if err != nil {
 				t.Fatal(err)
 			}
-			snapshot, err := p.ReadMetricsBetween(context.Background(), resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "checkout-api", Metadata: map[string]any{"namespace": "test"}}, start, end)
+			snapshot, err := p.ReadMetricsBetween(context.Background(), mappingTestResource(resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "checkout-api", Metadata: map[string]any{"namespace": "test"}}), start, end)
 			if err != nil {
 				t.Fatal(err)
 			}

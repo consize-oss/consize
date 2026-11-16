@@ -1,0 +1,28 @@
+{
+  "series": [
+    {
+      "metric": {
+        "cluster": "fixture-cluster",
+        "namespace": "payments",
+        "pod": "pod-a",
+        "uid": "pod-a-uid",
+        "container": "app",
+        "deployment": "checkout-api",
+        "deployment_uid": "fixture-deployment-uid"
+      },
+      "points": [
+        {
+          "timestamp": "2026-11-16T12:00:00Z",
+          "value": 2
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "Status": "mapped",
+    "Source": "direct",
+    "Digest": "b5a32734dbcc03d98c87acde36c01263c8ebac978aeb7e57a2c602a74b69f3b1",
+    "Members": 1,
+    "Excluded": 0
+  }
+}

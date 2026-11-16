@@ -84,6 +84,14 @@ func TestPrometheusServerIntegration(t *testing.T) {
 	if err != nil || scalar.Scalar == nil || scalar.Scalar.Value != 1 {
 		t.Fatalf("real instant query failed: %+v %v", scalar, err)
 	}
+	cfg, _ := resolveMapping(MappingConfig{})
+	queries := scopedMappingQueries(cfg, `cluster="test",namespace="test"`)
+	queries["inventory"] = mappingInventoryQuery(`cluster="test",namespace="test"`)
+	for signal, query := range queries {
+		if _, err := client.QueryRange(ctx, query, time.Now().Add(-time.Minute), time.Now(), time.Second); err != nil {
+			t.Fatalf("real mapping query %s failed: %v", signal, err)
+		}
+	}
 	end := time.Now().UTC()
 	start := end.Add(-10 * time.Second)
 	result, err := client.QueryRangeResult(ctx, "vector(1)", start, end, 250*time.Millisecond)

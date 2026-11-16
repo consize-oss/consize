@@ -35,3 +35,12 @@ func TestBootstrapForwardsPrometheusTransport(t *testing.T) {
 		t.Fatalf("health: %+v %v", health, err)
 	}
 }
+
+func TestBootstrapRejectsInvalidMappingAliases(t *testing.T) {
+	for _, mapping := range []prometheus.MappingConfig{{Cluster: "invalid-label"}, {Pod: "namespace"}, {Mode: "prefix"}} {
+		err := RegisterConfiguredPlugins(context.Background(), plugin.NewManager(), Config{Prometheus: PrometheusConfig{Enabled: true, BaseURL: "http://127.0.0.1:9090", Mapping: mapping}})
+		if err == nil {
+			t.Fatal("invalid mapping configuration accepted")
+		}
+	}
+}
