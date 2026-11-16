@@ -25,5 +25,5 @@ if hasher.hexdigest() != sys.argv[2]:
     raise SystemExit("Prometheus test binary checksum verification failed")
 CHECKSUM
 
-tar -xzf "$archive" --strip-components=1 -C "$target" "${asset}/prometheus"
+tar -xzf "$archive" --strip-components=1 -C "$target" "${asset}/prometheus" "${asset}/promtool"
 printf '%s/prometheus\n' "$target"

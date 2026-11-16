@@ -4,20 +4,25 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 )
 
 func scopedMappingQueries(c MappingConfig, scope string) map[string]string {
-	container := scope + fmt.Sprintf(`,%s!="",%s!="POD"`, c.Container, c.Container)
+	container := scope + "," + mappingMatcher(c.Container, "!=", "") + "," + mappingMatcher(c.Container, "!=", "POD")
+	evicted := mappingSelector("kube_pod_status_reason", scope, mappingMatcher("reason", "=", "Evicted"))
+	normal := mappingSelector("kube_pod_status_phase", scope, mappingMatcher("phase", "=~", "Running|Pending|Succeeded"))
+	other := mappingSelector("kube_pod_status_reason", scope, mappingMatcher("reason", "!=", "Evicted"))
 	numerator := fmt.Sprintf(`rate(container_cpu_cfs_throttled_periods_total{%s}[5m])`, container)
 	denominator := fmt.Sprintf(`rate(container_cpu_cfs_periods_total{%s}[5m])`, container)
 	return map[string]string{
 		"cpu_cores":                fmt.Sprintf(`rate(container_cpu_usage_seconds_total{%s}[5m])`, container),
 		"memory_working_set_bytes": fmt.Sprintf(`container_memory_working_set_bytes{%s}`, container),
 		"restarts_30m":             fmt.Sprintf(`increase(kube_pod_container_status_restarts_total{%s}[30m]) or increase(kube_pod_init_container_status_restarts_total{%s}[30m])`, container, container),
-		"cpu_throttling_ratio":     fmt.Sprintf(`((%s) / (%s)) or (((%s) == 0) and ((%s) == 0))`, numerator, denominator, numerator, denominator),
+		"cpu_throttling_ratio":     fmt.Sprintf(`(((%s) / (%s)) and ((%s) > 0)) or (0 * (((%s) == 0) and ((%s) == 0)))`, numerator, denominator, denominator, numerator, denominator),
 		"oom_events_30m":           fmt.Sprintf(`increase(container_oom_events_total{%s}[30m])`, container),
-		"evicted_pods":             fmt.Sprintf(`(kube_pod_status_reason{%s,reason="Evicted"} == 1) or (0 * (kube_pod_status_phase{%s,phase=~"Running|Pending|Succeeded"} == 1)) or (0 * (kube_pod_status_reason{%s,reason!="Evicted"} == 1))`, scope, scope, scope),
+		"evicted_pods":             fmt.Sprintf(`(%s == 1) or (0 * (%s == 1)) or (0 * (%s == 1))`, evicted, normal, other),
 	}
 }
 
@@ -99,4 +104,16 @@ func aggregateMapped(signal string, series []Series, c MappingConfig, expected i
 
 func mappingInventoryQuery(scope string) string {
 	return "kube_pod_container_info{" + scope + "} or kube_pod_init_container_info{" + scope + "}"
+}
+
+// Label names are validated during configuration; operators are static syntax.
+// Values are always escaped as complete PromQL double-quoted string literals.
+func mappingMatcher(label, operator, value string) string {
+	return label + operator + strconv.Quote(value)
+}
+func mappingSelector(metric, scope string, extra ...string) string {
+	if len(extra) > 0 {
+		scope += "," + strings.Join(extra, ",")
+	}
+	return metric + "{" + scope + "}"
 }

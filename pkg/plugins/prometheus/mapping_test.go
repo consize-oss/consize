@@ -230,3 +230,11 @@ func TestMappingLimitsAndInvalidConfiguration(t *testing.T) {
 		t.Fatal("invalid production mapping configuration accepted")
 	}
 }
+
+func TestMappingMatcherEscapesCompleteStringLiteral(t *testing.T) {
+	got := mappingMatcher("cluster", "=", "fixture\"} or vector(1) #\\tail")
+	want := `cluster="fixture\"} or vector(1) #\\tail"`
+	if got != want {
+		t.Fatalf("matcher escaping changed: %q", got)
+	}
+}

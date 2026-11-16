@@ -140,5 +140,6 @@ The optional live lab test now requires `CONSIZE_LAB_CLUSTER` and
 `CONSIZE_LAB_DEPLOYMENT_UID`, in addition to its original explicit opt-in. It never
 infers them. Unit/golden/HTTP tests cover identity, aliases, ownership, ambiguity,
 sidecars, unavailable evidence and recommendation persistence. CI's isolated
-Prometheus server validates the raw PromQL syntax; this is not validation of a
+Prometheus server validates the raw PromQL syntax. Its checksum-pinned promtool
+fixtures also test idle/active throttling, absent counters and quoted-label injection; this is not validation of a
 particular production exporter/enrichment installation.

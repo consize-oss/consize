@@ -145,18 +145,18 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		return plugin.MetricsSnapshot{}, p.mappingError
 	}
 	cfg := p.mapping
-	scope := fmt.Sprintf(`%s=%q,%s=%q`, cfg.Cluster, res.Account, cfg.Namespace, namespace)
+	scope := mappingMatcher(cfg.Cluster, "=", res.Account) + "," + mappingMatcher(cfg.Namespace, "=", namespace)
 	queries := scopedMappingQueries(cfg, scope)
 	for key, query := range p.customQueries {
 		queries[key] = strings.ReplaceAll(query, "{scope}", scope)
 	}
 	owners := OwnershipSeries{}
 	if cfg.Mode == "owner_chain" {
-		owners.Pods, err = p.client.QueryRange(ctx, "kube_pod_owner{"+scope+fmt.Sprintf(`,%s="true"}`, cfg.Controller), start, end, p.step)
+		owners.Pods, err = p.client.QueryRange(ctx, mappingSelector("kube_pod_owner", scope, mappingMatcher(cfg.Controller, "=", "true")), start, end, p.step)
 		if err != nil {
 			return plugin.MetricsSnapshot{}, safeError(err)
 		}
-		owners.ReplicaSets, err = p.client.QueryRange(ctx, "kube_replicaset_owner{"+scope+fmt.Sprintf(`,%s="true"}`, cfg.Controller), start, end, p.step)
+		owners.ReplicaSets, err = p.client.QueryRange(ctx, mappingSelector("kube_replicaset_owner", scope, mappingMatcher(cfg.Controller, "=", "true")), start, end, p.step)
 		if err != nil {
 			return plugin.MetricsSnapshot{}, safeError(err)
 		}
