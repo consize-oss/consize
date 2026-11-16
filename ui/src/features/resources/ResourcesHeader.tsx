@@ -70,7 +70,7 @@ export function ResourcesHeader() {
               const success = await syncInventory();
               if (success) setNotice({ error: false, text: "Inventory synced." });
             }}
-            className={ACTION_BUTTON + " border-emerald-600 bg-emerald-600 text-white"}
+            className={ACTION_BUTTON + " border-emerald-700 bg-emerald-700 text-white"}
           >
             <RefreshCw aria-hidden="true" className={"h-3.5 w-3.5 " + (isSyncing ? "animate-spin motion-reduce:animate-none" : "")} />
             {isSyncing ? "Syncing..." : "Sync inventory"}

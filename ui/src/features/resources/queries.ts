@@ -10,7 +10,7 @@ export type Resource = components["schemas"]["Resource"];
 export const RESOURCE_QUERY_KEY = ["resources", "inventory"] as const;
 
 // Validate the existing registry response; generated API declarations remain unchanged.
-const resourceSchema: z.ZodType<Resource> = z.object({
+export const resourceSchema: z.ZodType<Resource> = z.object({
   schema_version: z.number().int(), id: z.string(), type: z.string(), provider: z.string(),
   provider_resource_id: z.string(), name: z.string(), environment: z.string(), owner: z.string(),
   region: z.string(), account: z.string(), criticality: z.enum(["low", "medium", "high"]),

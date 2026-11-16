@@ -90,6 +90,7 @@ export function PluginPanel({ id }: { id: string | undefined }) {
         <section>
           <h3 className={H3}>Connected scope</h3>
           <dl className={`mt-2 grid grid-cols-2 gap-2 ${BOX}`}>
+            {p.scope_stats.length === 0 && <p className="col-span-2 text-xs text-fg-muted">Scope assessment unavailable.</p>}
             {p.scope_stats.map((s) => (
               <div key={s.label} className="min-w-0">
                 <dt className="text-[10px] text-fg-muted">{s.label}</dt>
@@ -130,7 +131,7 @@ export function PluginPanel({ id }: { id: string | undefined }) {
                 </div>
               ))
             ) : (
-              <span>No credentials required.</span>
+              <span>Credential status is not supplied by the runtime API.</span>
             )}
           </div>
         </section>

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
+  Menu,
   Activity,
   CheckCircle2,
   ChevronsUpDown,
@@ -31,6 +33,7 @@ const NAV_ITEMS = [
 ] as const;
 
 export function Sidebar() {
+  const mobileDialog = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
   const { carry } = useScope();
   // Approvals badge = approvals assigned to the signed-in user, from the
@@ -39,7 +42,10 @@ export function Sidebar() {
   const mine = summary?.pending_approvals_mine ?? 0;
 
   return (
-    <aside className="fixed left-0 top-0 h-dvh w-[var(--sidebar-width)] bg-app-sidebar border-r border-app-border z-50 flex flex-col select-none">
+    <>
+    <button aria-label="Open navigation" className="md:hidden fixed top-3 left-3 z-50 rounded-btn border border-app-border bg-app-surface p-1 text-fg" onClick={() => mobileDialog.current?.showModal()}><Menu aria-hidden className="w-6 h-6" /></button>
+    <dialog ref={mobileDialog} aria-label="Navigation" className="m-0 h-dvh max-h-dvh w-72 border-r border-app-border bg-app-sidebar p-4 text-fg backdrop:bg-black/50"><button className="mb-4 border border-app-border rounded-btn p-2 text-sm" onClick={() => mobileDialog.current?.close()}>Close navigation</button><nav aria-label="Primary" className="space-y-1">{NAV_ITEMS.map(item => <Link key={item.href} href={carry(item.href)} onClick={() => mobileDialog.current?.close()} className="block rounded-btn p-3 hover:bg-app-surface focus-visible:outline-2">{item.label}</Link>)}</nav></dialog>
+    <aside className="hidden md:flex fixed left-0 top-0 h-dvh w-[var(--sidebar-width)] bg-app-sidebar border-r border-app-border z-50 flex-col select-none">
       <div className="h-16 px-4 flex items-center border-b border-app-border shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg overflow-hidden bg-app-surface border border-app-border flex items-center justify-center p-0.5">
@@ -128,5 +134,6 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

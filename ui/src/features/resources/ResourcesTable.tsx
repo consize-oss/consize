@@ -21,6 +21,10 @@ const TELEMETRY = {
 };
 
 export function ResourcesTable() {
+  return <div id="resource-inventory-results"><ResourcesTableContent /></div>;
+}
+
+function ResourcesTableContent() {
   const { items, isLoading, isError, isRetrying, retry, hasFilters, asOf } = useResourceInventory();
 
   if (isLoading) {
@@ -62,7 +66,7 @@ export function ResourcesTable() {
   }
 
   return (
-    <div id="resource-inventory-results" role="region" aria-label="Resources table" tabIndex={0} className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-500">
+    <div role="region" aria-label="Resources table" tabIndex={0} className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-500">
       <table className="w-full min-w-[1000px] table-fixed border-collapse text-left">
         <caption className="sr-only">Resource inventory, providers, environments, owners, telemetry, policy coverage, and optimization status.</caption>
         <colgroup>

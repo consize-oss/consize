@@ -1,5 +1,4 @@
-import { ComingSoon } from "@/components/shell/ComingSoon";
-
+import { redirect } from "next/navigation";
 export default function Page() {
-  return <ComingSoon title="Approvals" />;
+  redirect("/recommendations?status=pending_approval");
 }
