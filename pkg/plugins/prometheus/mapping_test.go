@@ -238,3 +238,12 @@ func TestMappingMatcherEscapesCompleteStringLiteral(t *testing.T) {
 		t.Fatalf("matcher escaping changed: %q", got)
 	}
 }
+
+func TestInvalidNegativeMeasurementCannotBecomeAggregateZero(t *testing.T) {
+	c, _ := resolveMapping(MappingConfig{})
+	for _, signal := range []string{"cpu_cores", "memory_working_set_bytes", "restarts_30m", "oom_events_30m", "cpu_throttling_ratio", "evicted_pods"} {
+		if got := aggregateMapped(signal, []Series{mapSeries("pod", "app", -1)}, c, 1); len(got) != 0 {
+			t.Fatalf("negative %s became a numeric aggregate", signal)
+		}
+	}
+}

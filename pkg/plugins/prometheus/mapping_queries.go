@@ -43,7 +43,7 @@ func aggregateMapped(signal string, series []Series, c MappingConfig, expected i
 	points := map[int64]*bucket{}
 	for _, s := range series {
 		for _, p := range s.Points {
-			if math.IsNaN(p.Value) || math.IsInf(p.Value, 0) {
+			if math.IsNaN(p.Value) || math.IsInf(p.Value, 0) || p.Value < 0 {
 				continue
 			}
 			if signal == "cpu_throttling_ratio" && (p.Value < 0 || p.Value > 1) {

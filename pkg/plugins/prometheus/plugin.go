@@ -202,7 +202,7 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		rawDiscarded := 0
 		for _, raw := range series {
 			for _, point := range raw.Points {
-				if point.Timestamp.Before(start) || point.Timestamp.After(end) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) || key == "cpu_throttling_ratio" && (point.Value < 0 || point.Value > 1) {
+				if point.Timestamp.Before(start) || point.Timestamp.After(end) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) || signalUnit(key) != "" && point.Value < 0 || key == "cpu_throttling_ratio" && (point.Value < 0 || point.Value > 1) {
 					rawDiscarded++
 				}
 			}
