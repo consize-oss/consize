@@ -108,12 +108,10 @@ func (p *Plugin) DiscoverSnapshot(ctx context.Context) (batch plugin.DiscoverySn
 		if err := ctx.Err(); err != nil {
 			return batch, err
 		}
-		native, err := captureDeployment(deployment, p.clusterID, p.discovery.annotations)
+		res, err := MapDeployment(deployment, MappingConfig{ClusterID: p.clusterID, Location: p.location, AnnotationAllowlist: p.discovery.annotations}, observedAt)
 		if err != nil {
 			return batch, err
 		}
-		res := p.deploymentResource(deployment, observedAt)
-		res.Metadata["discovery"] = native
 		res.Metadata["discovery_scan"] = map[string]any{"id": scan.ID, "scope_digest": scan.ScopeDigest}
 		batch.Observations = append(batch.Observations, plugin.ProviderObservation{PluginID: ID, Provider: res.Provider, ObservedAt: observedAt, Resource: res})
 	}

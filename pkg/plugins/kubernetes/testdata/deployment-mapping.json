@@ -1,0 +1,224 @@
+{
+  "schema_version": 0,
+  "id": "",
+  "type": "kubernetes.deployment",
+  "provider": "kubernetes",
+  "provider_resource_id": "payments/checkout",
+  "name": "checkout",
+  "environment": "production",
+  "owner": "platform",
+  "region": "local",
+  "account": "cluster-one",
+  "criticality": "medium",
+  "lifecycle_state": "",
+  "support_status": "",
+  "labels": {
+    "consize.io/environment": "production",
+    "consize.io/owner": "platform",
+    "custom.example/team": "payments",
+    "environment": "development",
+    "owner": "ignored"
+  },
+  "metadata": {
+    "discovery": {
+      "annotation_keys": [
+        "example.io/private",
+        "example.io/public"
+      ],
+      "annotation_values_omitted": 1,
+      "annotations": {
+        "example.io/public": "preserved"
+      },
+      "available_replicas": 0,
+      "cluster_id": "cluster-one",
+      "containers": [
+        {
+          "kind": "container",
+          "limits": {
+            "cpu": "1",
+            "memory": "1Gi"
+          },
+          "name": "app",
+          "requests": {
+            "cpu": "500m",
+            "ephemeral-storage": "1Gi",
+            "example.io/gpu": "1",
+            "memory": "512Mi"
+          },
+          "restart_policy": null
+        },
+        {
+          "kind": "container",
+          "limits": {},
+          "name": "sidecar",
+          "requests": {
+            "cpu": "100u",
+            "memory": "0"
+          },
+          "restart_policy": null
+        },
+        {
+          "kind": "init_container",
+          "limits": {},
+          "name": "bootstrap",
+          "requests": {
+            "cpu": "20m"
+          },
+          "restart_policy": "Always"
+        }
+      ],
+      "created_at": "2026-11-15T23:00:00Z",
+      "desired_replicas": null,
+      "generation": 4,
+      "labels": {
+        "consize.io/environment": "production",
+        "consize.io/owner": "platform",
+        "custom.example/team": "payments",
+        "environment": "development",
+        "owner": "ignored"
+      },
+      "name": "checkout",
+      "namespace": "payments",
+      "observed_generation": 0,
+      "owner_references": [],
+      "ready_replicas": 0,
+      "replicas": 0,
+      "resource_version": "12",
+      "selector": null,
+      "template_annotation_keys": [],
+      "template_annotation_values_omitted": 0,
+      "template_annotations": {},
+      "template_labels": {},
+      "uid": "uid-checkout",
+      "unavailable_replicas": 0,
+      "updated_replicas": 0,
+      "version": "kubernetes-deployment-discovery-v1"
+    },
+    "generation": 4,
+    "mapping": {
+      "aggregate_complete": {
+        "cpu_limit_millicores": false,
+        "cpu_request_millicores": true,
+        "memory_limit_bytes": false,
+        "memory_request_bytes": true
+      },
+      "aggregate_scope": "regular_containers_per_replica",
+      "containers": [
+        {
+          "kind": "container",
+          "limits": [
+            {
+              "quantity": "1",
+              "resource": "cpu",
+              "unit": "millicores",
+              "value": "1000"
+            },
+            {
+              "quantity": "1Gi",
+              "resource": "memory",
+              "unit": "bytes",
+              "value": "1073741824"
+            }
+          ],
+          "name": "app",
+          "requests": [
+            {
+              "quantity": "500m",
+              "resource": "cpu",
+              "unit": "millicores",
+              "value": "500"
+            },
+            {
+              "quantity": "1Gi",
+              "resource": "ephemeral-storage",
+              "unit": "bytes",
+              "value": "1073741824"
+            },
+            {
+              "quantity": "1",
+              "resource": "example.io/gpu",
+              "unit": "units",
+              "value": "1"
+            },
+            {
+              "quantity": "512Mi",
+              "resource": "memory",
+              "unit": "bytes",
+              "value": "536870912"
+            }
+          ]
+        },
+        {
+          "kind": "container",
+          "limits": [],
+          "name": "sidecar",
+          "requests": [
+            {
+              "quantity": "100u",
+              "resource": "cpu",
+              "unit": "millicores",
+              "value": "0.1"
+            },
+            {
+              "quantity": "0",
+              "resource": "memory",
+              "unit": "bytes",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "kind": "init_container",
+          "limits": [],
+          "name": "bootstrap",
+          "requests": [
+            {
+              "quantity": "20m",
+              "resource": "cpu",
+              "unit": "millicores",
+              "value": "20"
+            }
+          ],
+          "restart_policy": "Always"
+        }
+      ],
+      "provenance": {
+        "criticality": {
+          "confirmed": false,
+          "source": "fallback"
+        },
+        "environment": {
+          "confirmed": true,
+          "source": "label:consize.io/environment"
+        },
+        "owner": {
+          "confirmed": true,
+          "source": "label:consize.io/owner"
+        }
+      },
+      "provider_created_at": "2026-11-15T23:00:00Z",
+      "version": "kubernetes-deployment-mapper-v1"
+    },
+    "name": "checkout",
+    "namespace": "payments",
+    "pod_regex": "checkout-.+",
+    "provider_instance_id": "uid-checkout",
+    "replicas": 1,
+    "resource_version": "12",
+    "uid": "uid-checkout"
+  },
+  "current_state": {
+    "cpu_limit_millicores": 1000,
+    "cpu_request_millicores": 501,
+    "memory_limit_bytes": 1073741824,
+    "memory_request_bytes": 536870912
+  },
+  "monthly_cost": 0,
+  "source_plugin_id": "kubernetes-action",
+  "lifecycle_observed_at": "0001-01-01T00:00:00Z",
+  "observed_at": "2026-11-16T00:00:00Z",
+  "first_seen_at": "0001-01-01T00:00:00Z",
+  "last_seen_at": "0001-01-01T00:00:00Z",
+  "created_at": "0001-01-01T00:00:00Z",
+  "updated_at": "0001-01-01T00:00:00Z"
+}

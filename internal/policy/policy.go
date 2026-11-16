@@ -3,6 +3,7 @@ package policy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
@@ -41,8 +42,11 @@ func (e *Engine) Evaluate(_ context.Context, res resource.Resource, manifest plu
 	if !plugin.Supports(manifest.SupportedResourceTypes, res.Type) {
 		return Decision{PolicyID: "oss-foundation-v1", Decision: DecisionBlocked, Reasons: []string{fmt.Sprintf("plugin %s does not support %s", manifest.ID, res.Type)}}
 	}
-	if res.Owner == "" {
+	if strings.TrimSpace(res.Owner) == "" || strings.EqualFold(strings.TrimSpace(res.Owner), resource.OwnerUnassigned) {
 		reasons = append(reasons, "resource has no owner")
+	}
+	if res.Environment != resource.EnvProduction && res.Environment != resource.EnvStaging && res.Environment != resource.EnvDevelopment {
+		reasons = append(reasons, "resource environment is unknown")
 	}
 	if res.Environment == resource.EnvProduction {
 		reasons = append(reasons, "resource is production")
@@ -62,7 +66,7 @@ func (e *Engine) Evaluate(_ context.Context, res resource.Resource, manifest plu
 		}
 		return Decision{PolicyID: "oss-foundation-v1", Decision: DecisionApproved, Reasons: append(reasons, "explicit approval supplied by actor")}
 	case "auto":
-		if len(reasons) == 0 && e.AutoApplyNonProduction && res.Environment != resource.EnvProduction {
+		if len(reasons) == 0 && e.AutoApplyNonProduction && (res.Environment == resource.EnvStaging || res.Environment == resource.EnvDevelopment) {
 			return Decision{PolicyID: "oss-foundation-v1", Decision: DecisionAutoApply, Reasons: []string{"non-production auto-apply is allowed"}}
 		}
 		return Decision{PolicyID: "oss-foundation-v1", Decision: DecisionApprovalRequired, Reasons: append(reasons, "auto mode is not allowed by current policy")}

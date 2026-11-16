@@ -27,9 +27,11 @@ const (
 )
 
 const (
-	EnvProduction  = "production"
-	EnvStaging     = "staging"
-	EnvDevelopment = "development"
+	EnvUnknown      = "unknown"
+	OwnerUnassigned = "unassigned"
+	EnvProduction   = "production"
+	EnvStaging      = "staging"
+	EnvDevelopment  = "development"
 )
 
 const (
@@ -182,6 +184,9 @@ func (r Resource) WithDefaults(now time.Time) Resource {
 }
 
 func (r Resource) Validate() error {
+	if _, err := providerInstance(r); err != nil {
+		return err
+	}
 	if r.SchemaVersion != CurrentSchemaVersion {
 		return fmt.Errorf("%w: unsupported schema_version %d", ErrInvalidResource, r.SchemaVersion)
 	}
@@ -194,8 +199,8 @@ func (r Resource) Validate() error {
 	if r.Name == "" {
 		return fmt.Errorf("%w: name is required", ErrInvalidResource)
 	}
-	if !oneOf(r.Environment, EnvProduction, EnvStaging, EnvDevelopment) {
-		return fmt.Errorf("%w: environment must be production, staging, or development", ErrInvalidResource)
+	if !oneOf(r.Environment, EnvProduction, EnvStaging, EnvDevelopment, EnvUnknown) {
+		return fmt.Errorf("%w: environment must be production, staging, development, or unknown", ErrInvalidResource)
 	}
 	if r.Owner == "" {
 		return fmt.Errorf("%w: owner is required", ErrInvalidResource)

@@ -35,6 +35,11 @@ func prepareResource(in resource.Resource, existing *resource.Resource, now time
 		if !resource.SameIdentity(*existing, r) {
 			return resource.Resource{}, fmt.Errorf("%w: ID belongs to another provider resource", resource.ErrIdentityConflict)
 		}
+		// A native object replacement must not inherit the previous object's registry
+		// identity/history silently. No automatic replacement lifecycle is introduced.
+		if err := resource.ValidateInstanceUpdate(*existing, r); err != nil {
+			return resource.Resource{}, err
+		}
 		if createOnly {
 			return resource.Resource{}, resource.ErrAlreadyExists
 		}
@@ -186,7 +191,7 @@ func parseResourceQuery(q resource.Query) (resource.Query, string, error) {
 	if q.LifecycleState != "" && q.LifecycleState != resource.LifecycleActive && q.LifecycleState != resource.LifecycleStale && q.LifecycleState != resource.LifecycleDeleted {
 		return q, "", resource.ErrInvalidQuery
 	}
-	if q.Environment != "" && q.Environment != resource.EnvProduction && q.Environment != resource.EnvStaging && q.Environment != resource.EnvDevelopment {
+	if q.Environment != "" && q.Environment != resource.EnvProduction && q.Environment != resource.EnvStaging && q.Environment != resource.EnvDevelopment && q.Environment != resource.EnvUnknown {
 		return q, "", resource.ErrInvalidQuery
 	}
 	if q.SupportStatus != "" && q.SupportStatus != resource.SupportFull && q.SupportStatus != resource.SupportModelOnly && q.SupportStatus != resource.SupportUnsupported {

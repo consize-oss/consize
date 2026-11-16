@@ -21,3 +21,10 @@ func TestQueryRejectsAmbiguousAndUnboundedInput(t *testing.T) {
 		t.Fatalf("%+v %v", q, err)
 	}
 }
+
+func TestUnknownEnvironmentIsAnExplicitFilter(t *testing.T) {
+	q, err := ParseQuery(url.Values{"environment": {"unknown"}})
+	if err != nil || q.Environment != "unknown" {
+		t.Fatalf("query=%+v error=%v", q, err)
+	}
+}

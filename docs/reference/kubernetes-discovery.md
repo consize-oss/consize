@@ -85,8 +85,9 @@ response cannot become a completed empty scan.
 
 ## What is captured
 
-Existing canonical identity, ownership/environment defaults and aggregate current
-state keep their existing semantics. Their refinement remains with CON-14.
+Canonical logical identity remains unchanged. [Deployment mapping](kubernetes-mapping.md)
+defines metadata precedence, explicit unknown environment, per-container quantities
+and the native UID replacement guard.
 `resource.metadata.discovery` adds the versioned native input contract
 `kubernetes-deployment-discovery-v1`:
 

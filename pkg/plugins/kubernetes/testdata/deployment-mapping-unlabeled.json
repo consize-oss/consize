@@ -1,0 +1,109 @@
+{
+  "schema_version": 0,
+  "id": "",
+  "type": "kubernetes.deployment",
+  "provider": "kubernetes",
+  "provider_resource_id": "prod-payments/checkout",
+  "name": "checkout",
+  "environment": "unknown",
+  "owner": "unassigned",
+  "region": "us-east-1",
+  "account": "cluster-prod",
+  "criticality": "medium",
+  "lifecycle_state": "",
+  "support_status": "",
+  "labels": {},
+  "metadata": {
+    "discovery": {
+      "annotation_keys": [],
+      "annotation_values_omitted": 0,
+      "annotations": {},
+      "available_replicas": 0,
+      "cluster_id": "cluster-prod",
+      "containers": [
+        {
+          "kind": "container",
+          "limits": {},
+          "name": "app",
+          "requests": {},
+          "restart_policy": null
+        }
+      ],
+      "created_at": null,
+      "desired_replicas": null,
+      "generation": 0,
+      "labels": {},
+      "name": "checkout",
+      "namespace": "prod-payments",
+      "observed_generation": 0,
+      "owner_references": [],
+      "ready_replicas": 0,
+      "replicas": 0,
+      "resource_version": "12",
+      "selector": null,
+      "template_annotation_keys": [],
+      "template_annotation_values_omitted": 0,
+      "template_annotations": {},
+      "template_labels": {},
+      "uid": "uid-production-like",
+      "unavailable_replicas": 0,
+      "updated_replicas": 0,
+      "version": "kubernetes-deployment-discovery-v1"
+    },
+    "generation": 0,
+    "mapping": {
+      "aggregate_complete": {
+        "cpu_limit_millicores": false,
+        "cpu_request_millicores": false,
+        "memory_limit_bytes": false,
+        "memory_request_bytes": false
+      },
+      "aggregate_scope": "regular_containers_per_replica",
+      "containers": [
+        {
+          "kind": "container",
+          "limits": [],
+          "name": "app",
+          "requests": []
+        }
+      ],
+      "provenance": {
+        "criticality": {
+          "confirmed": false,
+          "source": "fallback"
+        },
+        "environment": {
+          "confirmed": false,
+          "source": "fallback"
+        },
+        "owner": {
+          "confirmed": false,
+          "source": "fallback"
+        }
+      },
+      "provider_created_at": null,
+      "version": "kubernetes-deployment-mapper-v1"
+    },
+    "name": "checkout",
+    "namespace": "prod-payments",
+    "pod_regex": "checkout-.+",
+    "provider_instance_id": "uid-production-like",
+    "replicas": 1,
+    "resource_version": "12",
+    "uid": "uid-production-like"
+  },
+  "current_state": {
+    "cpu_limit_millicores": 0,
+    "cpu_request_millicores": 0,
+    "memory_limit_bytes": 0,
+    "memory_request_bytes": 0
+  },
+  "monthly_cost": 0,
+  "source_plugin_id": "kubernetes-action",
+  "lifecycle_observed_at": "0001-01-01T00:00:00Z",
+  "observed_at": "2026-11-16T00:00:00Z",
+  "first_seen_at": "0001-01-01T00:00:00Z",
+  "last_seen_at": "0001-01-01T00:00:00Z",
+  "created_at": "0001-01-01T00:00:00Z",
+  "updated_at": "0001-01-01T00:00:00Z"
+}
