@@ -197,3 +197,7 @@ transport connectivity alone cannot provide.
 References: Prometheus [HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/),
 [readiness API](https://prometheus.io/docs/prometheus/latest/management_api/), and
 [official release](https://github.com/prometheus/prometheus/releases/tag/v3.16.0).
+
+Kubernetes series attribution and source-label requirements are specified in
+[resource-to-series mapping](prometheus-mapping.md). Transport readiness does not
+bypass that contract.

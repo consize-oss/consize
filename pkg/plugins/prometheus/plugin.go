@@ -17,6 +17,7 @@ import (
 const ID = "prometheus-metrics"
 
 type Config struct {
+	Mapping   MappingConfig
 	Transport TransportConfig
 	BaseURL   string
 	Window    time.Duration
@@ -26,16 +27,24 @@ type Config struct {
 }
 
 type Plugin struct {
-	client  Client
-	window  time.Duration
-	step    time.Duration
-	units   map[string]string
-	queries map[string]string
+	mapping       MappingConfig
+	mappingError  error
+	customQueries map[string]string
+	client        Client
+	window        time.Duration
+	step          time.Duration
+	units         map[string]string
 }
 
 func New(cfg Config) (*Plugin, error) {
+	if len(cfg.Queries) > 32 || len(cfg.Units) > 32 {
+		return nil, failure("configuration")
+	}
 	if cfg.Window < 0 || cfg.Window > 365*24*time.Hour || cfg.Step < 0 || cfg.Step > 24*time.Hour || (cfg.Step > 0 && cfg.Step < time.Millisecond) {
 		return nil, failure("configuration")
+	}
+	if _, err := resolveMapping(cfg.Mapping); err != nil {
+		return nil, err
 	}
 	client, err := NewConfiguredHTTPClient(cfg.BaseURL, cfg.Transport)
 	if err != nil {
@@ -57,14 +66,19 @@ func NewWithClient(client Client, cfg Config) *Plugin {
 	if step == 0 {
 		step = 5 * time.Minute
 	}
-	queries := map[string]string{}
-	for key, query := range defaultQueries() {
-		queries[key] = query
+	mapping, mappingError := resolveMapping(cfg.Mapping)
+	if len(cfg.Queries) > 32 || len(cfg.Units) > 32 {
+		mappingError = failure("configuration")
 	}
+	custom := map[string]string{}
 	for key, query := range cfg.Queries {
-		queries[key] = query
+		custom[key] = query
 	}
-	return &Plugin{client: client, window: window, step: step, queries: queries, units: cfg.Units}
+	units := map[string]string{}
+	for key, unit := range cfg.Units {
+		units[key] = unit
+	}
+	return &Plugin{client: client, window: window, step: step, units: units, mapping: mapping, mappingError: mappingError, customQueries: custom}
 }
 
 func (p *Plugin) ID() string { return ID }
@@ -127,9 +141,33 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 	if err != nil {
 		return plugin.MetricsSnapshot{}, err
 	}
-	podSelector, _ := res.Metadata["pod_regex"].(string)
-	if podSelector == "" {
-		podSelector = fmt.Sprintf("%s-.+", regexpQuote(name))
+	if p.mappingError != nil {
+		return plugin.MetricsSnapshot{}, p.mappingError
+	}
+	cfg := p.mapping
+	scope := mappingMatcher(cfg.Cluster, "=", res.Account) + "," + mappingMatcher(cfg.Namespace, "=", namespace)
+	queries := scopedMappingQueries(cfg, scope)
+	for key, query := range p.customQueries {
+		queries[key] = strings.ReplaceAll(query, "{scope}", scope)
+	}
+	owners := OwnershipSeries{}
+	if cfg.Mode == "owner_chain" {
+		owners.Pods, err = p.client.QueryRange(ctx, mappingSelector("kube_pod_owner", scope, mappingMatcher(cfg.Controller, "=", "true")), start, end, p.step)
+		if err != nil {
+			return plugin.MetricsSnapshot{}, safeError(err)
+		}
+		owners.ReplicaSets, err = p.client.QueryRange(ctx, mappingSelector("kube_replicaset_owner", scope, mappingMatcher(cfg.Controller, "=", "true")), start, end, p.step)
+		if err != nil {
+			return plugin.MetricsSnapshot{}, safeError(err)
+		}
+	}
+	inventory, err := p.client.QueryRange(ctx, mappingInventoryQuery(scope), start, end, p.step)
+	if err != nil {
+		return plugin.MetricsSnapshot{}, safeError(err)
+	}
+	inventoryMapping := MapSeries(res, "inventory", inventory, owners, cfg)
+	if target, e := targetForMapping(res); e == nil {
+		inventoryMapping = validateInventory(inventoryMapping, target, cfg)
 	}
 	collectedAt := time.Now().UTC()
 	signals := map[string]any{
@@ -137,23 +175,44 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		"name":      name,
 		"window":    end.Sub(start).String(),
 		"step":      p.step.String(),
+		"mapping":   map[string]any{},
 	}
 	coverage := map[string]plugin.MetricCoverage{}
 	records := []evidence.Record{}
-	keys := make([]string, 0, len(p.queries))
-	for key := range p.queries {
+	keys := make([]string, 0, len(queries))
+	for key := range queries {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
-		queryTemplate := p.queries[key]
-		query := renderQuery(queryTemplate, namespace, podSelector)
+		if err := ctx.Err(); err != nil {
+			return plugin.MetricsSnapshot{}, safeError(err)
+		}
+		query := queries[key]
 		series, err := p.client.QueryRange(ctx, query, start, end, p.step)
 		if err != nil {
 			return plugin.MetricsSnapshot{}, safeError(err)
 		}
+		mapping := MapSeries(res, key, series, owners, cfg)
+		if mapping.Status == "mapped" {
+			mapping = validateMembership(mapping, inventoryMapping, key, cfg)
+		}
+		signals["mapping"].(map[string]any)[key] = map[string]any{"version": MappingVersion, "status": mapping.Status, "source": mapping.Source, "members": mapping.Members, "excluded": mapping.Excluded, "digest": mapping.Digest}
+		series = mapping.Series
+		rawDiscarded := 0
+		for _, raw := range series {
+			for _, point := range raw.Points {
+				if point.Timestamp.Before(start) || point.Timestamp.After(end) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) || signalUnit(key) != "" && point.Value < 0 || key == "cpu_throttling_ratio" && (point.Value < 0 || point.Value > 1) {
+					rawDiscarded++
+				}
+			}
+		}
+		if mapping.Status == "mapped" {
+			target, _ := targetForMapping(res)
+			series = aggregateMapped(key, series, cfg, len(target.Containers))
+		}
 		values := []float64{}
-		discarded := 0
+		discarded := rawDiscarded
 		points := map[int64]bool{}
 		var first, last time.Time
 		for _, s := range series {
@@ -210,12 +269,15 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		} else if float64(len(points))/float64(coverage[key].ExpectedPoints) < 0.9 || discarded > 0 {
 			quality = evidence.Partial
 		}
+		if mapping.Status != "mapped" {
+			quality = evidence.Unavailable
+		}
 		for _, stat := range []string{"p50", "p95", "p99", "max"} {
 			var value *float64
 			if v, ok := signals[key+"_"+stat].(float64); ok {
 				value = evidence.Number(v)
 			}
-			rec, err := evidence.Seal(evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: stat, Unit: unit, OriginalUnit: unit, Scale: 1, Value: value, SampleCount: len(values), WindowStart: start, WindowEnd: end, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}})
+			rec, err := evidence.Seal(evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: stat, Unit: unit, OriginalUnit: unit, Scale: 1, Value: value, SampleCount: len(values), WindowStart: start, WindowEnd: end, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"mapping_cluster": res.Account, "mapping_deployment_uid": mappingUID(res), "mapping_namespace": namespace, "mapping_version": MappingVersion, "mapping_status": mapping.Status, "mapping_source": mapping.Source, "mapping_digest": mapping.Digest, "mapping_members": strconv.Itoa(mapping.Members), "mapping_excluded": strconv.Itoa(mapping.Excluded), "step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}})
 			if err != nil {
 				return plugin.MetricsSnapshot{}, err
 			}
@@ -233,7 +295,7 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		Signals:    signals,
 		Evidence: []string{
 			"metrics read from Prometheus query_range",
-			"deployment is matched through namespace and ReplicaSet-style pod prefix",
+			"series ownership is validated before workload aggregation; see mapping provenance on each record",
 			"health verification can use the same metrics after an action",
 		},
 		CollectedAt: collectedAt,
@@ -283,30 +345,6 @@ func max(values []float64) float64 {
 	return out
 }
 
-func regexpQuote(s string) string {
-	replacer := strings.NewReplacer(`\`, `\\`, `.`, `\.`, `+`, `\+`, `*`, `\*`, `?`, `\?`, `^`, `\^`, `$`, `\$`, `(`, `\(`, `)`, `\)`, `[`, `\[`, `]`, `\]`, `{`, `\{`, `}`, `\}`, `|`, `\|`)
-	return replacer.Replace(s)
-}
-
-func defaultQueries() map[string]string {
-	return map[string]string{
-		"cpu_cores":                `max(sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="{namespace}",pod=~"{pod_regex}",container!="",container!="POD",image!=""}[5m])))`,
-		"memory_working_set_bytes": `max(sum by (pod) (container_memory_working_set_bytes{namespace="{namespace}",pod=~"{pod_regex}",container!="",container!="POD",image!=""}))`,
-		"restarts_30m":             `sum(increase(kube_pod_container_status_restarts_total{namespace="{namespace}",pod=~"{pod_regex}"}[30m]))`,
-		"cpu_throttling_ratio":     throttlingQuery(),
-		"oom_events_30m":           `sum(increase(container_oom_events_total{namespace="{namespace}",pod=~"{pod_regex}",container!="",container!="POD"}[30m]))`,
-		"evicted_pods":             evictionQuery(),
-	}
-}
-
-func renderQuery(template, namespace, podRegex string) string {
-	replacer := strings.NewReplacer(
-		"{namespace}", namespace,
-		"{pod_regex}", podRegex,
-	)
-	return replacer.Replace(template)
-}
-
 func signalUnit(key string) string {
 	switch key {
 	case "cpu_cores":
@@ -320,3 +358,5 @@ func signalUnit(key string) string {
 	}
 	return ""
 }
+
+func mappingUID(r resource.Resource) string { uid, _ := r.Metadata["uid"].(string); return uid }

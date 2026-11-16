@@ -41,3 +41,23 @@ func TestKubernetesDiscoveryConfigurationIsStrictAndPreserved(t *testing.T) {
 		t.Fatal("unknown discovery setting accepted")
 	}
 }
+
+func TestPrometheusMappingConfigurationIsStrictAndPreserved(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(`{"prometheus":{"mapping":{"mode":"owner_chain","cluster":"source_cluster","pod_uid":"pod_uid"}}}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := LoadBootstrap(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Prometheus.Mapping.Mode != "owner_chain" || cfg.Prometheus.Mapping.Cluster != "source_cluster" || cfg.Prometheus.Mapping.PodUID != "pod_uid" {
+		t.Fatal("mapping settings lost")
+	}
+	if err = os.WriteFile(path, []byte(`{"prometheus":{"mapping":{"pod_prefix":"guess"}}}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = LoadBootstrap(path); err == nil {
+		t.Fatal("unknown mapping setting accepted")
+	}
+}

@@ -1,6 +1,10 @@
+// Historical PromQL semantics fixtures. Production collection uses mapping_queries.go.
 package prometheus
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const podScope = `namespace="{namespace}",pod=~"{pod_regex}"`
 const containerScope = podScope + `,container!="",container!="POD"`
@@ -34,4 +38,17 @@ func evictionQuery() string {
 	known := fmt.Sprintf(`(%s) or on(%s) (%s) or on(%s) (%s)`, evicted, labels, normal, labels, other)
 	inventory := fmt.Sprintf(`max by (%s) (kube_pod_info{%s})`, labels, podScope)
 	return coveredAggregate(known, inventory, "sum", labels)
+}
+
+func defaultQueries() map[string]string {
+	c, _ := resolveMapping(MappingConfig{})
+	return scopedMappingQueries(c, "{scope}")
+}
+
+func renderQuery(template, namespace, podRegex string) string {
+	replacer := strings.NewReplacer(
+		"{namespace}", namespace,
+		"{pod_regex}", podRegex,
+	)
+	return replacer.Replace(template)
 }

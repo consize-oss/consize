@@ -21,7 +21,7 @@ func (unusableClient) QueryRange(_ context.Context, _ string, start, end time.Ti
 }
 func TestUnavailableEvidenceHasNoNumericSummary(t *testing.T) {
 	p := NewWithClient(unusableClient{}, Config{Window: time.Hour, Step: time.Minute})
-	s, err := p.ReadMetrics(context.Background(), resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}})
+	s, err := p.ReadMetrics(context.Background(), mappingTestResource(resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,12 +37,19 @@ func TestUnavailableEvidenceHasNoNumericSummary(t *testing.T) {
 
 func (f *fakeClient) QueryRange(_ context.Context, query string, start, end time.Time, step time.Duration) ([]Series, error) {
 	f.queries = append(f.queries, query)
+	values := []float64{1, 2, 3}
+	if strings.Contains(query, "kube_pod_container_info") {
+		values = []float64{1, 1, 1}
+	}
+	if strings.Contains(query, "container_cpu_cfs") {
+		values = []float64{.1, .2, .3}
+	}
 	return []Series{{
-		Metric: map[string]string{},
+		Metric: mappingTestLabelsFromQuery(query),
 		Points: []Point{
-			{Timestamp: start, Value: 1},
-			{Timestamp: start.Add(step), Value: 2},
-			{Timestamp: end, Value: 3},
+			{Timestamp: start, Value: values[0]},
+			{Timestamp: start.Add(step), Value: values[1]},
+			{Timestamp: end, Value: values[2]},
 		},
 	}}, nil
 }
@@ -50,12 +57,12 @@ func (f *fakeClient) QueryRange(_ context.Context, query string, start, end time
 func TestReadMetricsQueriesPrometheusForDeploymentSignals(t *testing.T) {
 	client := &fakeClient{}
 	p := NewWithClient(client, Config{Window: time.Hour, Step: time.Minute})
-	snapshot, err := p.ReadMetrics(context.Background(), resource.Resource{
+	snapshot, err := p.ReadMetrics(context.Background(), mappingTestResource(resource.Resource{
 		ID:       "k8s:prod:checkout-api",
 		Type:     resource.TypeKubernetesDeployment,
 		Name:     "checkout-api",
 		Metadata: map[string]any{"namespace": "prod", "name": "checkout-api"},
-	})
+	}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,8 +72,8 @@ func TestReadMetricsQueriesPrometheusForDeploymentSignals(t *testing.T) {
 	if got := snapshot.Signals["cpu_cores_p95"]; got != float64(3) {
 		t.Fatalf("cpu p95 = %#v", got)
 	}
-	if len(client.queries) != 6 {
-		t.Fatalf("queries = %d, want 6", len(client.queries))
+	if len(client.queries) != 7 {
+		t.Fatalf("queries = %d, want 7", len(client.queries))
 	}
 	for _, key := range []string{"cpu_throttling_ratio_p95", "oom_events_30m_max", "evicted_pods_max", "cpu_cores_p99"} {
 		if _, ok := snapshot.Signals[key]; !ok {
@@ -84,7 +91,7 @@ func TestTypedQueryProvenance(t *testing.T) {
 	client := &fakeClient{}
 	p := NewWithClient(client, Config{Step: time.Minute})
 	end := time.Now().UTC()
-	s, err := p.ReadMetricsBetween(context.Background(), resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}}, end.Add(-2*time.Minute), end)
+	s, err := p.ReadMetricsBetween(context.Background(), mappingTestResource(resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}}), end.Add(-2*time.Minute), end)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +112,7 @@ func TestTypedQueryProvenance(t *testing.T) {
 }
 
 func TestCustomSignalRequiresUnitProvenance(t *testing.T) {
-	res := resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}}
+	res := mappingTestResource(resource.Resource{ID: "test", Type: resource.TypeKubernetesDeployment, Name: "test", Metadata: map[string]any{"namespace": "test"}})
 	end := time.Now().UTC()
 	cfg := Config{Step: time.Minute, Queries: map[string]string{"latency_seconds": "synthetic custom query"}}
 	p := NewWithClient(&fakeClient{}, cfg)
@@ -121,4 +128,25 @@ func TestCustomSignalRequiresUnitProvenance(t *testing.T) {
 	if _, err = s.Measurement("latency_seconds_p95", "seconds", s.CollectedAt); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func mappingTestResource(r resource.Resource) resource.Resource {
+	r.Provider = resource.ProviderKubernetes
+	r.Account = "fixture-cluster"
+	if r.Metadata == nil {
+		r.Metadata = map[string]any{}
+	}
+	r.Metadata["uid"] = "fixture-deployment-uid"
+	r.Metadata["mapping"] = map[string]any{"version": "kubernetes-deployment-mapper-v1", "containers": []any{map[string]any{"name": "app", "kind": "container"}}}
+	return r
+}
+func mappingTestLabels(namespace, name string) map[string]string {
+	return map[string]string{"cluster": "fixture-cluster", "namespace": namespace, "pod": name + "-rs-pod", "uid": "fixture-pod-uid", "deployment": name, "deployment_uid": "fixture-deployment-uid", "container": "app"}
+}
+func mappingTestLabelsFromQuery(query string) map[string]string {
+	ns, name := "test", "test"
+	if strings.Contains(query, `namespace="prod"`) {
+		ns, name = "prod", "checkout-api"
+	}
+	return mappingTestLabels(ns, name)
 }
