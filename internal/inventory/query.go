@@ -59,7 +59,7 @@ func ParseQuery(values url.Values) (Query, error) {
 		case "source_plugin_id":
 			q.SourcePluginID = v
 		case "environment":
-			if !oneOf(v, resource.EnvProduction, resource.EnvStaging, resource.EnvDevelopment) {
+			if !oneOf(v, resource.EnvProduction, resource.EnvStaging, resource.EnvDevelopment, resource.EnvUnknown) {
 				return bad()
 			}
 			q.Environment = v

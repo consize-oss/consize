@@ -53,7 +53,7 @@ paths:
         - {name: region, in: query, schema: {type: string}}
         - {name: type, in: query, schema: {type: string}}
         - {name: source_plugin_id, in: query, schema: {type: string}}
-        - {name: environment, in: query, schema: {type: string, enum: [production, staging, development]}}
+        - {name: environment, in: query, schema: {type: string, enum: [production, staging, development, unknown]}}
         - {name: lifecycle_state, in: query, schema: {type: string, enum: [active, stale, deleted]}}
         - {name: support_status, in: query, schema: {type: string, enum: [fully_supported, model_only, unsupported]}}
         - {name: owner, in: query, schema: {type: string}}
@@ -102,7 +102,7 @@ paths:
         - {name: region, in: query, schema: {type: string, maxLength: 512}}
         - {name: type, in: query, schema: {type: string, maxLength: 512}}
         - {name: source_plugin_id, in: query, schema: {type: string, maxLength: 512}}
-        - {name: environment, in: query, schema: {type: string, enum: [production, staging, development]}}
+        - {name: environment, in: query, schema: {type: string, enum: [production, staging, development, unknown]}}
         - {name: lifecycle_state, in: query, schema: {type: string, enum: [active, stale, deleted]}}
         - {name: owner, in: query, schema: {type: string, maxLength: 512}, description: "Exact owner or unassigned for missing ownership."}
         - {name: search, in: query, schema: {type: string, maxLength: 512}, description: "Case-insensitive substring in resource ID, name, account, assessed owner or labels."}

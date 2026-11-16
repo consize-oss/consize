@@ -76,3 +76,11 @@ State schema v3 adds the resource schema version, lifecycle, support status, and
 This fail-closed behavior prevents two real resources from being merged under invented identity.
 
 Registry operations, scoped reconciliation, tombstones and pagination are specified in [the durable registry contract](resource-registry.md).
+
+## Unknown Kubernetes metadata
+
+Environment may be `unknown` when discovery has no confirmed environment label.
+`unassigned` owner is an explicit missing-owner sentinel. Neither enables foundation
+auto-apply. See [Deployment mapping](kubernetes-mapping.md) for provenance, quantity
+units and native instance replacement handling. Provider instance changes do not
+alter the existing canonical ID contract and are rejected pending explicit review.

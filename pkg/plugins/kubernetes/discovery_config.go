@@ -89,7 +89,8 @@ func sensitiveAnnotation(key string) bool {
 }
 
 // ScanError never retains API bodies, request URLs, auth-plugin output or config
-// contents. Only cancellation/deadline sentinels remain available through Unwrap.
+// contents. Cancellation/deadline sentinels and safe typed mapping codes remain
+// available through Unwrap.
 type ScanError struct {
 	Code  string `json:"code"`
 	cause error
@@ -102,6 +103,10 @@ func safeScanError(err error) *ScanError {
 	var known *ScanError
 	if errors.As(err, &known) {
 		return known
+	}
+	var mapping *MappingError
+	if errors.As(err, &mapping) {
+		return &ScanError{Code: "invalid_observation", cause: mapping}
 	}
 	if errors.Is(err, context.Canceled) {
 		return &ScanError{Code: "canceled", cause: context.Canceled}

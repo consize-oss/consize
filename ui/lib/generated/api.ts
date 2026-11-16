@@ -1321,7 +1321,7 @@ export interface operations {
                 region?: string;
                 type?: string;
                 source_plugin_id?: string;
-                environment?: "production" | "staging" | "development";
+                environment?: "production" | "staging" | "development" | "unknown";
                 lifecycle_state?: "active" | "stale" | "deleted";
                 support_status?: "fully_supported" | "model_only" | "unsupported";
                 owner?: string;
@@ -1378,7 +1378,7 @@ export interface operations {
                 region?: string;
                 type?: string;
                 source_plugin_id?: string;
-                environment?: "production" | "staging" | "development";
+                environment?: "production" | "staging" | "development" | "unknown";
                 lifecycle_state?: "active" | "stale" | "deleted";
                 /** @description Exact owner or unassigned for missing ownership. */
                 owner?: string;
