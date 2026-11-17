@@ -1,5 +1,5 @@
 ---
-date: 2026-11-17
+date: 2026-11-23
 categories:
   - Guides
 authors:
@@ -33,18 +33,16 @@ Several things can explain a gap between the estimate and the bill:
    [up to three days](https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/understand-cost-mgt-data)
    to finalize a month after it ends. Comparing a half-finished month with a full
    one makes a change look bigger or smaller than it is.
-2. Other usage changes. Traffic, customers, and seasons move cost up or down
-   whatever you did.
-3. Commitments. Savings plans, reservations, and committed use discounts are
+2. Other usage changes: Traffic, customers, and seasons move cost up or down.
+3. Commitments: Savings plans, reservations, and committed use discounts are
    [billed whether or not you use them](https://www.usage.ai/blogs/finops/commitment-discounts/commitment-based-discounts/),
    and unused amounts don't carry over. If you shrink capacity a commitment
    already covers, you may save less than the estimate shows. Some tools also
    estimate savings at on-demand prices, which can be
    [well above what you'd save once your existing discounts count](https://aws.amazon.com/blogs/compute/optimize-ec2-costs-with-aws-compute-optimizer-right-sizing/).
-4. Savings that move. A cheaper setup can raise cost somewhere else, for example
+4. Savings that move: A cheaper setup can raise cost somewhere else, for example
    through retries, extra data transfer, or capacity added to compensate.
-5. One-off items. Credits, refunds, price changes, and one-time charges can land
-   in either period.
+5. One-off items: Credits, refunds, price changes, and one-time charges can land in either period.
 
 To measure what a change actually saved:
 
@@ -56,7 +54,7 @@ To measure what a change actually saved:
 2. Check that the change took effect within a few days, using the resource and
    not the bill, because billing data lags. Confirm the new size is running,
    billed hours have dropped, utilization is where you expected, and nothing is
-   erroring. The [verification guide](how-to-verify-a-cost-change-was-safe.md)
+   erroring. The [verification guide](https://docs.consizehq.com/blog/how-to-verify-a-cost-change-was-safe/)
    covers what to watch.
 3. Compare after one full billing period. The period the change happens in mixes
    before and after, so wait for the next full one. Then multiply the old cost per
@@ -100,16 +98,9 @@ If a gap is still unexplained after you've checked those five causes, record it 
 unexplained.
 
 If you're deciding what to change first, see
-[Which Cost Recommendation Should You Apply First?](which-cost-recommendation-to-apply-first.md)
+[Which Cost Recommendation Should You Apply First?](https://docs.consizehq.com/blog/which-cost-recommendation-to-apply-first/)
 
 We're building Consize, an open-source tool for making cost changes safer. Keeping
 projected savings separate from savings confirmed by billing data is planned for
 the next release. It isn't launched yet, but you can follow the project on
 [GitHub](https://github.com/consize-oss/consize).
-
-How quickly billing data arrives varies by provider and account type, so check
-yours. The definitions of savings and avoided cost are common FinOps usage, not a
-formal standard. Several links are vendor or individual blogs and reflect their
-authors' views: the commitment overview, the point about savings eroding, and the
-definitions. This article doesn't cover tagging or cost allocation, multi-account
-setups, or how credits are treated.
