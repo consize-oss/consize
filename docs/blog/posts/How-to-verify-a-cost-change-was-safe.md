@@ -3,7 +3,7 @@ date: 2026-10-15
 categories:
   - Guides
 authors:
-  - consize-team
+  - Ujunwa Njoku
 slug: how-to-verify-a-cost-change-was-safe
 description: >
   How to check that a cost change didn't hurt production: which signals to
