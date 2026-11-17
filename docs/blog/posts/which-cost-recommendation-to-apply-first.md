@@ -226,7 +226,7 @@ cautious.
 5. After each change, re-sort the list. You'll know more than you did before.
 
 For step 4, see
-[How to Verify a Cost Change Was Safe](how-to-verify-a-cost-change-was-safe.md).
+[How to Verify a Cost Change Was Safe](https://docs.consizehq.com/blog/how-to-verify-a-cost-change-was-safe/).
 
 We're building Consize, an open-source tool for making cost changes safer. It
 isn't launched yet, but you can follow the project on
