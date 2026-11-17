@@ -14,6 +14,10 @@ description: >
 
 # Which Cost Recommendation Should You Apply First?
 
+![Consize recommendation rules](../../assets/blog/which-cost-recommendation-to-apply-first.png)
+
+<!-- more -->
+
 Opslyft, a cloud cost vendor, says it has seen teams
 [turn on AWS Compute Optimizer, get hundreds of recommendations, and sit on them for six months](https://www.opslyft.com/blog/aws-compute-optimization),
 because nobody wants to be the person who downsizes the wrong instance. Its
@@ -29,7 +33,6 @@ to work in, and an example with made-up numbers. It also explains why the first
 change shouldn't be the biggest saving. Where the details differ by provider, it
 covers AWS, Google Cloud, and Azure.
 
-<!-- more -->
 
 ## What your tool already tells you
 
