@@ -1,7 +1,9 @@
 package store
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"path/filepath"
 	"sync"
@@ -299,5 +301,60 @@ func TestDiscoveryRetryBudgetAndCorruptState(t *testing.T) {
 	failed.State = "invented"
 	if validateDiscoveryRun(failed) == nil {
 		t.Fatal("accepted corrupt state")
+	}
+}
+
+func TestDiscoveryRegistryDecodePreservesLargeNumbers(t *testing.T) {
+	row := completeResource("fixture-precision")
+	row.CurrentState["large_integer"] = json.Number("9007199254740993")
+	raw, err := json.Marshal(row)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := decodeDiscoveryResource(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(decoded)
+	if err != nil || !bytes.Equal(raw, encoded) {
+		t.Fatal("discovery changed registry JSON precision", err)
+	}
+}
+func TestPostgresDiscoveryPreservesUnrelatedScopePayload(t *testing.T) {
+	ctx := context.Background()
+	st, err := OpenPostgres(ctx, postgresTestURL(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	outside := completeResource("fixture-unrelated")
+	outside.ProviderResourceID = "other/unrelated"
+	outside.Metadata = map[string]any{"namespace": "other"}
+	outside.CurrentState["large_integer"] = json.Number("9007199254740993")
+	outside, err = st.UpsertResource(ctx, outside)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var before, after string
+	if err = st.pool.QueryRow(ctx, `SELECT payload::text FROM resources WHERE id=$1`, outside.ID).Scan(&before); err != nil {
+		t.Fatal(err)
+	}
+	request := runRequest(time.Now().UTC())
+	job, err := st.EnqueueDiscovery(ctx, request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	job, err = st.ClaimDiscovery(ctx, job.ID, "fixture-worker", time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = st.CompleteDiscovery(ctx, job, runCompletion(job, time.Now().UTC(), completeResource("fixture-owned"))); err != nil {
+		t.Fatal(err)
+	}
+	if err = st.pool.QueryRow(ctx, `SELECT payload::text FROM resources WHERE id=$1`, outside.ID).Scan(&after); err != nil {
+		t.Fatal(err)
+	}
+	if before != after {
+		t.Fatal("scan changed an unrelated scope's registry payload")
 	}
 }

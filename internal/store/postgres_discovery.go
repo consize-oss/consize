@@ -1,7 +1,9 @@
 package store
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -147,7 +149,7 @@ func (p *Postgres) CompleteDiscovery(ctx context.Context, candidate DiscoveryRun
 				rawRows.Close()
 				return DiscoveryRun{}, e
 			}
-			row, decodeErr := decode[resource.Resource](raw)
+			row, decodeErr := decodeDiscoveryResource(raw)
 			if decodeErr != nil {
 				rawRows.Close()
 				return DiscoveryRun{}, decodeErr
@@ -190,4 +192,14 @@ func (p *Postgres) CompleteDiscovery(ctx context.Context, candidate DiscoveryRun
 		return DiscoveryRun{}, err
 	}
 	return r, nil
+}
+
+// Match file-store registry cloning: metadata numbers must survive a scan without
+// float64 rounding, including rows not owned by the scan's authority.
+func decodeDiscoveryResource(raw []byte) (resource.Resource, error) {
+	var r resource.Resource
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	err := decoder.Decode(&r)
+	return r, err
 }
