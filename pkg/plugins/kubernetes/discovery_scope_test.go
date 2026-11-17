@@ -160,7 +160,7 @@ func TestDiscoveryRejectsIncompleteAndAmbiguousPages(t *testing.T) {
 		{"expired continuation", "expired_continue", func(context.Context, string, metav1.ListOptions) (*appsv1.DeploymentList, error) {
 			return nil, apierrors.NewResourceExpired("fixture-private-details")
 		}},
-		{"unavailable", "unavailable", func(context.Context, string, metav1.ListOptions) (*appsv1.DeploymentList, error) {
+		{"unavailable", "server", func(context.Context, string, metav1.ListOptions) (*appsv1.DeploymentList, error) {
 			return nil, apierrors.NewServiceUnavailable("fixture-private-details")
 		}},
 	} {

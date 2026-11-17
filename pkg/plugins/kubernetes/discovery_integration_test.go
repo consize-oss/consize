@@ -106,7 +106,8 @@ func TestIsolatedKubernetesDiscovery(t *testing.T) {
 	if _, err = admin.RbacV1().Roles(alpha).Create(ctx, &rbacv1.Role{ObjectMeta: metav1.ObjectMeta{Name: "discovery-reader"}, Rules: []rbacv1.PolicyRule{{APIGroups: []string{"apps"}, Resources: []string{"deployments"}, Verbs: []string{"list"}}}}, metav1.CreateOptions{}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = admin.RbacV1().RoleBindings(alpha).Create(ctx, &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "discovery-reader"}, RoleRef: rbacv1.RoleRef{APIGroup: rbacv1.GroupName, Kind: "Role", Name: "discovery-reader"}, Subjects: []rbacv1.Subject{{Kind: "ServiceAccount", Name: "discovery-reader", Namespace: alpha}}}, metav1.CreateOptions{}); err != nil {
+	fixtureBinding, err := admin.RbacV1().RoleBindings(alpha).Create(ctx, &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "discovery-reader"}, RoleRef: rbacv1.RoleRef{APIGroup: rbacv1.GroupName, Kind: "Role", Name: "discovery-reader"}, Subjects: []rbacv1.Subject{{Kind: "ServiceAccount", Name: "discovery-reader", Namespace: alpha}}}, metav1.CreateOptions{})
+	if err != nil {
 		t.Fatal(err)
 	}
 	expiration := int64(600)
@@ -171,6 +172,61 @@ func TestIsolatedKubernetesDiscovery(t *testing.T) {
 	none, err := empty.DiscoverSnapshot(ctx)
 	if err != nil || !none.Scan.Complete || none.Scan.Count != 0 {
 		t.Fatal("empty success not distinguished from denied access", err)
+	}
+	// Only this test-created binding in its newly created random namespace is
+	// changed, under the loopback/Kind/explicit-opt-in guards at the top of this test.
+	if allowed.Health(ctx).Status != "healthy" {
+		t.Fatal("list-only identity failed scoped health")
+	}
+	bindingUID := fixtureBinding.UID
+	if err = admin.RbacV1().RoleBindings(alpha).Delete(ctx, fixtureBinding.Name, metav1.DeleteOptions{Preconditions: &metav1.Preconditions{UID: &bindingUID}}); err != nil {
+		t.Fatal(err)
+	}
+	revoked := false
+	for i := 0; i < 50; i++ {
+		allowed.Health(ctx)
+		d := allowed.DiscoveryDiagnostics()
+		if d.Access != nil && d.Access.Code == "forbidden" {
+			revoked = true
+			break
+		}
+		select {
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+	if !revoked {
+		t.Fatal("isolated fixture access loss not detected")
+	}
+	if _, err = admin.RbacV1().RoleBindings(alpha).Create(ctx, &rbacv1.RoleBinding{ObjectMeta: metav1.ObjectMeta{Name: fixtureBinding.Name}, RoleRef: fixtureBinding.RoleRef, Subjects: fixtureBinding.Subjects}, metav1.CreateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	restored := false
+	for i := 0; i < 50; i++ {
+		allowed.Health(ctx)
+		d := allowed.DiscoveryDiagnostics()
+		if d.Access != nil && d.Access.Status == "authorized" {
+			restored = true
+			break
+		}
+		select {
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+	if !restored {
+		t.Fatal("isolated fixture access restoration not detected")
+	}
+	if allowed.Health(ctx).Status != "degraded" {
+		t.Fatal("restored permissions bypassed successful recovery scan")
+	}
+	if _, err = allowed.DiscoverSnapshot(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if allowed.Health(ctx).Status != "healthy" {
+		t.Fatal("recovered scan did not restore health")
 	}
 	t.Log("isolated Kubernetes: namespace and label scoping, pagination, UID capture, empty success, forbidden partial scan and list-only RBAC passed")
 }

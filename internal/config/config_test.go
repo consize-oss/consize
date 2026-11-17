@@ -7,7 +7,7 @@ import (
 )
 
 func TestBootstrapConfigurationRejectsSilentDefaultsFromTypos(t *testing.T) {
-	for _, body := range []string{`{"kubernets":{"enabled":true}}`, `{"recommender":{"metrics_plugin":"example"}}`, `{} {}`, `{broken`, `null`} {
+	for _, body := range []string{`{"kubernets":{"enabled":true}}`, `{"kubernetes":{"discovery_auth":{"kubeconfg":"fixture"}}}`, `{"recommender":{"metrics_plugin":"example"}}`, `{} {}`, `{broken`, `null`} {
 		path := filepath.Join(t.TempDir(), "config.json")
 		if err := os.WriteFile(path, []byte(body), 0600); err != nil {
 			t.Fatal(err)
@@ -59,5 +59,19 @@ func TestPrometheusMappingConfigurationIsStrictAndPreserved(t *testing.T) {
 	}
 	if _, err = LoadBootstrap(path); err == nil {
 		t.Fatal("unknown mapping setting accepted")
+	}
+}
+
+func TestDedicatedDiscoveryAuthConfigurationPreserved(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "fixture-config.json")
+	if err := os.WriteFile(path, []byte(`{"kubernetes":{"discovery_auth":{"kubeconfig":"/run/secrets/fixture-reader","context":"fixture-reader-context"}}}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := LoadBootstrap(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Kubernetes.DiscoveryAuth == nil || cfg.Kubernetes.DiscoveryAuth.Kubeconfig != "/run/secrets/fixture-reader" || cfg.Kubernetes.DiscoveryAuth.Context != "fixture-reader-context" {
+		t.Fatal("dedicated discovery auth was dropped")
 	}
 }

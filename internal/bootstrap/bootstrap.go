@@ -58,12 +58,13 @@ func (c PricingConfig) EffectivePluginID() string {
 }
 
 type KubernetesConfig struct {
-	Context    string                     `json:"context,omitempty"`
-	Discovery  kubernetes.DiscoveryConfig `json:"discovery,omitempty"`
-	Enabled    bool                       `json:"enabled"`
-	Kubeconfig string                     `json:"kubeconfig"`
-	ClusterID  string                     `json:"cluster_id"`
-	Location   string                     `json:"location"`
+	DiscoveryAuth *kubernetes.DiscoveryAuthConfig `json:"discovery_auth,omitempty"`
+	Context       string                          `json:"context,omitempty"`
+	Discovery     kubernetes.DiscoveryConfig      `json:"discovery,omitempty"`
+	Enabled       bool                            `json:"enabled"`
+	Kubeconfig    string                          `json:"kubeconfig"`
+	ClusterID     string                          `json:"cluster_id"`
+	Location      string                          `json:"location"`
 }
 
 type PrometheusConfig struct {
@@ -134,11 +135,12 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 	}
 	if cfg.Kubernetes.Enabled {
 		p, err := kubernetes.New(kubernetes.Config{
-			Kubeconfig: cfg.Kubernetes.Kubeconfig,
-			Context:    cfg.Kubernetes.Context,
-			Discovery:  cfg.Kubernetes.Discovery,
-			ClusterID:  cfg.Kubernetes.ClusterID,
-			Location:   cfg.Kubernetes.Location,
+			Kubeconfig:    cfg.Kubernetes.Kubeconfig,
+			DiscoveryAuth: cfg.Kubernetes.DiscoveryAuth,
+			Context:       cfg.Kubernetes.Context,
+			Discovery:     cfg.Kubernetes.Discovery,
+			ClusterID:     cfg.Kubernetes.ClusterID,
+			Location:      cfg.Kubernetes.Location,
 		})
 		if err != nil {
 			return fmt.Errorf("configure kubernetes plugin: %w", err)

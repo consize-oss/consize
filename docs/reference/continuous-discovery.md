@@ -127,8 +127,9 @@ missed interval. Existing pending/retry runs resume after restart.
 Transient unavailability, throttling and timeouts retry with exponential delays
 starting at five seconds, capped at five minutes plus up to 20% jitter. Access,
 configuration, incomplete-scan and identity conflicts stop without a hot loop.
-Unknown plugin errors fail closed. Kubernetes transport/error hardening remains
-CON-16; this scheduler uses the existing sanitized scan classifications.
+Unknown plugin errors fail closed. [Kubernetes access handling](kubernetes-access.md)
+defines safe authentication, authorization, TLS, network and server classes.
+Deployment-list requests have no hidden client retries, and Retry-After hints are bounded.
 
 A claim lasts timeout plus five seconds. On interruption the next worker waits for
 lease expiry, records the interrupted attempt and repeats provider enumeration.

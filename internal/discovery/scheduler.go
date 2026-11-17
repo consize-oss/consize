@@ -211,6 +211,16 @@ func (s *Scheduler) read(ctx context.Context, job store.DiscoveryRun) store.Disc
 			if delay > 5*time.Minute {
 				delay = 5 * time.Minute
 			}
+			var access *kubernetes.ScanError
+			if errors.As(err, &access) && access.RetryAfterSeconds > 0 {
+				hint := time.Duration(access.RetryAfterSeconds) * time.Second
+				if access.RetryAfterSeconds > 300 {
+					hint = 5 * time.Minute
+				}
+				if hint > delay {
+					delay = hint
+				}
+			}
 			result.RetryAt = s.now().UTC().Add(delay + discoveryJitter(fmt.Sprintf("%s/%d", job.ID, job.Attempts), delay/5))
 		}
 		return result
@@ -236,13 +246,19 @@ func classifyDiscoveryError(err error) (string, bool) {
 	var scan *kubernetes.ScanError
 	if errors.As(err, &scan) {
 		switch scan.Code {
-		case "unauthorized", "forbidden":
-			return "access", false
+		case "unauthorized":
+			return "authentication", false
+		case "forbidden":
+			return "authorization", false
 		case "configuration", "unsupported_client":
 			return "configuration", false
-		case "timeout":
-			return "timeout", true
-		case "unavailable", "rate_limited", "scan_busy":
+		case "tls", "network", "timeout", "rate_limited", "server":
+			return scan.Code, kubernetes.ScanRetryable(scan.Code)
+		case "request", "redirect_blocked":
+			return "request", false
+		case "canceled":
+			return "canceled", false
+		case "unavailable", "scan_busy":
 			return "unavailable", true
 		default:
 			return "incomplete_scan", false
@@ -250,6 +266,9 @@ func classifyDiscoveryError(err error) (string, bool) {
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
 		return "timeout", true
+	}
+	if errors.Is(err, context.Canceled) {
+		return "canceled", false
 	}
 	return "provider_failure", false
 }

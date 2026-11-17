@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/plugin/marketplace"
 	"github.com/consize-oss/consize/pkg/plugins/kubernetes"
+	"io"
 	"os"
 )
 
@@ -18,17 +20,21 @@ func main() {
 		}
 		return
 	}
-	err := marketplace.ServeOnce(context.Background(), os.Stdin, os.Stdout, func(raw json.RawMessage) (plugin.Plugin, error) {
-		var cfg kubernetes.Config
-		if len(raw) > 0 {
-			if err := json.Unmarshal(raw, &cfg); err != nil {
-				return nil, err
-			}
-		}
-		return kubernetes.New(cfg)
-	})
+	err := marketplace.ServeOnce(context.Background(), os.Stdin, os.Stdout, configuredPlugin)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func configuredPlugin(raw json.RawMessage) (plugin.Plugin, error) {
+	var cfg kubernetes.Config
+	if len(raw) > 0 {
+		decoder := json.NewDecoder(bytes.NewReader(raw))
+		decoder.DisallowUnknownFields()
+		if decoder.Decode(&cfg) != nil || decoder.Decode(new(any)) != io.EOF {
+			return nil, fmt.Errorf("invalid Kubernetes plugin configuration")
+		}
+	}
+	return kubernetes.New(cfg)
 }

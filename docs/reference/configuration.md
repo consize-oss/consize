@@ -103,3 +103,11 @@ The optional `discovery` section controls durable periodic scans and registry
 absence thresholds. Scheduling is off by default. See
 [continuous discovery](continuous-discovery.md) for manual rescans, scope safety,
 recovery, lifecycle semantics and limits.
+
+## Kubernetes discovery credentials
+
+`kubernetes.discovery_auth` optionally selects a separate read-only kubeconfig
+and context for the same verified endpoint as the existing Kubernetes client.
+Omission preserves the existing credential selection. See
+[Kubernetes access](kubernetes-access.md) for in-cluster tokens, list-only RBAC,
+health probes, failure classes and recovery.

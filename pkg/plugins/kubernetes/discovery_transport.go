@@ -13,11 +13,19 @@ type deploymentListTransport struct{ next http.RoundTripper }
 const deploymentPageBytes = 16 << 20
 
 func (t deploymentListTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	isList := request.Method == http.MethodGet && strings.HasSuffix(request.URL.Path, "/deployments")
 	response, err := t.next.RoundTrip(request)
 	if err != nil {
+		if isList {
+			return nil, safeScanError(err)
+		}
 		return nil, err
 	}
-	if request.Method == http.MethodGet && strings.HasSuffix(request.URL.Path, "/deployments") {
+	if isList {
+		if response.StatusCode < 200 || response.StatusCode >= 300 {
+			response.Body.Close()
+			return nil, statusScanError(response.StatusCode, response.Header.Get("Retry-After"))
+		}
 		if response.ContentLength > deploymentPageBytes {
 			response.Body.Close()
 			return nil, scanFailure("limit_exceeded")

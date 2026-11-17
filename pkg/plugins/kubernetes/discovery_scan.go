@@ -21,6 +21,7 @@ type deploymentPageLister interface {
 	ListDeploymentPage(context.Context, string, metav1.ListOptions) (*appsv1.DeploymentList, error)
 }
 type DiscoveryDiagnostics struct {
+	Access             *AccessCheck          `json:"access,omitempty"`
 	InProgress         bool                  `json:"in_progress"`
 	LastAttempt        *plugin.DiscoveryScan `json:"last_attempt"`
 	LastSuccessfulScan *plugin.DiscoveryScan `json:"last_successful_scan"`
@@ -43,7 +44,16 @@ func cloneScan(scan *plugin.DiscoveryScan) *plugin.DiscoveryScan {
 func (p *Plugin) DiscoveryDiagnostics() DiscoveryDiagnostics {
 	p.scans.mu.Lock()
 	defer p.scans.mu.Unlock()
-	return DiscoveryDiagnostics{InProgress: p.scans.running, LastAttempt: cloneScan(p.scans.diagnostics.LastAttempt), LastSuccessfulScan: cloneScan(p.scans.diagnostics.LastSuccessfulScan)}
+	var access *AccessCheck
+	if p.scans.diagnostics.Access != nil {
+		copy := *p.scans.diagnostics.Access
+		if copy.APIReachable != nil {
+			v := *copy.APIReachable
+			copy.APIReachable = &v
+		}
+		access = &copy
+	}
+	return DiscoveryDiagnostics{Access: access, InProgress: p.scans.running, LastAttempt: cloneScan(p.scans.diagnostics.LastAttempt), LastSuccessfulScan: cloneScan(p.scans.diagnostics.LastSuccessfulScan)}
 }
 func (p *Plugin) DiscoverSnapshot(ctx context.Context) (batch plugin.DiscoverySnapshot, err error) {
 	p.scans.mu.Lock()
@@ -84,6 +94,11 @@ func (p *Plugin) DiscoverSnapshot(ctx context.Context) (batch plugin.DiscoverySn
 		p.scans.diagnostics.LastAttempt = cloneScan(&scan)
 		if scan.Complete {
 			p.scans.diagnostics.LastSuccessfulScan = cloneScan(&scan)
+			check := accessCheck(nil, scan.Scope["namespaces"], scan.FinishedAt)
+			p.scans.diagnostics.Access = &check
+		} else if err != nil {
+			check := accessCheck(err, "", scan.FinishedAt)
+			p.scans.diagnostics.Access = &check
 		}
 	}()
 	if err != nil {
@@ -140,7 +155,7 @@ func collectDeployments(ctx context.Context, lister deploymentPageLister, o disc
 			}
 			page, err := lister.ListDeploymentPage(ctx, namespace, metav1.ListOptions{Limit: o.pageSize, Continue: continuation, LabelSelector: o.selector.String()})
 			if err != nil {
-				return nil, err
+				return nil, scopedScanError(err, namespace)
 			}
 			scan.Pages++
 			if err := ctx.Err(); err != nil {

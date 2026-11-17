@@ -1,6 +1,19 @@
-# Change the observed namespace and dedicated ServiceAccount subject before use.
-# The namespace and ServiceAccount must already exist. This adds permissions;
-# it does not remove any wider grants already held by the selected identity.
+# Namespace-scoped discovery. Change example-workloads to the observed namespace.
+# The workload namespace must already exist. Repeat Role/RoleBinding for each
+# namespace; do not broaden this identity to support infrastructure actions.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: consize
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: consize-discovery
+  namespace: consize
+# Explicitly opt in on the Consize Pod when using in-cluster authentication.
+automountServiceAccountToken: false
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

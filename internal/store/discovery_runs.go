@@ -161,7 +161,7 @@ func discoveryOwns(r, c DiscoveryRun, now time.Time) bool {
 }
 func discoveryError(code string) bool {
 	switch code {
-	case "scope_changed", "incomplete_scan", "invalid_observation", "configuration", "access", "timeout", "unavailable", "provider_failure", "attempts_exhausted", "registry_conflict":
+	case "authentication", "authorization", "tls", "network", "rate_limited", "server", "request", "canceled", "scope_changed", "incomplete_scan", "invalid_observation", "configuration", "access", "timeout", "unavailable", "provider_failure", "attempts_exhausted", "registry_conflict":
 		return true
 	}
 	return false

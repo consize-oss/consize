@@ -1,0 +1,24 @@
+# Alternative ONLY for intentionally configured all-namespace discovery.
+# First create the consize Namespace and ServiceAccount from the namespaced
+# example. This grants list on Deployments across every namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: consize-discovery
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: consize-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: consize-discovery
+subjects:
+  - kind: ServiceAccount
+    name: consize-discovery
+    namespace: consize
