@@ -36,7 +36,7 @@ covers AWS, Google Cloud, and Azure.
 Tools differ in how much sorting they do for you. AWS Compute Optimizer
 [classifies each recommendation by savings opportunity and performance risk](https://aws.amazon.com/blogs/compute/optimize-ec2-costs-with-aws-compute-optimizer-right-sizing/)
 and ranks the options for an instance by estimated savings, performance risk,
-and migration effort. A sensible way to use that is to start with over-provisioned
+and migration effort. A great way to use that is to start with over-provisioned
 instances that have high savings and low performance risk, then check with the
 people who own the application, because metrics can miss seasonal traffic and
 scheduled batch jobs.
@@ -45,8 +45,7 @@ Google Cloud's VM rightsizing recommendations show estimated savings and
 [can be sorted by them](https://docs.cloud.google.com/compute/docs/instances/apply-machine-type-recommendations-for-instances).
 Azure Advisor shows
 [estimated savings for a resize or a shutdown](https://learn.microsoft.com/azure/advisor/advisor-cost-recommendations),
-and the current and target size for a resize. We didn't find a performance-risk
-rating like AWS's for either one.
+and the current and target size for a resize.
 
 None of these tools know how bad a failure would be for you, whether you can
 reverse the change, or how thin the data behind it is. The four questions below
@@ -118,9 +117,6 @@ applies on another.
 - AWS RDS (MySQL and PostgreSQL): the default maximum number of connections is
   [based on the instance's memory](https://aws.amazon.com/premiumsupport/knowledge-center/rds-mysql-max-connections/),
   so a smaller instance class allows fewer connections.
-- Cloud SQL for PostgreSQL: the default also follows memory and changes when you
-  resize, unless you've set the flag yourself, according to a
-  [community write-up](https://dev.to/gleb_otochkin/demystifying-max-connections-limit-in-cloud-sql-for-postgresql-55o6).
 - Azure Database for PostgreSQL flexible server: the default is
   [calculated when you create the server](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/server-parameters-table-connections-and-authentication-connection-settings),
   and changing the compute later doesn't change it. More connections use more
@@ -209,14 +205,11 @@ Everything still gets done. The order only decides what goes first.
 Your first change tests more than one server. It also tests how you watch a
 change, how you roll it back, and how much your team trusts the process.
 
-CloudNuro, another vendor, argues that when a recommendation causes slowdowns or
-outages, [trust drops quickly](https://www.cloudnuro.ai/blog/automated-rightsizing-finops)
-and engineers start ignoring recommendations. That's the vendor's view, not
-measured data. The SRE guide's author reports seeing teams follow Cost Explorer
+The SRE guide's author reports seeing teams follow Cost Explorer
 recommendations, downsize an RDS instance during peak hours, and cause a
 45-minute outage.
 
-Starting small is our reasoning, not a proven rule. A safe first win makes the
+Start small. A safe first win makes the
 second change easier to approve, and a bad first change makes everyone more
 cautious.
 
@@ -235,20 +228,3 @@ For step 4, see
 We're building Consize, an open-source tool for making cost changes safer. It
 isn't launched yet, but you can follow the project on
 [GitHub](https://github.com/consize-oss/consize).
-
-## Sources and caveats
-
-Provider pages change, so check the current version before you rely on a detail.
-This covers virtual machines, managed databases, and disks. It doesn't cover
-Kubernetes services, serverless, or storage tiers.
-
-A few points are weaker than the rest. The Cloud SQL connection behavior comes
-from a community write-up, so check it against Google's own pages. The point about
-instance-store data on AWS comes from resizing guides such as
-[TechEarl](https://techearl.com/aws-ec2-change-instance-type) and
-[OneUptime](https://oneuptime.com/blog/post/2026-02-12-resize-ec2-instance-change-instance-type/view).
-We didn't check how Azure treats discounts in its savings estimates.
-
-Opslyft, Cloudchipr, and CloudNuro are vendors, and their posts reflect their own
-views. The SRE guide is one practitioner's account. The ordering of changes is our
-own judgment.
