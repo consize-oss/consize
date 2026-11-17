@@ -19,6 +19,7 @@ import (
 	"github.com/consize-oss/consize/internal/audit"
 	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/internal/bootstrap"
+	"github.com/consize-oss/consize/internal/collection"
 	"github.com/consize-oss/consize/internal/cost"
 	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/orchestrator"
@@ -32,6 +33,7 @@ import (
 )
 
 type Server struct {
+	collector    *collection.Collector
 	inventoryKey [32]byte
 	inventoryNow func() time.Time
 	controller   *safety.Controller
@@ -106,6 +108,24 @@ func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine,
 			return nil, err
 		}
 	}
+	if cs, ok := st.(store.CollectionStore); ok {
+		cc := cfg.Collection
+		if cc.PluginID == "" {
+			cc.PluginID = cfg.Recommender.MetricsPluginID
+		}
+		if cc.Window == "" {
+			cc.Window = cfg.Prometheus.Window
+		}
+		s.collector, err = collection.New(cs, st, plugins, collection.Settings{Config: cc, ProviderConfig: struct {
+			Prometheus bootstrap.PrometheusConfig
+			External   any
+		}{cfg.Prometheus, cfg.ExternalPlugins}, Quality: cfg.Recommender.Quality})
+		if err != nil {
+			return nil, err
+		}
+	} else if cfg.Collection.Enabled {
+		return nil, fmt.Errorf("durable collection store unavailable")
+	}
 	return s, nil
 }
 
@@ -113,7 +133,21 @@ func (s *Server) RunWorker(ctx context.Context) error {
 	if s.controller == nil {
 		return fmt.Errorf("durable worker store unavailable")
 	}
-	return s.controller.Run(ctx)
+	if s.collector == nil {
+		return s.controller.Run(ctx)
+	}
+	workerCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	done := make(chan error, 2)
+	go func() { done <- s.controller.Run(workerCtx) }()
+	go func() { done <- s.collector.Run(workerCtx) }()
+	err := <-done
+	cancel()
+	other := <-done
+	if err != nil {
+		return err
+	}
+	return other
 }
 
 func (s *Server) Handler() http.Handler {
@@ -123,6 +157,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/resources", s.protect(s.resourceRole, s.handleResources))
 	mux.HandleFunc("/api/resources/inventory", s.protect(auth.RoleViewer, s.handleInventory))
 	mux.HandleFunc("/api/discovery", s.protect(auth.RoleAdmin, s.handleDiscovery))
+	mux.HandleFunc("/api/evidence/collections", s.protect(auth.RoleOperator, s.handleCollections))
 	mux.HandleFunc("/api/evidence/quality", s.protect(auth.RoleOperator, s.handleEvidenceQuality))
 	mux.HandleFunc("/api/plugins", s.protect(auth.RoleViewer, s.handlePlugins))
 	mux.HandleFunc("/api/recommendations/generate", s.protect(auth.RoleOperator, s.handleGenerateRecommendation))

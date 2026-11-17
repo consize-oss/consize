@@ -89,3 +89,10 @@ references, TLS, limits, safe diagnostics and failure codes, see
 For explicit kubeconfig context selection, namespace allowlists, Deployment label
 selectors, complete-scan diagnostics, limits and least-privilege RBAC, see
 [Kubernetes Deployment discovery](kubernetes-discovery.md).
+
+## Evidence collection
+
+The optional `collection` section controls durable manual/periodic evidence
+operations. Scheduling is off by default; it runs alongside the existing action
+worker in `consize serve`. See [configuration, API and recovery](evidence-collection.md)
+for the complete setup and retention rules.

@@ -89,6 +89,9 @@ func RequiredIndexes() []string {
 		"jobs(action_id) unique",
 		"jobs(resource_id) active unique",
 		"jobs(state,next_run)",
+		"evidence_collections(id) unique",
+		"evidence_collections(next_run,id) pending",
+		"evidence_collections(resource_id,created_at,id)",
 	}
 }
 
