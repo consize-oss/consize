@@ -1,14 +1,10 @@
 package kubernetes
 
 import (
-	"context"
-	"errors"
-	"net"
 	"sort"
 	"strings"
 	"time"
 
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	validation "k8s.io/apimachinery/pkg/util/validation"
 )
@@ -86,51 +82,4 @@ func sensitiveAnnotation(key string) bool {
 		}
 	}
 	return false
-}
-
-// ScanError never retains API bodies, request URLs, auth-plugin output or config
-// contents. Cancellation/deadline sentinels and safe typed mapping codes remain
-// available through Unwrap.
-type ScanError struct {
-	Code  string `json:"code"`
-	cause error
-}
-
-func (e *ScanError) Error() string       { return "kubernetes discovery failed: " + e.Code }
-func (e *ScanError) Unwrap() error       { return e.cause }
-func scanFailure(code string) *ScanError { return &ScanError{Code: code} }
-func safeScanError(err error) *ScanError {
-	var known *ScanError
-	if errors.As(err, &known) {
-		return known
-	}
-	var mapping *MappingError
-	if errors.As(err, &mapping) {
-		return &ScanError{Code: "invalid_observation", cause: mapping}
-	}
-	if errors.Is(err, context.Canceled) {
-		return &ScanError{Code: "canceled", cause: context.Canceled}
-	}
-	if errors.Is(err, context.DeadlineExceeded) {
-		return &ScanError{Code: "timeout", cause: context.DeadlineExceeded}
-	}
-	switch {
-	case apierrors.IsUnauthorized(err):
-		return scanFailure("unauthorized")
-	case apierrors.IsForbidden(err):
-		return scanFailure("forbidden")
-	case apierrors.IsResourceExpired(err) || apierrors.IsGone(err):
-		return scanFailure("expired_continue")
-	case apierrors.IsTimeout(err) || apierrors.IsServerTimeout(err):
-		return scanFailure("timeout")
-	case apierrors.IsTooManyRequests(err):
-		return scanFailure("rate_limited")
-	case apierrors.IsServiceUnavailable(err):
-		return scanFailure("unavailable")
-	}
-	var network net.Error
-	if errors.As(err, &network) && network.Timeout() {
-		return scanFailure("timeout")
-	}
-	return scanFailure("unavailable")
 }

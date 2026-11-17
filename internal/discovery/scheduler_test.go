@@ -112,7 +112,7 @@ func TestDiscoveryFailureMatrixAndNoRegistryEffects(t *testing.T) {
 	}{
 		{"partial", "partial", nil, "failed", "incomplete_scan"}, {"scope", "scope", nil, "failed", "scope_changed"},
 		{"unavailable", "", &kubernetes.ScanError{Code: "unavailable"}, "retry_wait", "unavailable"},
-		{"access", "", &kubernetes.ScanError{Code: "forbidden"}, "failed", "access"},
+		{"access", "", &kubernetes.ScanError{Code: "forbidden"}, "failed", "authorization"},
 		{"query config", "", &kubernetes.ScanError{Code: "configuration"}, "failed", "configuration"},
 		{"private error", "", errors.New("fixture-private-never-persist"), "failed", "provider_failure"},
 	} {

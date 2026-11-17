@@ -13,12 +13,18 @@ import (
 
 const ID = "kubernetes-action"
 
+type DiscoveryAuthConfig struct {
+	Kubeconfig string `json:"kubeconfig,omitempty"`
+	Context    string `json:"context,omitempty"`
+}
+
 type Config struct {
-	Context    string
-	Discovery  DiscoveryConfig
-	Kubeconfig string
-	ClusterID  string
-	Location   string
+	DiscoveryAuth *DiscoveryAuthConfig
+	Context       string
+	Discovery     DiscoveryConfig
+	Kubeconfig    string
+	ClusterID     string
+	Location      string
 }
 
 type PatchDiff struct {
@@ -50,7 +56,7 @@ func New(cfg Config) (*Plugin, error) {
 	if _, err := discoveryDefaults(cfg.Discovery); err != nil {
 		return nil, err
 	}
-	patcher, err := NewK8sPatcherForContext(cfg.Kubeconfig, cfg.Context)
+	patcher, err := newK8sPatcher(cfg.Kubeconfig, cfg.Context, cfg.DiscoveryAuth)
 	if err != nil {
 		return nil, err
 	}
@@ -101,27 +107,7 @@ func (p *Plugin) Health(ctx context.Context) plugin.Health {
 	if p.patcher == nil {
 		return plugin.Health{Status: "unhealthy", Message: "kubernetes patcher is not configured", CheckedAt: time.Now().UTC()}
 	}
-	timeout := p.discovery.timeout
-	if timeout <= 0 || timeout > 15*time.Second {
-		timeout = 15 * time.Second
-	}
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	if err := p.patcher.Health(ctx); err != nil {
-		return plugin.Health{Status: "unhealthy", Message: safeScanError(err).Error(), Details: map[string]any{"discovery": p.DiscoveryDiagnostics()}, CheckedAt: time.Now().UTC()}
-	}
-	diagnostics := p.DiscoveryDiagnostics()
-	status, message := "healthy", "Kubernetes API reachable; discovery has not run."
-	if diagnostics.InProgress {
-		status, message = "degraded", "Kubernetes API reachable; discovery scan in progress."
-	} else if diagnostics.LastAttempt != nil {
-		if diagnostics.LastAttempt.Complete {
-			message = "Kubernetes API reachable; last discovery scan complete."
-		} else {
-			status, message = "degraded", "Kubernetes API reachable; last discovery scan incomplete."
-		}
-	}
-	return plugin.Health{Status: status, Message: message, Details: map[string]any{"discovery": diagnostics}, CheckedAt: time.Now().UTC()}
+	return p.discoveryHealth(ctx)
 }
 
 func (p *Plugin) Plan(ctx context.Context, input plugin.ActionInput) (plugin.ActionPlan, error) {

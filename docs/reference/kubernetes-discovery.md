@@ -144,27 +144,12 @@ lifecycle work remains separate.
 These diagnostics are runtime state; after restart, unknown history is null, not a
 fabricated empty scan. Resource scan IDs already persisted with observations remain.
 
-API reachability and discovery success are separate: a successful version probe
-cannot hide an incomplete/denied scan. A running/incomplete scan is degraded, a
-failed API probe is unhealthy, and a completed scan may be healthy even when empty.
-A provider with no scan yet says so. Health probes honor cancellation and are
-bounded by the configured scan timeout or 15 seconds, whichever is smaller.
-
-Example before the first scan (illustrative health fields):
-
-```json
-{
-  "status": "healthy",
-  "message": "Kubernetes API reachable; discovery has not run.",
-  "details": {
-    "discovery": {
-      "in_progress": false,
-      "last_attempt": null,
-      "last_successful_scan": null
-    }
-  }
-}
-```
+Health now verifies Deployment list permission in every configured namespace,
+using the selector and limit 1. It does not query `/version`. Before a successful
+complete scan, authorized access is degraded; after access loss, a new complete
+scan is required before health returns to healthy. Details include a safe `access`
+record with permission coordinates, retryability and remediation. See
+[Kubernetes access](kubernetes-access.md) for the failure matrix and setup.
 
 After a scan, the attempt/success objects contain the scan ID, declared scope,
 completeness, timestamps, duration, count and safe error code described above.
@@ -174,7 +159,9 @@ Safe failure codes:
 - `configuration`: check namespace/selector syntax, bounds, context and kubeconfig.
 - `unauthorized`, `forbidden`: correct credentials/RBAC and selected namespaces.
 - `timeout`, `canceled`: check API availability and request deadlines.
-- `unavailable`: the client/API could not establish a trustworthy result.
+- `network`, `server`, `rate_limited`: classified retryable connection/API failures.
+- `tls`, `request`, `redirect_blocked`: fix trust, API selection or endpoint configuration; no retry.
+- `provider_failure`: an unknown failure, retained without raw provider text.
 - `expired_continue`: retry a new full scan explicitly; never treat the partial scan
   as absence evidence.
 - `invalid_page`, `invalid_observation`: investigate inconsistent versions,
@@ -192,13 +179,13 @@ Errors/diagnostics omit API bodies, URLs, auth-plugin output and continuation to
 grant only `list` on `apps/deployments` in one namespace. Adapt the namespace and
 dedicated service-account subject before applying. Repeat the binding only for
 approved namespaces. No Pod, Secret, mutation, watch or cluster-admin permissions
-are required by the scan. Kubernetes's normal authenticated API-discovery grant
-provides the existing `/version` health probe; hardened clusters may need a separate
-`get` permission for that non-resource URL. Do not grant unrelated resources to fix it.
+are required by the scan. Health uses the same list permission; no separate `/version` or non-resource grant is needed.
 
 Use a separate read-only discovery identity. A Role adds permissions and cannot
 remove other grants held by an administrative kubeconfig. The shared existing
 Kubernetes action capability does not acquire mutation rights through this role.
+The optional `kubernetes.discovery_auth` selects a dedicated reader client for the
+same verified API endpoint. See [access setup](kubernetes-access.md).
 Label selectors are not an authorization boundary.
 
 ## Verification

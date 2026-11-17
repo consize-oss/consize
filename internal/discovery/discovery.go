@@ -75,7 +75,7 @@ func (s *Service) Run(ctx context.Context) ([]Result, error) {
 				return nil, err
 			}
 			if done.State != "succeeded" {
-				return nil, errors.New("discovery operation did not complete successfully")
+				return nil, fmt.Errorf("discovery run %s failed (%s); inspect its durable result and configured plugin access health", done.ID, done.ErrorCode)
 			}
 			result := Result{Scan: done.Scan, PluginID: provider.ID(), Resources: []resource.Resource{}}
 			for _, id := range done.ResourceIDs {
