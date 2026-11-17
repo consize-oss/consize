@@ -60,7 +60,7 @@ func InspectDurable(path string) (StorageDiagnostics, error) {
 	}
 	diagnostics.Healthy = true
 	diagnostics.Migrations = append([]MigrationRecord(nil), state.Migrations...)
-	diagnostics.EntityCounts = map[string]int{"collections": len(state.Collections), "resources": len(state.Resources), "recommendations": len(state.Recommendations), "actions": len(state.ActionRecords), "action_events": len(state.Actions), "audit_events": len(state.AuditEvents), "jobs": len(state.Jobs)}
+	diagnostics.EntityCounts = map[string]int{"discovery_runs": len(state.DiscoveryRuns), "collections": len(state.Collections), "resources": len(state.Resources), "recommendations": len(state.Recommendations), "actions": len(state.ActionRecords), "action_events": len(state.Actions), "audit_events": len(state.AuditEvents), "jobs": len(state.Jobs)}
 	return diagnostics, nil
 }
 

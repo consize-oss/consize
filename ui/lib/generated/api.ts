@@ -88,6 +88,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/discovery/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inspect durable discovery runs
+         * @description Requires administrator authorization. Supply id for one run or plugin_id for the latest 100 matching runs; neither filter returns the latest 100 globally. Scope, completeness, attempt history, safe errors and lifecycle counts are retained across restart.
+         */
+        get: operations["getDiscoveryRuns"];
+        put?: never;
+        /**
+         * Queue a durable manual rescan
+         * @description Requires administrator authorization. Uses the configured provider scope and authenticated actor. Equivalent requests within the same interval deduplicate; different pending runs for the same scope return 409. Scope, endpoints, credentials and lifecycle thresholds cannot be overridden. No provider call occurs inside the HTTP request.
+         */
+        post: operations["queueDiscoveryRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/discovery": {
         parameters: {
             query?: never;
@@ -1169,6 +1193,54 @@ export interface components {
             assessment?: components["schemas"]["EvidenceQualityAssessment"];
             pruned: boolean;
         };
+        DiscoveryRun: {
+            id: string;
+            plugin_id: string;
+            scope: {
+                [key: string]: string;
+            };
+            scope_digest: string;
+            scope_key: string;
+            /** Format: date-time */
+            requested_at: string;
+            actor: string;
+            /** @enum {string} */
+            trigger: "manual" | "scheduled";
+            /** @enum {string} */
+            health: "pending" | "running" | "healthy" | "degraded" | "failed";
+            /** @enum {string} */
+            state: "pending" | "running" | "retry_wait" | "succeeded" | "failed";
+            attempts: number;
+            max_attempts: number;
+            fence: number;
+            lease?: components["schemas"]["JobLease"];
+            history: components["schemas"]["DiscoveryAttempt"][];
+            /** Format: date-time */
+            next_run: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: date-time */
+            finished_at?: string;
+            error_code?: string;
+            stale_after: string;
+            tombstone_after: string;
+            scan?: components["schemas"]["DiscoveryScan"];
+            resource_ids: string[];
+            reconciliation: {
+                stale: string[];
+                deleted: string[];
+            };
+        };
+        DiscoveryAttempt: {
+            number: number;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            finished_at?: string;
+            outcome?: string;
+        };
     };
     responses: {
         /** @description The request could not be completed. */
@@ -1480,6 +1552,71 @@ export interface operations {
             503: components["responses"]["ErrorResponse"];
         };
     };
+    getDiscoveryRuns: {
+        parameters: {
+            query?: {
+                /** @description Run ID; mutually exclusive with plugin_id. */
+                id?: string;
+                /** @description Configured discovery provider. */
+                plugin_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One run when id is supplied; otherwise a bounded list. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoveryRun"] | components["schemas"]["DiscoveryRun"][];
+                };
+            };
+            400: components["responses"]["ErrorResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            405: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
+        };
+    };
+    queueDiscoveryRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    plugin_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Durable discovery operation, possibly an existing equivalent run. */
+            202: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoveryRun"];
+                };
+            };
+            400: components["responses"]["ErrorResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            405: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
+        };
+    };
     runDiscovery: {
         parameters: {
             query?: never;
@@ -1503,6 +1640,7 @@ export interface operations {
             };
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
             502: components["responses"]["ErrorResponse"];
         };
     };

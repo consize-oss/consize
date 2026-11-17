@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consize-oss/consize/internal/auth"
+	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/store"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
@@ -22,13 +24,20 @@ type Result struct {
 }
 
 type Service struct {
-	store   store.Store
-	plugins *plugin.Manager
-	now     func() time.Time
+	schedule bootstrap.DiscoveryScheduleConfig
+	store    store.Store
+	plugins  *plugin.Manager
+	now      func() time.Time
 }
 
 func New(st store.Store, plugins *plugin.Manager) *Service {
 	return &Service{store: st, plugins: plugins, now: time.Now}
+}
+
+func NewWithConfig(st store.Store, plugins *plugin.Manager, c bootstrap.DiscoveryScheduleConfig) *Service {
+	s := New(st, plugins)
+	s.schedule = c
+	return s
 }
 
 func (s *Service) Run(ctx context.Context) ([]Result, error) {
@@ -41,6 +50,46 @@ func (s *Service) Run(ctx context.Context) ([]Result, error) {
 	}
 	results := make([]Result, 0, len(plugins))
 	for _, provider := range plugins {
+		if scoped, ok := provider.(plugin.ScopedDiscoveryPlugin); ok {
+			durable, ok := s.store.(store.DiscoveryRunStore)
+			if !ok {
+				return nil, errors.New("durable discovery store required")
+			}
+			scheduler, err := NewScheduler(durable, s.plugins, s.schedule)
+			if err != nil {
+				return nil, err
+			}
+			actor := "discovery-client"
+			if identity, ok := auth.FromContext(ctx); ok {
+				actor = identity.Subject
+			}
+			job, err := scheduler.request(ctx, scoped, actor, "manual", time.Now().UTC().Truncate(time.Millisecond), time.Time{})
+			if err != nil {
+				return nil, err
+			}
+			done := job
+			if !store.DiscoveryTerminal(job.State) {
+				done, err = scheduler.execute(ctx, job.ID)
+			}
+			if err != nil {
+				return nil, err
+			}
+			if done.State != "succeeded" {
+				return nil, errors.New("discovery operation did not complete successfully")
+			}
+			result := Result{Scan: done.Scan, PluginID: provider.ID(), Resources: []resource.Resource{}}
+			for _, id := range done.ResourceIDs {
+				r, err := s.store.GetResource(ctx, id)
+				if err != nil {
+					return nil, err
+				}
+				result.Resources = append(result.Resources, r)
+			}
+			result.Count = len(result.Resources)
+			results = append(results, result)
+			continue
+		}
+
 		var observations []plugin.ProviderObservation
 		var scan *plugin.DiscoveryScan
 		if snapshotProvider, ok := provider.(plugin.SnapshotDiscoveryPlugin); ok {

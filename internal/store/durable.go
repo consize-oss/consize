@@ -14,6 +14,7 @@ import (
 )
 
 type diskState struct {
+	DiscoveryRuns   map[string]DiscoveryRun      `json:"discovery_runs"`
 	Collections     map[string]Collection        `json:"collections"`
 	Version         int                          `json:"version"`
 	Migrations      []MigrationRecord            `json:"migrations,omitempty"`
@@ -30,7 +31,7 @@ type diskState struct {
 
 const (
 	minimumStateVersion = 1
-	currentStateVersion = 8
+	currentStateVersion = 9
 )
 
 // OpenDurable owns one local state file for its entire lifetime; other processes fail closed.
@@ -69,7 +70,7 @@ func OpenDurable(path string) (*Memory, error) {
 		m.Close()
 		return nil, fmt.Errorf("state schema cannot start: %w; restore a compatible backup or run `consize storage status -state %s`", err, path)
 	}
-	if state.Collections == nil || state.Resources == nil || state.Recommendations == nil || state.ActionRecords == nil || state.Actions == nil || state.AuditEvents == nil || state.Jobs == nil || state.NextActionID < 1 || state.NextEventID < 1 || state.NextRecID < 1 {
+	if state.DiscoveryRuns == nil || state.Collections == nil || state.Resources == nil || state.Recommendations == nil || state.ActionRecords == nil || state.Actions == nil || state.AuditEvents == nil || state.Jobs == nil || state.NextActionID < 1 || state.NextEventID < 1 || state.NextRecID < 1 {
 		m.Close()
 		return nil, errors.New("invalid state schema")
 	}
@@ -88,6 +89,7 @@ func OpenDurable(path string) (*Memory, error) {
 	}
 	m.jobs = state.Jobs
 	m.collections = state.Collections
+	m.discoveryRuns = state.DiscoveryRuns
 	m.nextActionID = state.NextActionID
 	m.nextEventID = state.NextEventID
 	m.nextRecID = state.NextRecID
@@ -210,6 +212,12 @@ func migrateState(state *diskState) (bool, error) {
 		state.Migrations = append(state.Migrations, MigrationRecord{FromVersion: 7, ToVersion: 8, Name: "durable-evidence-collections"})
 		migrated = true
 	}
+	if state.Version == 8 {
+		state.DiscoveryRuns = map[string]DiscoveryRun{}
+		state.Version = 9
+		state.Migrations = append(state.Migrations, MigrationRecord{FromVersion: 8, ToVersion: 9, Name: "durable-scoped-discovery"})
+		migrated = true
+	}
 	if state.Version != currentStateVersion {
 		return false, fmt.Errorf("unsupported state schema version %d", state.Version)
 	}
@@ -227,6 +235,11 @@ func firstStoredTime(values ...time.Time) time.Time {
 }
 
 func validateState(state diskState) error {
+	for id, r := range state.DiscoveryRuns {
+		if id != r.ID || validateDiscoveryRun(r) != nil {
+			return errors.New("invalid durable discovery run")
+		}
+	}
 	for id, c := range state.Collections {
 		if id != c.ID || validateStoredCollection(c) != nil {
 			return errors.New("invalid durable collection")
@@ -387,7 +400,7 @@ func (m *Memory) persistLocked() (err error) {
 	}()
 	state := diskState{
 		Version: currentStateVersion, Migrations: append([]MigrationRecord(nil), m.diagnostics.Migrations...), Resources: m.resources,
-		Recommendations: m.recs, ActionRecords: m.actionRecords, Actions: m.actions, AuditEvents: m.auditEvents, Jobs: m.jobs, Collections: m.collections,
+		Recommendations: m.recs, ActionRecords: m.actionRecords, Actions: m.actions, AuditEvents: m.auditEvents, Jobs: m.jobs, Collections: m.collections, DiscoveryRuns: m.discoveryRuns,
 		NextActionID: m.nextActionID, NextEventID: m.nextEventID, NextRecID: m.nextRecID,
 	}
 	data, err := json.Marshal(state)

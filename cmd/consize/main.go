@@ -50,12 +50,12 @@ func run(ctx context.Context, args []string) error {
 		if err := fs.Parse(args[1:]); err != nil {
 			return err
 		}
-		st, plugins, _, _, err := foundation(ctx, *configPath)
+		st, plugins, _, cfg, err := foundation(ctx, *configPath)
 		if err != nil {
 			return err
 		}
 		defer st.Close()
-		results, err := discovery.New(st, plugins).Run(ctx)
+		results, err := discovery.NewWithConfig(st, plugins, cfg.Discovery).Run(ctx)
 		if err != nil {
 			return err
 		}
@@ -78,7 +78,26 @@ func run(ctx context.Context, args []string) error {
 		if err := controller.ConfigureWorker(cfg.Worker); err != nil {
 			return err
 		}
-		return controller.Run(ctx)
+		discoveryStore, ok := st.(store.DiscoveryRunStore)
+		if !ok {
+			return fmt.Errorf("durable discovery store unavailable")
+		}
+		scheduler, err := discovery.NewScheduler(discoveryStore, plugins, cfg.Discovery)
+		if err != nil {
+			return err
+		}
+		workerCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		done := make(chan error, 2)
+		go func() { done <- controller.Run(workerCtx) }()
+		go func() { done <- scheduler.Run(workerCtx) }()
+		first := <-done
+		cancel()
+		other := <-done
+		if first != nil {
+			return first
+		}
+		return other
 	case "plugins":
 		fs := flag.NewFlagSet("plugins", flag.ExitOnError)
 		configPath := fs.String("config", "", "Path to Consize plugin config JSON")
