@@ -123,6 +123,57 @@ paths:
         '405': {$ref: '#/components/responses/ErrorResponse'}
         '409': {$ref: '#/components/responses/ErrorResponse'}
         '503': {$ref: '#/components/responses/ErrorResponse'}
+  /api/discovery/runs:
+    get:
+      tags: [Product]
+      operationId: getDiscoveryRuns
+      summary: Inspect durable discovery runs
+      description: Requires administrator authorization. Supply id for one run or plugin_id for the latest 100 matching runs; neither filter returns the latest 100 globally. Scope, completeness, attempt history, safe errors and lifecycle counts are retained across restart.
+      parameters:
+        - {name: id, in: query, description: Run ID; mutually exclusive with plugin_id., schema: {type: string, maxLength: 512}}
+        - {name: plugin_id, in: query, description: Configured discovery provider., schema: {type: string, maxLength: 128}}
+      responses:
+        '200':
+          description: One run when id is supplied; otherwise a bounded list.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/DiscoveryRun'}
+                  - {type: array, maxItems: 100, items: {$ref: '#/components/schemas/DiscoveryRun'}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
+    post:
+      tags: [Product]
+      operationId: queueDiscoveryRun
+      summary: Queue a durable manual rescan
+      description: Requires administrator authorization. Uses the configured provider scope and authenticated actor. Equivalent requests within the same interval deduplicate; different pending runs for the same scope return 409. Scope, endpoints, credentials and lifecycle thresholds cannot be overridden. No provider call occurs inside the HTTP request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [plugin_id]
+              properties:
+                plugin_id: {type: string, minLength: 1, maxLength: 128}
+      responses:
+        '202':
+          description: Durable discovery operation, possibly an existing equivalent run.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content: {application/json: {schema: {$ref: '#/components/schemas/DiscoveryRun'}}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
   /api/discovery:
     post:
       tags: [Product]
@@ -142,6 +193,7 @@ paths:
                   providers: {type: array, items: {$ref: '#/components/schemas/DiscoveryResult'}}
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
         '502': {$ref: '#/components/responses/ErrorResponse'}
   /api/evidence/collections:
     get:
@@ -1235,3 +1287,47 @@ components:
         snapshot: {$ref: '#/components/schemas/MetricsSnapshot'}
         assessment: {$ref: '#/components/schemas/EvidenceQualityAssessment'}
         pruned: {type: boolean}
+
+    DiscoveryRun:
+      type: object
+      required: [id, plugin_id, scope, scope_digest, scope_key, requested_at, actor, trigger, state, health, attempts, max_attempts, fence, history, next_run, created_at, updated_at, stale_after, tombstone_after, resource_ids, reconciliation]
+      properties:
+        id: {type: string}
+        plugin_id: {type: string}
+        scope: {type: object, maxProperties: 4, additionalProperties: {type: string}}
+        scope_digest: {type: string}
+        scope_key: {type: string}
+        requested_at: {type: string, format: date-time}
+        actor: {type: string}
+        trigger: {type: string, enum: [manual, scheduled]}
+        health: {type: string, enum: [pending, running, healthy, degraded, failed]}
+        state: {type: string, enum: [pending, running, retry_wait, succeeded, failed]}
+        attempts: {type: integer, minimum: 0, maximum: 10}
+        max_attempts: {type: integer, minimum: 1, maximum: 10}
+        fence: {type: integer, minimum: 0}
+        lease: {$ref: '#/components/schemas/JobLease'}
+        history: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/DiscoveryAttempt'}}
+        next_run: {type: string, format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        error_code: {type: string}
+        stale_after: {type: string}
+        tombstone_after: {type: string}
+        scan: {$ref: '#/components/schemas/DiscoveryScan'}
+        resource_ids: {type: array, maxItems: 100000, items: {type: string}}
+        reconciliation:
+          type: object
+          required: [stale, deleted]
+          properties:
+            stale: {type: array, items: {type: string}}
+            deleted: {type: array, items: {type: string}}
+
+    DiscoveryAttempt:
+      type: object
+      required: [number, started_at]
+      properties:
+        number: {type: integer, minimum: 1, maximum: 10}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        outcome: {type: string}

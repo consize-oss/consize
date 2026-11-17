@@ -96,3 +96,10 @@ The optional `collection` section controls durable manual/periodic evidence
 operations. Scheduling is off by default; it runs alongside the existing action
 worker in `consize serve`. See [configuration, API and recovery](evidence-collection.md)
 for the complete setup and retention rules.
+
+## Continuous discovery
+
+The optional `discovery` section controls durable periodic scans and registry
+absence thresholds. Scheduling is off by default. See
+[continuous discovery](continuous-discovery.md) for manual rescans, scope safety,
+recovery, lifecycle semantics and limits.

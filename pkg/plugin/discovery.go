@@ -36,3 +36,10 @@ type SnapshotDiscoveryPlugin interface {
 	DiscoveryPlugin
 	DiscoverSnapshot(context.Context) (DiscoverySnapshot, error)
 }
+
+// ScopedDiscoveryPlugin declares the same immutable selection used by snapshots.
+// Core scheduling never guesses scan authority from an observation list.
+type ScopedDiscoveryPlugin interface {
+	SnapshotDiscoveryPlugin
+	DiscoveryScope() map[string]string
+}

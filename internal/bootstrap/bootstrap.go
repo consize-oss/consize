@@ -15,6 +15,7 @@ import (
 )
 
 type Config struct {
+	Discovery       DiscoveryScheduleConfig      `json:"discovery,omitempty"`
 	Collection      CollectionConfig             `json:"collection,omitempty"`
 	Worker          WorkerConfig                 `json:"worker,omitempty"`
 	ExternalPlugins []marketplace.ExternalConfig `json:"external_plugins,omitempty"`
@@ -208,4 +209,15 @@ type CollectionConfig struct {
 	Retention      string `json:"retention,omitempty"`
 	MaxAttempts    int    `json:"max_attempts,omitempty"`
 	MaxJobsPerTick int    `json:"max_jobs_per_tick,omitempty"`
+}
+
+type DiscoveryScheduleConfig struct {
+	Enabled        bool   `json:"enabled"`
+	Interval       string `json:"interval,omitempty"`
+	PollInterval   string `json:"poll_interval,omitempty"`
+	Timeout        string `json:"timeout,omitempty"`
+	StaleAfter     string `json:"stale_after,omitempty"`
+	TombstoneAfter string `json:"tombstone_after,omitempty"`
+	MaxAttempts    int    `json:"max_attempts,omitempty"`
+	MaxRunsPerTick int    `json:"max_runs_per_tick,omitempty"`
 }

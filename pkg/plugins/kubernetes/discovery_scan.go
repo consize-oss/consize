@@ -54,10 +54,7 @@ func (p *Plugin) DiscoverSnapshot(ctx context.Context) (batch plugin.DiscoverySn
 	p.scans.running = true
 	p.scans.mu.Unlock()
 	started := time.Now()
-	scan := plugin.DiscoveryScan{Version: plugin.DiscoveryScanVersion, PluginID: ID, StartedAt: started.UTC(), SnapshotVersions: map[string]string{}, Scope: map[string]string{"cluster_id": p.clusterID, "location": p.location, "namespaces": strings.Join(p.discovery.namespaces, ","), "label_selector": p.discovery.selector.String()}}
-	if len(p.discovery.namespaces) == 0 {
-		scan.Scope["namespaces"] = "*"
-	}
+	scan := plugin.DiscoveryScan{Version: plugin.DiscoveryScanVersion, PluginID: ID, StartedAt: started.UTC(), SnapshotVersions: map[string]string{}, Scope: p.DiscoveryScope()}
 	encoded, _ := json.Marshal(scan.Scope)
 	digest := sha256.Sum256(encoded)
 	scan.ScopeDigest = hex.EncodeToString(digest[:])
@@ -204,4 +201,13 @@ func collectDeployments(ctx context.Context, lister deploymentPageLister, o disc
 		return a.Name < b.Name
 	})
 	return out, nil
+}
+
+// DiscoveryScope returns an independent descriptor without contacting Kubernetes.
+func (p *Plugin) DiscoveryScope() map[string]string {
+	namespaces := strings.Join(p.discovery.namespaces, ",")
+	if namespaces == "" {
+		namespaces = "*"
+	}
+	return map[string]string{"cluster_id": p.clusterID, "location": p.location, "namespaces": namespaces, "label_selector": p.discovery.selector.String()}
 }

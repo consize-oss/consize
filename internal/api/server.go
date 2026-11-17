@@ -33,17 +33,18 @@ import (
 )
 
 type Server struct {
-	collector    *collection.Collector
-	inventoryKey [32]byte
-	inventoryNow func() time.Time
-	controller   *safety.Controller
-	auth         *auth.Authorizer
-	audit        *audit.Writer
-	actionMu     sync.Mutex
-	st           store.Store
-	plugins      *plugin.Manager
-	policies     *policy.Engine
-	cfg          bootstrap.Config
+	discoveryScheduler *discovery.Scheduler
+	collector          *collection.Collector
+	inventoryKey       [32]byte
+	inventoryNow       func() time.Time
+	controller         *safety.Controller
+	auth               *auth.Authorizer
+	audit              *audit.Writer
+	actionMu           sync.Mutex
+	st                 store.Store
+	plugins            *plugin.Manager
+	policies           *policy.Engine
+	cfg                bootstrap.Config
 }
 
 var requestSequence atomic.Uint64
@@ -126,6 +127,14 @@ func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine,
 	} else if cfg.Collection.Enabled {
 		return nil, fmt.Errorf("durable collection store unavailable")
 	}
+	if ds, ok := st.(store.DiscoveryRunStore); ok {
+		s.discoveryScheduler, err = discovery.NewScheduler(ds, plugins, cfg.Discovery)
+		if err != nil {
+			return nil, err
+		}
+	} else if cfg.Discovery.Enabled {
+		return nil, fmt.Errorf("durable discovery store unavailable")
+	}
 	return s, nil
 }
 
@@ -133,21 +142,27 @@ func (s *Server) RunWorker(ctx context.Context) error {
 	if s.controller == nil {
 		return fmt.Errorf("durable worker store unavailable")
 	}
-	if s.collector == nil {
-		return s.controller.Run(ctx)
+	workers := []func(context.Context) error{s.controller.Run}
+	if s.collector != nil {
+		workers = append(workers, s.collector.Run)
+	}
+	if s.discoveryScheduler != nil {
+		workers = append(workers, s.discoveryScheduler.Run)
 	}
 	workerCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	done := make(chan error, 2)
-	go func() { done <- s.controller.Run(workerCtx) }()
-	go func() { done <- s.collector.Run(workerCtx) }()
-	err := <-done
-	cancel()
-	other := <-done
-	if err != nil {
-		return err
+	done := make(chan error, len(workers))
+	for _, run := range workers {
+		go func(run func(context.Context) error) { done <- run(workerCtx) }(run)
 	}
-	return other
+	first := <-done
+	cancel()
+	for i := 1; i < len(workers); i++ {
+		if err := <-done; first == nil {
+			first = err
+		}
+	}
+	return first
 }
 
 func (s *Server) Handler() http.Handler {
@@ -156,6 +171,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/dashboard", s.protect(auth.RoleViewer, s.handleDashboard))
 	mux.HandleFunc("/api/resources", s.protect(s.resourceRole, s.handleResources))
 	mux.HandleFunc("/api/resources/inventory", s.protect(auth.RoleViewer, s.handleInventory))
+	mux.HandleFunc("/api/discovery/runs", s.protect(auth.RoleAdmin, s.handleDiscoveryRuns))
 	mux.HandleFunc("/api/discovery", s.protect(auth.RoleAdmin, s.handleDiscovery))
 	mux.HandleFunc("/api/evidence/collections", s.protect(auth.RoleOperator, s.handleCollections))
 	mux.HandleFunc("/api/evidence/quality", s.protect(auth.RoleOperator, s.handleEvidenceQuality))
@@ -177,9 +193,13 @@ func (s *Server) handleDiscovery(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
-	results, err := discovery.New(s.st, s.plugins).Run(r.Context())
+	results, err := discovery.NewWithConfig(s.st, s.plugins, s.cfg.Discovery).Run(r.Context())
 	if err != nil {
-		writeError(w, http.StatusBadGateway, err.Error())
+		if errors.Is(err, store.ErrDiscoveryBusy) || errors.Is(err, store.ErrJobBusy) {
+			writeError(w, 409, "discovery scope already running")
+			return
+		}
+		writeError(w, http.StatusBadGateway, "discovery did not complete; inspect durable discovery runs")
 		return
 	}
 	if err := s.writeAudit(r.Context(), "discovery", results); err != nil {
