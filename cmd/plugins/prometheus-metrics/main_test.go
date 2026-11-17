@@ -41,3 +41,18 @@ func TestStandaloneConfigurationForwardsTransportAndRejectsUnsafeFields(t *testi
 		}
 	}
 }
+
+func TestStandaloneCollectionSettingsValidation(t *testing.T) {
+	for _, fields := range []string{
+		`"percentile":100`, `"minimum_samples":1`,
+		`"queries":{"cpu_cores":"fixture_cpu"}`,
+		`"queries":{"cpu_cores":"fixture_cpu"},"units":{"cpu_cores":"bytes"}`,
+	} {
+		if _, err := configuredPlugin(json.RawMessage(`{"base_url":"https://prometheus.example.invalid",` + fields + `}`)); err == nil {
+			t.Fatalf("accepted invalid collection configuration: %s", fields)
+		}
+	}
+	if _, err := configuredPlugin(json.RawMessage(`{"base_url":"https://prometheus.example.invalid","percentile":7,"minimum_samples":4,"queries":{"cpu_cores":"fixture_cpu"},"units":{"cpu_cores":"millicores"},"mapping":{"cluster":"source_cluster"}}`)); err != nil {
+		t.Fatal(err)
+	}
+}

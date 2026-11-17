@@ -6,7 +6,6 @@ import (
 	"math"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/consize-oss/consize/pkg/evidence"
@@ -17,30 +16,35 @@ import (
 const ID = "prometheus-metrics"
 
 type Config struct {
-	Mapping   MappingConfig
-	Transport TransportConfig
-	BaseURL   string
-	Window    time.Duration
-	Step      time.Duration
-	Units     map[string]string
-	Queries   map[string]string
+	Percentile     int `json:"percentile,omitempty"`
+	MinimumSamples int `json:"minimum_samples,omitempty"`
+	Mapping        MappingConfig
+	Transport      TransportConfig
+	BaseURL        string
+	Window         time.Duration
+	Step           time.Duration
+	Units          map[string]string
+	Queries        map[string]string
 }
 
 type Plugin struct {
-	mapping       MappingConfig
-	mappingError  error
-	customQueries map[string]string
-	client        Client
-	window        time.Duration
-	step          time.Duration
-	units         map[string]string
+	percentile     int
+	minimumSamples int
+	now            func() time.Time
+	mapping        MappingConfig
+	mappingError   error
+	customQueries  map[string]string
+	client         Client
+	window         time.Duration
+	step           time.Duration
+	units          map[string]string
 }
 
 func New(cfg Config) (*Plugin, error) {
-	if len(cfg.Queries) > 32 || len(cfg.Units) > 32 {
-		return nil, failure("configuration")
+	if err := validateCollectionSettings(cfg); err != nil {
+		return nil, err
 	}
-	if cfg.Window < 0 || cfg.Window > 365*24*time.Hour || cfg.Step < 0 || cfg.Step > 24*time.Hour || (cfg.Step > 0 && cfg.Step < time.Millisecond) {
+	if len(cfg.Queries) > 32 || len(cfg.Units) > 32 {
 		return nil, failure("configuration")
 	}
 	if _, err := resolveMapping(cfg.Mapping); err != nil {
@@ -67,6 +71,20 @@ func NewWithClient(client Client, cfg Config) *Plugin {
 		step = 5 * time.Minute
 	}
 	mapping, mappingError := resolveMapping(cfg.Mapping)
+	if err := validateCollectionSettings(cfg); err != nil {
+		mappingError = err
+	}
+	requestedPercentile := cfg.Percentile
+	if requestedPercentile == 0 {
+		requestedPercentile = 95
+	}
+	if window < step {
+		mappingError = failure("configuration")
+	}
+	minimumSamples := cfg.MinimumSamples
+	if minimumSamples == 0 {
+		minimumSamples = 2
+	}
 	if len(cfg.Queries) > 32 || len(cfg.Units) > 32 {
 		mappingError = failure("configuration")
 	}
@@ -78,7 +96,7 @@ func NewWithClient(client Client, cfg Config) *Plugin {
 	for key, unit := range cfg.Units {
 		units[key] = unit
 	}
-	return &Plugin{client: client, window: window, step: step, units: units, mapping: mapping, mappingError: mappingError, customQueries: custom}
+	return &Plugin{percentile: requestedPercentile, minimumSamples: minimumSamples, now: time.Now, client: client, window: window, step: step, units: units, mapping: mapping, mappingError: mappingError, customQueries: custom}
 }
 
 func (p *Plugin) ID() string { return ID }
@@ -123,12 +141,12 @@ func (p *Plugin) Health(ctx context.Context) plugin.Health {
 }
 
 func (p *Plugin) ReadMetrics(ctx context.Context, res resource.Resource) (plugin.MetricsSnapshot, error) {
-	end := time.Now().UTC()
+	end := p.now().UTC().Truncate(time.Millisecond)
 	return p.ReadMetricsBetween(ctx, res, end.Add(-p.window), end)
 }
 
 func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, start, end time.Time) (plugin.MetricsSnapshot, error) {
-	if !end.After(start) {
+	if end.After(p.now().UTC()) || !end.After(start) || end.Sub(start) < time.Millisecond || end.Sub(start) > 365*24*time.Hour {
 		return plugin.MetricsSnapshot{}, fmt.Errorf("invalid metrics interval")
 	}
 	if p.client == nil {
@@ -137,6 +155,7 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 	if res.Type != resource.TypeKubernetesDeployment {
 		return plugin.MetricsSnapshot{}, fmt.Errorf("unsupported resource type %q", res.Type)
 	}
+	requestedStart, requestedEnd := start, end
 	namespace, name, err := deploymentIdentity(res)
 	if err != nil {
 		return plugin.MetricsSnapshot{}, err
@@ -146,30 +165,25 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 	}
 	cfg := p.mapping
 	scope := mappingMatcher(cfg.Cluster, "=", res.Account) + "," + mappingMatcher(cfg.Namespace, "=", namespace)
-	queries := scopedMappingQueries(cfg, scope)
-	for key, query := range p.customQueries {
-		queries[key] = strings.ReplaceAll(query, "{scope}", scope)
+	definitions := p.definitions(scope)
+	queryStart := start.Truncate(time.Millisecond)
+	if queryStart.Before(start) {
+		queryStart = queryStart.Add(time.Millisecond)
 	}
-	owners := OwnershipSeries{}
-	if cfg.Mode == "owner_chain" {
-		owners.Pods, err = p.client.QueryRange(ctx, mappingSelector("kube_pod_owner", scope, mappingMatcher(cfg.Controller, "=", "true")), start, end, p.step)
-		if err != nil {
-			return plugin.MetricsSnapshot{}, safeError(err)
-		}
-		owners.ReplicaSets, err = p.client.QueryRange(ctx, mappingSelector("kube_replicaset_owner", scope, mappingMatcher(cfg.Controller, "=", "true")), start, end, p.step)
-		if err != nil {
-			return plugin.MetricsSnapshot{}, safeError(err)
-		}
+	evaluationAt := end.Truncate(time.Millisecond)
+	if !evaluationAt.After(queryStart) {
+		return plugin.MetricsSnapshot{}, failure("configuration")
 	}
-	inventory, err := p.client.QueryRange(ctx, mappingInventoryQuery(scope), start, end, p.step)
+	start, end = queryStart, evaluationAt
+	historical, err := p.mappedInventory(ctx, res, scope, queryStart, evaluationAt)
 	if err != nil {
-		return plugin.MetricsSnapshot{}, safeError(err)
+		return plugin.MetricsSnapshot{}, err
 	}
-	inventoryMapping := MapSeries(res, "inventory", inventory, owners, cfg)
-	if target, e := targetForMapping(res); e == nil {
-		inventoryMapping = validateInventory(inventoryMapping, target, cfg)
+	current, err := p.mappedInventory(ctx, res, scope, evaluationAt, evaluationAt)
+	if err != nil {
+		return plugin.MetricsSnapshot{}, err
 	}
-	collectedAt := time.Now().UTC()
+	collectedAt := p.now().UTC()
 	signals := map[string]any{
 		"namespace": namespace,
 		"name":      name,
@@ -179,8 +193,8 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 	}
 	coverage := map[string]plugin.MetricCoverage{}
 	records := []evidence.Record{}
-	keys := make([]string, 0, len(queries))
-	for key := range queries {
+	keys := make([]string, 0, len(definitions))
+	for key := range definitions {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
@@ -188,36 +202,64 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		if err := ctx.Err(); err != nil {
 			return plugin.MetricsSnapshot{}, safeError(err)
 		}
-		query := queries[key]
-		series, err := p.client.QueryRange(ctx, query, start, end, p.step)
+		definition := definitions[key]
+		query := definition.Query
+		from, to, facts := queryStart, evaluationAt, historical
+		recordStart, recordEnd := start, end
+		if definition.Current {
+			from = evaluationAt
+			facts = current
+
+		}
+		sourceUnit := definition.Unit
+		if configured := p.units[key]; configured != "" {
+			sourceUnit = configured
+		}
+		unit, scale, err := normalizedUnit(key, sourceUnit)
+		if err != nil {
+			return plugin.MetricsSnapshot{}, err
+		}
+		series, err := p.client.QueryRange(ctx, query, from, to, p.step)
 		if err != nil {
 			return plugin.MetricsSnapshot{}, safeError(err)
 		}
-		mapping := MapSeries(res, key, series, owners, cfg)
+		mapping := MapSeries(res, key, series, facts.owners, cfg)
 		if mapping.Status == "mapped" {
-			mapping = validateMembership(mapping, inventoryMapping, key, cfg)
+			mapping = validateMembership(mapping, facts.inventory, key, cfg)
+		}
+		if definition.Aggregation == "single-series-custom" && len(mapping.Series) > 1 {
+			mapping.Status = "custom_aggregation_undefined"
+			mapping.Series = nil
 		}
 		signals["mapping"].(map[string]any)[key] = map[string]any{"version": MappingVersion, "status": mapping.Status, "source": mapping.Source, "members": mapping.Members, "excluded": mapping.Excluded, "digest": mapping.Digest}
-		series = mapping.Series
+		series = normalizeSeries(mapping.Series, scale)
+		for i := range series {
+			for j, point := range series[i].Points {
+				if point.Timestamp.Before(from) || point.Timestamp.After(to) || point.Timestamp.Sub(from)%p.step != 0 {
+					series[i].Points[j].Value = math.NaN()
+				}
+			}
+		}
 		rawDiscarded := 0
 		for _, raw := range series {
 			for _, point := range raw.Points {
-				if point.Timestamp.Before(start) || point.Timestamp.After(end) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) || signalUnit(key) != "" && point.Value < 0 || key == "cpu_throttling_ratio" && (point.Value < 0 || point.Value > 1) {
+				if point.Timestamp.Before(from) || point.Timestamp.After(to) || point.Timestamp.Sub(from)%p.step != 0 || !validMeasurement(key, point.Value) {
 					rawDiscarded++
 				}
 			}
 		}
-		if mapping.Status == "mapped" {
+		aggregateDiscarded := 0
+		if mapping.Status == "mapped" && definition.Aggregation != "single-series-custom" {
 			target, _ := targetForMapping(res)
-			series = aggregateMapped(key, series, cfg, len(target.Containers))
+			series, aggregateDiscarded = reduceMapped(key, series, cfg, len(target.Containers))
 		}
 		values := []float64{}
-		discarded := rawDiscarded
+		discarded := rawDiscarded + aggregateDiscarded
 		points := map[int64]bool{}
 		var first, last time.Time
 		for _, s := range series {
 			for _, point := range s.Points {
-				if point.Timestamp.Before(start) || point.Timestamp.After(end) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) {
+				if point.Timestamp.Before(from) || point.Timestamp.After(to) || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) {
 					discarded++
 					continue
 				}
@@ -243,21 +285,24 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 				maxGap = gap
 			}
 		}
-		coverage[key] = plugin.MetricCoverage{FirstSample: first, LastSample: last, ExpectedPoints: int(end.Sub(start)/p.step) + 1, ActualPoints: len(points), Step: p.step, MaxGap: maxGap}
+		expectedPoints := int(end.Sub(start)/p.step) + 1
+		if definition.Current {
+			expectedPoints = 1
+		}
+		coverage[key] = plugin.MetricCoverage{FirstSample: first, LastSample: last, ExpectedPoints: expectedPoints, ActualPoints: len(points), Step: p.step, MaxGap: maxGap}
+		requiredSamples := p.minimumSamples
+		sampleKind := "range"
+		if definition.Current {
+			requiredSamples = 1
+			sampleKind = "current_configuration"
+		}
+		statistics := collectionStatistics(p.percentile, definition.Current)
 		if len(values) > 0 {
-			signals[key+"_p50"] = percentile(values, 50)
-			signals[key+"_p95"] = percentile(values, 95)
-			signals[key+"_p99"] = percentile(values, 99)
-			signals[key+"_max"] = max(values)
+			for _, stat := range statistics {
+				signals[key+"_"+stat] = statisticValue(append([]float64(nil), values...), stat)
+			}
 		}
 		signals[key+"_points"] = len(values)
-		unit := signalUnit(key)
-		if configured := p.units[key]; configured != "" {
-			unit = configured
-		}
-		if unit == "" {
-			return plugin.MetricsSnapshot{}, fmt.Errorf("unit is undefined for signal %q", key)
-		}
 		quality := evidence.Valid
 		if len(values) == 0 {
 			quality = evidence.Missing
@@ -266,18 +311,22 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 			}
 		} else if collectedAt.Sub(last) > 2*p.step {
 			quality = evidence.Stale
-		} else if float64(len(points))/float64(coverage[key].ExpectedPoints) < 0.9 || discarded > 0 {
+		} else if float64(len(points))/float64(coverage[key].ExpectedPoints) < 0.9 || discarded > 0 || !definition.Current && len(values) < p.minimumSamples {
 			quality = evidence.Partial
 		}
 		if mapping.Status != "mapped" {
 			quality = evidence.Unavailable
 		}
-		for _, stat := range []string{"p50", "p95", "p99", "max"} {
+		for _, stat := range statistics {
+			aggregation := stat
+			if stat == "current" {
+				aggregation = "last"
+			}
 			var value *float64
 			if v, ok := signals[key+"_"+stat].(float64); ok {
 				value = evidence.Number(v)
 			}
-			rec, err := evidence.Seal(evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: stat, Unit: unit, OriginalUnit: unit, Scale: 1, Value: value, SampleCount: len(values), WindowStart: start, WindowEnd: end, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"mapping_cluster": res.Account, "mapping_deployment_uid": mappingUID(res), "mapping_namespace": namespace, "mapping_version": MappingVersion, "mapping_status": mapping.Status, "mapping_source": mapping.Source, "mapping_digest": mapping.Digest, "mapping_members": strconv.Itoa(mapping.Members), "mapping_excluded": strconv.Itoa(mapping.Excluded), "step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}})
+			rec, err := evidence.Seal(evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: aggregation, Unit: unit, OriginalUnit: sourceUnit, Scale: scale, Value: value, SampleCount: len(values), WindowStart: recordStart, WindowEnd: recordEnd, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"requested_start": requestedStart.UTC().Format(time.RFC3339Nano), "requested_end": requestedEnd.UTC().Format(time.RFC3339Nano), "discarded_source_points": strconv.Itoa(rawDiscarded), "discarded_evaluation_points": strconv.Itoa(aggregateDiscarded), "query_version": definition.Version, "query_digest": queryIdentity(definition, p.step, sourceUnit), "catalog_version": QueryCatalogVersion, "aggregation_version": AggregationVersion, "aggregation_rule": definition.Aggregation, "percentile_method": PercentileMethod, "evaluation_at": evaluationAt.Format(time.RFC3339Nano), "minimum_samples": strconv.Itoa(requiredSamples), "sample_kind": sampleKind, "configured_percentile": strconv.Itoa(p.percentile), "mapping_cluster": res.Account, "mapping_deployment_uid": mappingUID(res), "mapping_namespace": namespace, "mapping_version": MappingVersion, "mapping_status": mapping.Status, "mapping_source": mapping.Source, "mapping_digest": mapping.Digest, "mapping_members": strconv.Itoa(mapping.Members), "mapping_excluded": strconv.Itoa(mapping.Excluded), "step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}})
 			if err != nil {
 				return plugin.MetricsSnapshot{}, err
 			}
@@ -285,7 +334,21 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		}
 
 	}
-	return plugin.MetricsSnapshot{
+	completedAt := p.now().UTC()
+	for i, record := range records {
+		record.CollectedAt = completedAt
+		record.FreshUntil = completedAt.Add(2 * p.step)
+		last, _ := time.Parse(time.RFC3339Nano, record.Extensions["last_sample"])
+		if (record.Quality == evidence.Valid || record.Quality == evidence.Partial) && completedAt.Sub(last) > 2*p.step {
+			record.Quality = evidence.Stale
+		}
+		sealed, e := evidence.Seal(record)
+		if e != nil {
+			return plugin.MetricsSnapshot{}, e
+		}
+		records[i] = sealed
+	}
+	snapshot := plugin.MetricsSnapshot{
 		Records:    records,
 		Coverage:   coverage,
 		PluginID:   ID,
@@ -298,8 +361,12 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 			"series ownership is validated before workload aggregation; see mapping provenance on each record",
 			"health verification can use the same metrics after an action",
 		},
-		CollectedAt: collectedAt,
-	}, nil
+		CollectedAt: completedAt,
+	}
+	if err := snapshot.ValidateRecords(); err != nil {
+		return plugin.MetricsSnapshot{}, err
+	}
+	return snapshot, nil
 }
 
 func deploymentIdentity(res resource.Resource) (string, string, error) {
@@ -322,7 +389,10 @@ func percentile(values []float64, p float64) float64 {
 		return 0
 	}
 	sort.Float64s(values)
-	idx := int(math.Ceil((p/100)*float64(len(values)))) - 1
+	idx := int(math.Ceil(p*float64(len(values))/100)) - 1
+	if math.Trunc(p) == p {
+		idx = (int(p)*len(values)+99)/100 - 1
+	}
 	if idx < 0 {
 		idx = 0
 	}
@@ -347,9 +417,9 @@ func max(values []float64) float64 {
 
 func signalUnit(key string) string {
 	switch key {
-	case "cpu_cores":
+	case "cpu_cores", "cpu_request_cores", "cpu_limit_cores":
 		return "cores"
-	case "memory_working_set_bytes":
+	case "memory_working_set_bytes", "memory_request_bytes", "memory_limit_bytes":
 		return "bytes"
 	case "cpu_throttling_ratio":
 		return "ratio"

@@ -1,0 +1,82 @@
+[
+  {
+    "signal": "cpu_cores",
+    "version": "kubernetes-promql-v1/cpu_cores",
+    "query": "rate(container_cpu_usage_seconds_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[5m])",
+    "unit": "cores",
+    "aggregation": "sum-containers-max-pod",
+    "current": false
+  },
+  {
+    "signal": "cpu_limit_cores",
+    "version": "kubernetes-promql-v1/cpu_limit_cores",
+    "query": "kube_pod_container_resource_limits{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"cpu\",unit=\"core\"} or kube_pod_init_container_resource_limits{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"cpu\",unit=\"core\"}",
+    "unit": "cores",
+    "aggregation": "sum-containers-max-pod",
+    "current": true
+  },
+  {
+    "signal": "cpu_request_cores",
+    "version": "kubernetes-promql-v1/cpu_request_cores",
+    "query": "kube_pod_container_resource_requests{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"cpu\",unit=\"core\"} or kube_pod_init_container_resource_requests{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"cpu\",unit=\"core\"}",
+    "unit": "cores",
+    "aggregation": "sum-containers-max-pod",
+    "current": true
+  },
+  {
+    "signal": "cpu_throttling_ratio",
+    "version": "kubernetes-promql-v1/cpu_throttling_ratio",
+    "query": "(((rate(container_cpu_cfs_throttled_periods_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[5m])) / (rate(container_cpu_cfs_periods_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[5m]))) and ((rate(container_cpu_cfs_periods_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[5m])) \u003e 0)) or (0 * (((rate(container_cpu_cfs_throttled_periods_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[5m])) == 0) and ((rate(container_cpu_cfs_periods_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[5m])) == 0)))",
+    "unit": "ratio",
+    "aggregation": "max-container",
+    "current": false
+  },
+  {
+    "signal": "evicted_pods",
+    "version": "kubernetes-promql-v1/evicted_pods",
+    "query": "(kube_pod_status_reason{cluster=\"fixture-cluster\",namespace=\"payments\",reason=\"Evicted\"} == 1) or (0 * (kube_pod_status_phase{cluster=\"fixture-cluster\",namespace=\"payments\",phase=~\"Running|Pending|Succeeded\"} == 1)) or (0 * (kube_pod_status_reason{cluster=\"fixture-cluster\",namespace=\"payments\",reason!=\"Evicted\"} == 1))",
+    "unit": "count",
+    "aggregation": "sum-members",
+    "current": false
+  },
+  {
+    "signal": "memory_limit_bytes",
+    "version": "kubernetes-promql-v1/memory_limit_bytes",
+    "query": "kube_pod_container_resource_limits{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"memory\",unit=\"byte\"} or kube_pod_init_container_resource_limits{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"memory\",unit=\"byte\"}",
+    "unit": "bytes",
+    "aggregation": "sum-containers-max-pod",
+    "current": true
+  },
+  {
+    "signal": "memory_request_bytes",
+    "version": "kubernetes-promql-v1/memory_request_bytes",
+    "query": "kube_pod_container_resource_requests{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"memory\",unit=\"byte\"} or kube_pod_init_container_resource_requests{cluster=\"fixture-cluster\",namespace=\"payments\",resource=\"memory\",unit=\"byte\"}",
+    "unit": "bytes",
+    "aggregation": "sum-containers-max-pod",
+    "current": true
+  },
+  {
+    "signal": "memory_working_set_bytes",
+    "version": "kubernetes-promql-v1/memory_working_set_bytes",
+    "query": "container_memory_working_set_bytes{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}",
+    "unit": "bytes",
+    "aggregation": "sum-containers-max-pod",
+    "current": false
+  },
+  {
+    "signal": "oom_events_30m",
+    "version": "kubernetes-promql-v1/oom_events_30m",
+    "query": "increase(container_oom_events_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[30m])",
+    "unit": "count",
+    "aggregation": "sum-members",
+    "current": false
+  },
+  {
+    "signal": "restarts_30m",
+    "version": "kubernetes-promql-v1/restarts_30m",
+    "query": "increase(kube_pod_container_status_restarts_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[30m]) or increase(kube_pod_init_container_status_restarts_total{cluster=\"fixture-cluster\",namespace=\"payments\",container!=\"\",container!=\"POD\"}[30m])",
+    "unit": "count",
+    "aggregation": "sum-members",
+    "current": false
+  }
+]
