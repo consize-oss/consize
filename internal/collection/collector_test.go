@@ -80,6 +80,16 @@ func (p *fixtureProvider) ReadMetricsBetween(ctx context.Context, r resource.Res
 		s.Records = append(s.Records, rec)
 		s.Signals[signal] = value
 	}
+	if p.mode == "negative_current" {
+		for i, r := range s.Records {
+			if r.Signal == "cpu_request_cores_current" {
+				r.Value = evidence.Number(-1)
+				r, _ = evidence.Seal(r)
+				s.Records[i] = r
+				s.Signals[r.Signal] = -1.
+			}
+		}
+	}
 	if p.mode == "wrong_unit" {
 		r := s.Records[0]
 		r.Unit = "bytes"
@@ -171,6 +181,7 @@ func TestFailureClassificationAndNoFabricatedEvidence(t *testing.T) {
 		{"unknown", errors.New("fixture-private-do-not-persist"), "", "failed", "provider_failure"},
 		{"invalid", nil, "invalid", "failed", "invalid_evidence"},
 		{"wrong unit", nil, "wrong_unit", "failed", "invalid_evidence"},
+		{"negative current", nil, "negative_current", "failed", "invalid_evidence"},
 		{"forged projection", nil, "forged_projection", "failed", "invalid_evidence"},
 		{"wrong window", nil, "wrong_window", "failed", "invalid_evidence"},
 		{"partial", nil, "partial", "degraded", ""}, {"missing", nil, "missing", "degraded", ""},

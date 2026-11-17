@@ -352,13 +352,19 @@ func validSnapshot(s plugin.MetricsSnapshot, job store.Collection) bool {
 			if strings.HasSuffix(r.Signal, "_current") {
 				aggregation = "last"
 			}
+			if r.Value != nil && (*r.Value < 0 || r.Signal == "cpu_throttling_ratio_p95" && *r.Value > 1) {
+				return false
+			}
+			if strings.HasSuffix(r.Signal, "_current") && r.Quality == evidence.Valid && r.SampleCount != 1 {
+				return false
+			}
 			if r.Unit != expected || r.Aggregation != aggregation {
 				return false
 			}
 		}
 		projected, exists := s.Signals[r.Signal]
 		if r.Value != nil {
-			if !exists {
+			if !exists || projected == nil {
 				return false
 			}
 			encoded, e := json.Marshal(projected)
