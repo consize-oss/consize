@@ -55,6 +55,12 @@ func TestHTTPMetricsPreserveFractionalWindow(t *testing.T) {
 				}
 			}
 			for signal, coverage := range snapshot.Coverage {
+				if isConfigurationSignal(signal) {
+					if coverage.ActualPoints != 1 || coverage.ExpectedPoints != 1 {
+						t.Fatal("current configuration is not a single evaluation", signal, coverage)
+					}
+					continue
+				}
 				if coverage.FirstSample.Before(start) || coverage.LastSample.After(end) || coverage.ActualPoints < 60 {
 					t.Errorf("%s invalid coverage: %+v", signal, coverage)
 				}

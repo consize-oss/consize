@@ -85,7 +85,14 @@ func TestPrometheusServerIntegration(t *testing.T) {
 		t.Fatalf("real instant query failed: %+v %v", scalar, err)
 	}
 	cfg, _ := resolveMapping(MappingConfig{})
-	queries := scopedMappingQueries(cfg, `cluster="test",namespace="test"`)
+	definitions, err := QueryCatalog(cfg, "test", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	queries := map[string]string{}
+	for _, def := range definitions {
+		queries[def.Signal] = def.Query
+	}
 	queries["inventory"] = mappingInventoryQuery(`cluster="test",namespace="test"`)
 	for signal, query := range queries {
 		if _, err := client.QueryRange(ctx, query, time.Now().Add(-time.Minute), time.Now(), time.Second); err != nil {

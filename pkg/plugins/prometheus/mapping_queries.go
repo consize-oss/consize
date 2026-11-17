@@ -29,77 +29,108 @@ func scopedMappingQueries(c MappingConfig, scope string) map[string]string {
 // Reproduce the existing workload reductions after identity validation. Missing
 // container members suppress that timestamp instead of producing a partial zero.
 func aggregateMapped(signal string, series []Series, c MappingConfig, expected int) []Series {
-	switch signal {
-	case "cpu_cores", "memory_working_set_bytes", "restarts_30m", "cpu_throttling_ratio", "oom_events_30m", "evicted_pods":
-	default:
-		return series
-	}
+	out, _ := reduceMapped(signal, series, c, expected)
+	return out
+}
+func reduceMapped(signal string, series []Series, c MappingConfig, expected int) ([]Series, int) {
 	type bucket struct {
-		pods    map[string]float64
-		counts  map[string]int
-		maximum float64
 		at      time.Time
+		members map[string]map[string]float64
+		invalid bool
 	}
-	points := map[int64]*bucket{}
+	points := map[string]*bucket{}
 	for _, s := range series {
 		for _, p := range s.Points {
-			if math.IsNaN(p.Value) || math.IsInf(p.Value, 0) || p.Value < 0 {
-				continue
-			}
-			if signal == "cpu_throttling_ratio" && (p.Value < 0 || p.Value > 1) {
-				continue
-			}
-			key := p.Timestamp.UnixNano()
+			key := p.Timestamp.UTC().Format(time.RFC3339Nano)
 			b := points[key]
 			if b == nil {
-				b = &bucket{pods: map[string]float64{}, counts: map[string]int{}, at: p.Timestamp}
+				b = &bucket{at: p.Timestamp, members: map[string]map[string]float64{}}
 				points[key] = b
 			}
-			pod := s.Metric[c.Pod]
-			b.pods[pod] += p.Value
-			b.counts[pod]++
-			if len(b.counts) == 1 && b.counts[pod] == 1 || p.Value > b.maximum {
-				b.maximum = p.Value
+			pod := s.Metric[c.Pod] + "\x00" + s.Metric[c.PodUID]
+			if b.members[pod] == nil {
+				b.members[pod] = map[string]float64{}
 			}
+			if !validMeasurement(signal, p.Value) {
+				b.invalid = true
+				continue
+			}
+			member := s.Metric[c.Container]
+			if signal == "evicted_pods" {
+				member = "pod"
+			}
+			if _, duplicate := b.members[pod][member]; duplicate {
+				b.invalid = true
+			}
+			b.members[pod][member] = p.Value
 		}
 	}
+	discarded := 0
 	out := Series{Metric: map[string]string{}, Points: []Point{}}
 	for _, b := range points {
-		complete := true
-		if signal != "evicted_pods" {
-			for _, n := range b.counts {
-				if n != expected {
-					complete = false
-				}
-			}
-		}
-		if !complete {
+		if b.invalid {
+			discarded++
 			continue
 		}
-		var value float64
-		switch signal {
-		case "cpu_cores", "memory_working_set_bytes":
-			for _, v := range b.pods {
-				if v > value {
-					value = v
+		pods := []string{}
+		for pod := range b.members {
+			pods = append(pods, pod)
+		}
+		sort.Strings(pods)
+		value := 0.
+		podCorrection := 0.
+		complete := true
+		for _, pod := range pods {
+			members := b.members[pod]
+			required := expected
+			if signal == "evicted_pods" {
+				required = 1
+			}
+			if len(members) != required {
+				complete = false
+				break
+			}
+			names := []string{}
+			for name := range members {
+				names = append(names, name)
+			}
+			sort.Strings(names)
+			total := 0.
+			correction := 0.
+			for _, name := range names {
+				n := members[name]
+				increment := n - correction
+				next := total + increment
+				correction = (next - total) - increment
+				total = next
+				if signal == "cpu_throttling_ratio" && n > value {
+					value = n
 				}
 			}
-		case "cpu_throttling_ratio":
-			value = b.maximum
-		default:
-			for _, v := range b.pods {
-				value += v
+			switch signal {
+			case "cpu_throttling_ratio":
+			case "restarts_30m", "oom_events_30m", "evicted_pods":
+				increment := total - podCorrection
+				next := value + increment
+				podCorrection = (next - value) - increment
+				value = next
+			default:
+				if total > value {
+					value = total
+				}
 			}
 		}
-		if !math.IsNaN(value) && !math.IsInf(value, 0) {
+		if complete && !math.IsNaN(value) && !math.IsInf(value, 0) {
 			out.Points = append(out.Points, Point{Timestamp: b.at, Value: value})
+		} else {
+			discarded++
 		}
 	}
 	sort.Slice(out.Points, func(i, j int) bool { return out.Points[i].Timestamp.Before(out.Points[j].Timestamp) })
 	if len(out.Points) == 0 {
-		return nil
+		return nil, discarded
 	}
-	return []Series{out}
+	return []Series{out}, discarded
 }
 
 func mappingInventoryQuery(scope string) string {
