@@ -143,6 +143,59 @@ paths:
         '401': {$ref: '#/components/responses/ErrorResponse'}
         '403': {$ref: '#/components/responses/ErrorResponse'}
         '502': {$ref: '#/components/responses/ErrorResponse'}
+  /api/evidence/collections:
+    get:
+      tags: [Product]
+      operationId: getEvidenceCollections
+      summary: Inspect durable evidence collections
+      description: Requires operator authorization. Supply id for one operation or resource_id for the latest 100 operations. Without filters returns the latest 100 globally. Responses contain captured scope, attempt history, safe error codes and retained evidence; pruned operations keep their identity and status.
+      parameters:
+        - {name: id, in: query, description: Operation ID; mutually exclusive with resource_id., schema: {type: string, maxLength: 512}}
+        - {name: resource_id, in: query, description: Filter recent operations by registered resource., schema: {type: string, maxLength: 512}}
+      responses:
+        '200':
+          description: One operation when id is supplied; otherwise a bounded list.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/EvidenceCollection'}
+                  - {type: array, maxItems: 100, items: {$ref: '#/components/schemas/EvidenceCollection'}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
+    post:
+      tags: [Product]
+      operationId: collectEvidence
+      summary: Queue a durable evidence collection
+      description: Requires operator authorization. Queues reads through the configured provider without invoking it in the request. The authenticated actor is captured. Omit evaluation_at to use the current interval boundary; identical resource, provider configuration, signal set and window deduplicate. Overlapping pending windows return 409. Providers, queries, credentials and attempt budgets cannot be overridden by callers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [resource_id]
+              properties:
+                resource_id: {type: string, minLength: 1, maxLength: 512}
+                evaluation_at: {type: string, format: date-time, description: Past or present millisecond-aligned evaluation time.}
+      responses:
+        '202':
+          description: Durable operation, possibly an already completed equivalent operation.
+          headers: {X-Request-ID: {$ref: '#/components/headers/RequestId'}}
+          content: {application/json: {schema: {$ref: '#/components/schemas/EvidenceCollection'}}}
+        '400': {$ref: '#/components/responses/ErrorResponse'}
+        '401': {$ref: '#/components/responses/ErrorResponse'}
+        '403': {$ref: '#/components/responses/ErrorResponse'}
+        '404': {$ref: '#/components/responses/ErrorResponse'}
+        '405': {$ref: '#/components/responses/ErrorResponse'}
+        '409': {$ref: '#/components/responses/ErrorResponse'}
+        '503': {$ref: '#/components/responses/ErrorResponse'}
   /api/evidence/quality:
     get:
       tags: [Product]
@@ -1146,3 +1199,39 @@ components:
         plugin_id: {type: string}
         count: {type: integer}
         resources: {type: array, items: {$ref: '#/components/schemas/Resource'}}
+
+    EvidenceCollectionAttempt:
+      type: object
+      required: [number, started_at]
+      properties:
+        number: {type: integer, minimum: 1, maximum: 10}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        outcome: {type: string}
+    EvidenceCollection:
+      type: object
+      required: [id, resource, plugin_id, instance_digest, signals, window_start, window_end, actor, trigger, state, attempts, max_attempts, fence, next_run, created_at, updated_at, history, pruned]
+      properties:
+        id: {type: string}
+        resource: {$ref: '#/components/schemas/Resource'}
+        plugin_id: {type: string}
+        instance_digest: {type: string}
+        signals: {type: array, maxItems: 256, items: {type: string}}
+        window_start: {type: string, format: date-time}
+        window_end: {type: string, format: date-time}
+        actor: {type: string}
+        trigger: {type: string, enum: [manual, scheduled]}
+        state: {type: string, enum: [pending, running, retry_wait, succeeded, degraded, failed]}
+        attempts: {type: integer, minimum: 0, maximum: 10}
+        max_attempts: {type: integer, minimum: 1, maximum: 10}
+        lease: {$ref: '#/components/schemas/JobLease'}
+        fence: {type: integer, minimum: 0}
+        next_run: {type: string, format: date-time}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        finished_at: {type: string, format: date-time}
+        error_code: {type: string}
+        history: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/EvidenceCollectionAttempt'}}
+        snapshot: {$ref: '#/components/schemas/MetricsSnapshot'}
+        assessment: {$ref: '#/components/schemas/EvidenceQualityAssessment'}
+        pruned: {type: boolean}

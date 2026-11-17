@@ -17,6 +17,7 @@ import (
 var ErrNotFound = resource.ErrNotFound
 
 type Memory struct {
+	collections             map[string]Collection
 	path                    string
 	lockFile                *os.File
 	poison                  error
@@ -42,6 +43,7 @@ type Memory struct {
 func NewMemory() *Memory {
 	return &Memory{
 		jobs:                    map[int64]Job{},
+		collections:             map[string]Collection{},
 		now:                     time.Now,
 		resources:               map[string]resource.Resource{},
 		recs:                    map[int64]Recommendation{},
@@ -71,7 +73,7 @@ func (m *Memory) StorageDiagnostics(context.Context) StorageDiagnostics {
 		out.Error = m.poison.Error()
 	}
 	out.EntityCounts = map[string]int{
-		"resources": len(m.resources), "recommendations": len(m.recs), "actions": len(m.actionRecords),
+		"collections": len(m.collections), "resources": len(m.resources), "recommendations": len(m.recs), "actions": len(m.actionRecords),
 		"action_events": len(m.actions), "audit_events": len(m.auditEvents), "jobs": len(m.jobs),
 	}
 	return out

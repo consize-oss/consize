@@ -15,6 +15,7 @@ import (
 )
 
 type Config struct {
+	Collection      CollectionConfig             `json:"collection,omitempty"`
 	Worker          WorkerConfig                 `json:"worker,omitempty"`
 	ExternalPlugins []marketplace.ExternalConfig `json:"external_plugins,omitempty"`
 	AllowedOrigins  []string                     `json:"allowed_origins"`
@@ -195,4 +196,16 @@ func parseOptionalDuration(raw string) (time.Duration, error) {
 		return 0, nil
 	}
 	return time.ParseDuration(raw)
+}
+
+type CollectionConfig struct {
+	Enabled        bool   `json:"enabled"`
+	PluginID       string `json:"plugin_id,omitempty"`
+	Interval       string `json:"interval,omitempty"`
+	Window         string `json:"window,omitempty"`
+	PollInterval   string `json:"poll_interval,omitempty"`
+	Timeout        string `json:"timeout,omitempty"`
+	Retention      string `json:"retention,omitempty"`
+	MaxAttempts    int    `json:"max_attempts,omitempty"`
+	MaxJobsPerTick int    `json:"max_jobs_per_tick,omitempty"`
 }

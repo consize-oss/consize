@@ -132,12 +132,12 @@ func (p *Postgres) StorageDiagnostics(ctx context.Context) StorageDiagnostics {
 	if !out.Healthy {
 		out.Error = "database health check failed"
 	}
-	var resources, recommendations, actions, actionEvents, auditEvents, jobs int
+	var resources, recommendations, actions, actionEvents, auditEvents, jobs, collections int
 	if err := p.pool.QueryRow(ctx, `SELECT
         (SELECT count(*) FROM resources), (SELECT count(*) FROM recommendations),
 		(SELECT count(*) FROM actions), (SELECT count(*) FROM action_events),
-		(SELECT count(*) FROM audit_events), (SELECT count(*) FROM jobs)`).Scan(&resources, &recommendations, &actions, &actionEvents, &auditEvents, &jobs); err == nil {
-		out.EntityCounts = map[string]int{"resources": resources, "recommendations": recommendations, "actions": actions, "action_events": actionEvents, "audit_events": auditEvents, "jobs": jobs}
+		(SELECT count(*) FROM audit_events), (SELECT count(*) FROM jobs), (SELECT count(*) FROM evidence_collections)`).Scan(&resources, &recommendations, &actions, &actionEvents, &auditEvents, &jobs, &collections); err == nil {
+		out.EntityCounts = map[string]int{"collections": collections, "resources": resources, "recommendations": recommendations, "actions": actions, "action_events": actionEvents, "audit_events": auditEvents, "jobs": jobs}
 	}
 	return out
 }

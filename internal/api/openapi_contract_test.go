@@ -33,7 +33,7 @@ func TestOpenAPITracksImplementedRoutes(t *testing.T) {
 	want := []string{
 		"GET /api/action-records", "GET /api/actions", "GET /api/audit", "GET /api/audit/export",
 		"GET /api/audit/health", "GET /api/audit/integrity", "GET /api/dashboard", "GET /api/health", "GET /api/jobs",
-		"GET /api/evidence/quality", "GET /api/plugins", "GET /api/resources", "GET /api/resources/inventory", "POST /api/discovery",
+		"GET /api/evidence/collections", "POST /api/evidence/collections", "GET /api/evidence/quality", "GET /api/plugins", "GET /api/resources", "GET /api/resources/inventory", "POST /api/discovery",
 		"POST /api/recommendations/generate", "POST /api/recommendations/{recommendation_id}/execute",
 		"POST /api/recommendations/{recommendation_id}/plan", "POST /api/recommendations/{recommendation_id}/recover",
 		"POST /api/resources", "POST /api/recommendations/{recommendation_id}/cancel",

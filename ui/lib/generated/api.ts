@@ -108,6 +108,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/evidence/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inspect durable evidence collections
+         * @description Requires operator authorization. Supply id for one operation or resource_id for the latest 100 operations. Without filters returns the latest 100 globally. Responses contain captured scope, attempt history, safe error codes and retained evidence; pruned operations keep their identity and status.
+         */
+        get: operations["getEvidenceCollections"];
+        put?: never;
+        /**
+         * Queue a durable evidence collection
+         * @description Requires operator authorization. Queues reads through the configured provider without invoking it in the request. The authenticated actor is captured. Omit evaluation_at to use the current interval boundary; identical resource, provider configuration, signal set and window deduplicate. Overlapping pending windows return 409. Providers, queries, credentials and attempt budgets cannot be overridden by callers.
+         */
+        post: operations["collectEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/evidence/quality": {
         parameters: {
             query?: never;
@@ -1104,6 +1128,47 @@ export interface components {
             count: number;
             resources: components["schemas"]["Resource"][];
         };
+        EvidenceCollectionAttempt: {
+            number: number;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            finished_at?: string;
+            outcome?: string;
+        };
+        EvidenceCollection: {
+            id: string;
+            resource: components["schemas"]["Resource"];
+            plugin_id: string;
+            instance_digest: string;
+            signals: string[];
+            /** Format: date-time */
+            window_start: string;
+            /** Format: date-time */
+            window_end: string;
+            actor: string;
+            /** @enum {string} */
+            trigger: "manual" | "scheduled";
+            /** @enum {string} */
+            state: "pending" | "running" | "retry_wait" | "succeeded" | "degraded" | "failed";
+            attempts: number;
+            max_attempts: number;
+            lease?: components["schemas"]["JobLease"];
+            fence: number;
+            /** Format: date-time */
+            next_run: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: date-time */
+            finished_at?: string;
+            error_code?: string;
+            history: components["schemas"]["EvidenceCollectionAttempt"][];
+            snapshot?: components["schemas"]["MetricsSnapshot"];
+            assessment?: components["schemas"]["EvidenceQualityAssessment"];
+            pruned: boolean;
+        };
     };
     responses: {
         /** @description The request could not be completed. */
@@ -1439,6 +1504,77 @@ export interface operations {
             401: components["responses"]["ErrorResponse"];
             403: components["responses"]["ErrorResponse"];
             502: components["responses"]["ErrorResponse"];
+        };
+    };
+    getEvidenceCollections: {
+        parameters: {
+            query?: {
+                /** @description Operation ID; mutually exclusive with resource_id. */
+                id?: string;
+                /** @description Filter recent operations by registered resource. */
+                resource_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One operation when id is supplied; otherwise a bounded list. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceCollection"] | components["schemas"]["EvidenceCollection"][];
+                };
+            };
+            400: components["responses"]["ErrorResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            405: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
+        };
+    };
+    collectEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    resource_id: string;
+                    /**
+                     * Format: date-time
+                     * @description Past or present millisecond-aligned evaluation time.
+                     */
+                    evaluation_at?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Durable operation, possibly an already completed equivalent operation. */
+            202: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceCollection"];
+                };
+            };
+            400: components["responses"]["ErrorResponse"];
+            401: components["responses"]["ErrorResponse"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            405: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
+            503: components["responses"]["ErrorResponse"];
         };
     };
     assessEvidenceQuality: {
