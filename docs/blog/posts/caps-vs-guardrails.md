@@ -1,5 +1,6 @@
 ---
 date: 2026-09-30
+image: assets/blog/caps-vs-guardrails.png
 categories:
   - FinOps
   - Engineering
