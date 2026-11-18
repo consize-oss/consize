@@ -20,7 +20,11 @@ func TestRepositoryPolicyAndEmptyRegistry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := ValidateExceptions(policy, registry, fixtureTime, ""); err != nil {
+	checkTime := fixtureTime
+	if len(registry.Exceptions) > 0 {
+		checkTime = time.Now().UTC()
+	}
+	if err := ValidateExceptions(policy, registry, checkTime, ""); err != nil {
 		t.Fatalf("repository exception registry is invalid: %v", err)
 	}
 }
