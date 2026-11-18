@@ -1,5 +1,6 @@
 ---
 date: 2026-10-15
+image: assets/blog/how-to-verify-a-cost-change-was-safe.png
 categories:
   - Guides
 authors:
