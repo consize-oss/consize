@@ -120,9 +120,11 @@ func assertGate(t *testing.T, report securitypolicy.FindingReport, expected stri
 	if err != nil {
 		t.Fatal(err)
 	}
-	registry, err := securitypolicy.LoadExceptions("../../.github/security/exceptions.json")
-	if err != nil {
-		t.Fatal(err)
+	registry := securitypolicy.ExceptionRegistry{
+		Schema:        "./exceptions.schema.json",
+		SchemaVersion: 1,
+		PolicyVersion: policy.PolicyVersion,
+		Exceptions:    []securitypolicy.Exception{},
 	}
 	result, err := securitypolicy.Evaluate(policy, registry, report, options().Now)
 	if err != nil {
