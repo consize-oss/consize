@@ -2,13 +2,11 @@
  
 {% block extrahead %} 
   <meta name="google-site-verification" content="dSiX4RKwInIHQEeTcq5P-Px8LscqIMDnXrh5cfG_zGY" />
-
-  <meta name="description" content="Safely optimize cloud, AI and SaaS resources with automated policies, guardrails, and built-in rollback." />
-
-  <meta property="og:title" content="Consize | Kubernetes, Cloud, AI & SaaS Optimization" />
-  <meta property="og:description" content="Safely optimize cloud, AI and SaaS resources with automated policies, guardrails, and built-in rollback." />
-  <meta property="og:url" content="https://docs.consizehq.com/" />
-  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ page.title }}" />
+  <meta property="og:description" content="{{ page.meta.description | default(config.site_description, true) }}" />
+  <meta property="og:url" content="{{ page.canonical_url }}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="{{ page.meta.image }}" />
 
   <script type="application/ld+json">
   {
