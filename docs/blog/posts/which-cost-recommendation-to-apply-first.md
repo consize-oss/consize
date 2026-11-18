@@ -1,5 +1,6 @@
 ---
 date: 2026-11-18
+image: assets/blog/which-cost-recommendation-to-apply-first.png
 categories:
   - Guides
 authors:
@@ -7,9 +8,8 @@ authors:
 slug: which-cost-recommendation-to-apply-first
 description: >
   A cost tool can tell you what a recommendation might save. It can't tell you
-  how bad a failure would be for your business or whether you could undo it.
-  Four questions for ordering your list, with notes for AWS, Google Cloud, and
-  Azure.
+  how bad a failure would be for your business.
+  Here are four questions for ordering your list.
 ---
 
 # Which Cost Recommendation Should You Apply First?

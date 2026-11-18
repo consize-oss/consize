@@ -1,5 +1,6 @@
 ---
 date: 2026-10-06
+image: assets/blog/what-we-learned-v0-2-0.png
 categories:
   - Announcements
   - Product
