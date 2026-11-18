@@ -1,6 +1,6 @@
 ---
 date: 2026-11-18
-image: ../../assets/blog/which-cost-recommendation-to-apply-first.png
+image: assets/blog/which-cost-recommendation-to-apply-first.png
 categories:
   - Guides
 authors:
