@@ -2,5 +2,356 @@
   "$schema": "./exceptions.schema.json",
   "schema_version": 1,
   "policy_version": "1.0.0",
-  "exceptions": []
+  "exceptions": [
+    {
+      "id": "SEC-EXC-2026-0001",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:@next/eslint-plugin-next",
+      "fingerprint": "327b52640bb8b12ca6e4e5e1b5b578729e45d13a678cd9966526f58d06485b86",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:@next/eslint-plugin-next",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:16.4.4"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0002",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:@typescript-eslint/typescript-estree",
+      "fingerprint": "6a8da2357646c7678f93cfe4e061da0ca0dcdc223513345ad1a533ac550b3629",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:@typescript-eslint/typescript-estree",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:8.68.0"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0003",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:eslint-config-next",
+      "fingerprint": "7801a377d7e46969a7dedec0d7b9631f10e4b0dc13253b885d52d32d2da71b0d",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:eslint-config-next",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:16.4.4"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0004",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:eslint-import-resolver-typescript",
+      "fingerprint": "2005382885b2a01b22e7fb836649bca6c1c6ad418f182c43d93f8de8eff19052",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:eslint-import-resolver-typescript",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:3.10.1"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0005",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:fast-glob",
+      "fingerprint": "cb3270f32149c78ac97782c82b45d724cc7235c7651c65837e4c7c82b33acc2e",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:fast-glob",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:3.3.1"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0006",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:fdir",
+      "fingerprint": "573cca8086a853f686ed861b27dbfa35b61fec3aa95d3243cc00cadba0b7367a",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:fdir",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:6.5.0"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0007",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:micromatch",
+      "fingerprint": "100fa6bee216711558fae9d04a6ea235a58ccb24814905e127545d7ca35bcb72",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:micromatch",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:4.0.8"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0008",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:picomatch",
+      "fingerprint": "9ba2586b86380395a967c3657d19d3e8099eab272b458ab5a984ff05b75ead8d",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:picomatch",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:2.3.2"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0009",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:picomatch",
+      "fingerprint": "45d4147bb4c6d62a8605eb8006737766ab0dd6e91d4342672b2d634dfc288c6b",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:picomatch",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:4.0.7"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    },
+    {
+      "id": "SEC-EXC-2026-0010",
+      "scanner": "npm-audit",
+      "finding_type": "frontend_dependency",
+      "rule_id": "npm-audit:tinyglobby",
+      "fingerprint": "945b7c66f0ed483c51a8f764f9cd4b12404c03f80900aeb49dea6daabfae05ba",
+      "risk_class": "high",
+      "disposition": "risk_acceptance",
+      "scope": {
+        "component": "npm:tinyglobby",
+        "component_type": "dependency",
+        "path": "tools/ci/package-lock.json",
+        "environment": "ci",
+        "context": "pull_request",
+        "affected_version_range": "exact:0.2.17"
+      },
+      "reason": "picomatch (GHSA-fc5q-39xc-vjpf, ReDoS) has no patched release as of 2026-11-18; the latest version, 4.0.7, is affected. This finding comes from that advisory or from a package that depends on picomatch. No upgrade path exists yet.",
+      "compensating_controls": [
+        "The package is used only by CI lint tooling in tools/ci and is not shipped in any product artifact.",
+        "Only developer-controlled glob patterns are evaluated; untrusted input is never passed to picomatch."
+      ],
+      "ownership": {
+        "owner": "github:Ujusophy",
+        "requested_by": "github:Ujusophy",
+        "approved_by": "github:TheInvincibleRalph",
+        "approver_role": "repository_owner"
+      },
+      "timeline": {
+        "approved_at": "2026-11-18T00:00:00Z",
+        "expires_at": "2026-12-17T00:00:00Z",
+        "last_reviewed_at": "2026-11-18T00:00:00Z",
+        "next_review_at": "2026-11-25T00:00:00Z"
+      },
+      "remediation_issue": "https://github.com/consize-oss/consize/issues/110"
+    }
+  ]
 }
