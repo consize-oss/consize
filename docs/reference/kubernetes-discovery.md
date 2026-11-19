@@ -206,8 +206,19 @@ This is a test control plane, not a deployable Consize image or release asset.
 The live test requires explicit isolated-target configuration and fixture opt-in;
 it refuses non-loopback targets and does not use your current context. Missing CI
 prerequisites fail the check. Workstation runs without them skip this live stage;
-a skipped stage is not live-cluster validation. The older mutation/rollback tests
-retain their independent opt-ins and are not invoked by this discovery test.
+a skipped stage is not live-cluster validation.
+
+Contributors can run the complete end-to-end qualification suite against an isolated
+Kind cluster using the single documented command:
+
+```bash
+scripts/test/discovery.sh
+```
+
+See the [Kubernetes Discovery Qualification Guide](../guides/kubernetes-discovery-qualification.md)
+for setup instructions, expected output structure, failure diagnostics, and troubleshooting.
+The older mutation/rollback tests retain their independent opt-ins and are not invoked
+by this discovery test.
 
 References: Kubernetes [API list/pagination semantics](https://kubernetes.io/docs/reference/using-api/api-concepts/),
 [label selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/),
