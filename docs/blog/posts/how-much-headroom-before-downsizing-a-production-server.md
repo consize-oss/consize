@@ -1,5 +1,5 @@
 ---
-date: 2026-11-17
+date: 2026-11-26
 image: assets/blog/how-much-headroom-before-downsizing-a-production-server.png
 categories:
   - Guides
