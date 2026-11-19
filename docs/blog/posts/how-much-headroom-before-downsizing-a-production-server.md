@@ -1,6 +1,6 @@
 ---
 date: 2026-11-17
-image: assets/blog/
+image: assets/blog/how-much-headroom-before-downsizing-a-production-server.png
 categories:
   - Guides
 authors:
@@ -13,6 +13,10 @@ description: >
 
 # How Much Headroom Do You Need Before Downsizing a Production Server?
 
+![Consize downsizing tips](../../assets/blog/how-much-headroom-before-downsizing-a-production-server.png)
+
+<!-- more -->
+
 Someone on an AWS forum asked whether they could shrink their database server
 again. They had already cut its memory (RAM) from 16 GB to 8 GB. The server still
 showed 5 GB of memory free and its CPU use was low, so they wondered whether
@@ -23,8 +27,6 @@ It's a fair question, but the numbers they were looking at don't answer it. A si
 step cuts capacity in half, and free memory doesn't tell you how much room a
 database has to spare. This article covers what to check instead and how to decide
 when to stop.
-
-<!-- more -->
 
 One step down means half the capacity. Instance sizes usually
 [double or halve](https://justingarrison.com/blog/2023-02-23-ec2-names-explained)
