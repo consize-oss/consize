@@ -1,9 +1,10 @@
 ---
 date: 2026-11-17
+image: assets/blog/
 categories:
   - Guides
 authors:
-  - consize-team
+  - Ujunwa Njoku
 slug: how-much-headroom-before-downsizing-a-production-server
 description: >
   Free memory after a downsize doesn't tell you whether you can cut again. Here
@@ -96,16 +97,10 @@ whether their peak connections fit under the new limit, and whether doubling the
 peak CPU again still stays under their limit.
 
 To judge each step afterward, see
-[How to Verify a Cost Change Was Safe](how-to-verify-a-cost-change-was-safe.md). If
+[How to Verify a Cost Change Was Safe](https://docs.consizehq.com/blog/how-to-verify-a-cost-change-was-safe/). If
 you're deciding what to change first, see
-[Which Cost Recommendation Should You Apply First?](which-cost-recommendation-to-apply-first.md)
+[Which Cost Recommendation Should You Apply First?](https://docs.consizehq.com/blog/which-cost-recommendation-to-apply-first/)
 
 We're building Consize, an open-source tool that applies cost changes in small steps
 and verifies each one. It isn't launched yet, but you can follow the project on
 [GitHub](https://github.com/consize-oss/consize).
-
-The metric and setting names come from Amazon RDS, because that's where most of the
-questions we found were asked. Other providers name things differently, so check
-yours. The point about sizes doubling comes from a personal blog, and the forum post
-is one person's question, not data on how common the problem is. This doesn't cover
-moving to burstable instance types, which have their own CPU credit rules.
