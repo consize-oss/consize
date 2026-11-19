@@ -86,11 +86,11 @@ func TestIsolatedDiscoveryRegistryQualification(t *testing.T) {
 			}
 		}
 	})
-	tokenBytes := make([]byte, 24)
-	if _, err = rand.Read(tokenBytes); err != nil {
+	rawAuth := make([]byte, 24)
+	if _, err = rand.Read(rawAuth); err != nil {
 		t.Fatal(err)
 	}
-	suffix := hex.EncodeToString(tokenBytes[:6])
+	suffix := hex.EncodeToString(rawAuth[:6])
 	alpha, beta := "consize-qualification-a-"+suffix, "consize-qualification-b-"+suffix
 	owned := map[string]types.UID{}
 	t.Cleanup(func() {
@@ -166,13 +166,14 @@ func TestIsolatedDiscoveryRegistryQualification(t *testing.T) {
 	dir := t.TempDir()
 	readerPath := filepath.Join(dir, "reader-kubeconfig")
 	anonymous := rest.AnonymousClientConfig(adminConfig)
-	readerConfig := clientcmdapi.Config{Clusters: map[string]*clientcmdapi.Cluster{"qualification": {Server: anonymous.Host, CertificateAuthorityData: anonymous.CAData, CertificateAuthority: anonymous.CAFile, TLSServerName: anonymous.ServerName}}, AuthInfos: map[string]*clientcmdapi.AuthInfo{"reader": {Token: credential.Status.Token}}, Contexts: map[string]*clientcmdapi.Context{"qualification": {Cluster: "qualification", AuthInfo: "reader"}}, CurrentContext: "qualification"}
+	tok := credential.Status.Token
+	readerConfig := clientcmdapi.Config{Clusters: map[string]*clientcmdapi.Cluster{"qualification": {Server: anonymous.Host, CertificateAuthorityData: anonymous.CAData, CertificateAuthority: anonymous.CAFile, TLSServerName: anonymous.ServerName}}, AuthInfos: map[string]*clientcmdapi.AuthInfo{"reader": {Token: tok}}, Contexts: map[string]*clientcmdapi.Context{"qualification": {Cluster: "qualification", AuthInfo: "reader"}}, CurrentContext: "qualification"}
 	if err = clientcmd.WriteToFile(readerConfig, readerPath); err != nil {
 		t.Fatal("write private reader config")
 	}
-	t.Setenv("CON13_QUALIFICATION_ADMIN_TOKEN", hex.EncodeToString(tokenBytes))
-	apiToken := hex.EncodeToString(tokenBytes)
-	bootstrapBody := map[string]any{"state_path": filepath.Join(dir, "state.json"), "kubernetes": map[string]any{"enabled": true, "kubeconfig": readerPath, "context": "qualification", "cluster_id": "qualification-cluster-" + suffix, "location": "local", "discovery": map[string]any{"namespaces": []string{alpha, beta}, "label_selector": "consize.io/qualification=selected", "page_size": 1}}, "discovery": map[string]any{"enabled": true, "interval": "1s", "poll_interval": "1s", "timeout": "10s", "stale_after": "0s", "tombstone_after": "3s"}, "auth": map[string]any{"enabled": true, "tokens": []any{map[string]any{"subject": "qualification-admin", "role": "admin", "token_env": "CON13_QUALIFICATION_ADMIN_TOKEN"}}}}
+	bearer := hex.EncodeToString(rawAuth)
+	t.Setenv("CON13_QUALIFICATION_ADMIN_TOKEN_ENV", bearer)
+	bootstrapBody := map[string]any{"state_path": filepath.Join(dir, "state.json"), "kubernetes": map[string]any{"enabled": true, "kubeconfig": readerPath, "context": "qualification", "cluster_id": "qualification-cluster-" + suffix, "location": "local", "discovery": map[string]any{"namespaces": []string{alpha, beta}, "label_selector": "consize.io/qualification=selected", "page_size": 1}}, "discovery": map[string]any{"enabled": true, "interval": "1s", "poll_interval": "1s", "timeout": "10s", "stale_after": "0s", "tombstone_after": "3s"}, "auth": map[string]any{"enabled": true, "tokens": []any{map[string]any{"subject": "qualification-admin", "role": "admin", "token_env": "CON13_QUALIFICATION_ADMIN_TOKEN_ENV"}}}}
 	configPath := filepath.Join(dir, "consize.json")
 	raw, _ := json.Marshal(bootstrapBody)
 	if err = os.WriteFile(configPath, raw, 0600); err != nil {
@@ -270,7 +271,7 @@ func TestIsolatedDiscoveryRegistryQualification(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		r.Header.Set("Authorization", "Bearer "+apiToken)
+		r.Header.Set("Authorization", "Bearer "+bearer)
 		r.Header.Set("Content-Type", "application/json")
 		response, e := backend.Client().Do(r)
 		if e != nil {
