@@ -102,9 +102,9 @@ connections fit under the new limit, and whether doubling your peak CPU again st
 stays under your limit.
 
 To judge each step afterward, see
-[How to Verify a Cost Change Was Safe](how-to-verify-a-cost-change-was-safe.md). If
+[How to Verify a Cost Change Was Safe](https://docs.consizehq.com/blog/how-to-verify-a-cost-change-was-safe/). If
 you're deciding what to change first, see
-[Which Cost Recommendation Should You Apply First?](which-cost-recommendation-to-apply-first.md)
+[Which Cost Recommendation Should You Apply First?](https://docs.consizehq.com/blog/which-cost-recommendation-to-apply-first/)
 
 We're building Consize, an open-source tool that applies cost changes in small steps
 and verifies each one. It isn't launched yet, but you can follow the project on
