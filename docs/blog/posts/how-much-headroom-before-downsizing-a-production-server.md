@@ -3,6 +3,7 @@ date: 2026-11-23
 image: assets/blog/how-much-headroom-before-downsizing-a-production-server.png
 categories:
   - Guides
+  - Engineering
 authors:
   - Ujunwa Njoku
 slug: how-much-headroom-before-downsizing-a-production-server
