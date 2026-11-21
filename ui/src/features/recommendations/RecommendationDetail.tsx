@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { WorkflowActions } from "./WorkflowActions";
 import { AlertTriangle } from "lucide-react";
 import { ApiError } from "@/lib/api-client";
 import { formatMoney, titleCase } from "@/lib/format";
@@ -117,7 +118,7 @@ export function RecommendationDetail({ id }: { id: string }) {
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-semibold tracking-tight text-fg">{rec.title}</h1>
-          <Pill tone={statusTone(rec.status)}>{titleCase(rec.status)}</Pill>
+          <Pill tone={statusTone(rec.status)}>{titleCase(rec.workflow_state ?? rec.status)}</Pill>
         </div>
         <p className="text-sm text-fg-muted">
           {rec.resource.name} · {rec.resource.provider} · {rec.resource.environment}
@@ -156,6 +157,15 @@ export function RecommendationDetail({ id }: { id: string }) {
             key={t.key}
             role="tab"
             id={`tab-${t.key}`}
+            tabIndex={tab === t.key ? 0 : -1}
+            onKeyDown={event => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const index = TABS.findIndex(item => item.key === tab);
+              const next = event.key === "Home" ? 0 : event.key === "End" ? TABS.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
+              setTab(TABS[next].key);
+              document.getElementById(`tab-${TABS[next].key}`)?.focus();
+            }}
             aria-selected={tab === t.key}
             aria-controls={`panel-${t.key}`}
             onClick={() => setTab(t.key)}
@@ -171,7 +181,7 @@ export function RecommendationDetail({ id }: { id: string }) {
       </div>
 
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
-        {tab === "overview" && <OverviewTab rec={rec} savings={savings} superseded={superseded} />}
+        {tab === "overview" && <OverviewTab rec={rec} savings={savings} />}
         {tab === "evidence" && <EvidenceTab evidence={rec.evidence} />}
         {tab === "policy" && <PolicyTab rec={rec} />}
         {tab === "audit" && <AuditTab rec={rec} />}
@@ -192,11 +202,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function OverviewTab({
   rec,
   savings,
-  superseded,
 }: {
   rec: Detail;
   savings: { display: string; basisLabel: string };
-  superseded: boolean;
 }) {
   const keys = Array.from(new Set([...Object.keys(rec.current), ...Object.keys(rec.proposed)]));
   const coverage = Math.round(rec.confidence_assessment.coverage_ratio * 100);
@@ -288,30 +296,8 @@ function OverviewTab({
           )}
         </Section>
 
-        <Section title="Available actions">
-          <div className="flex flex-col gap-2">
-            {rec.available_remediations.map((r) => {
-              const reason = superseded ? "superseded" : r.disabled_reason;
-              const blocked = !r.enabled || superseded;
-              return (
-                <div key={r.method}>
-                  {/* Nothing here mutates yet, so even "enabled" actions
-                      render disabled with a visible reason. Green stays
-                      reserved for buttons that really do something. */}
-                  <button
-                    disabled
-                    className="w-full h-9 px-3 rounded-lg border border-app-border bg-app-surface-alt text-left text-xs font-medium text-fg-secondary disabled:cursor-not-allowed"
-                  >
-                    {r.label}
-                  </button>
-                  <p className="text-[11px] text-fg-muted mt-1">
-                    {blocked && reason ? `Unavailable: ${titleCase(reason)}` : "Available once execution is wired"}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
+        <WorkflowActions id={rec.id} eligible={rec.status === "pending_approval" || rec.status === "actionable"} />
+
       </div>
     </div>
   );

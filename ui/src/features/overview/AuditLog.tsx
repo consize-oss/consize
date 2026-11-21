@@ -15,6 +15,7 @@ const TONE: Record<Tone, { tile: string; text: string }> = {
 };
 
 const OUTCOME: Record<AuditEvent["outcome"], { icon: LucideIcon; tone: Tone }> = {
+  pending: { icon: Clock, tone: "info" },
   applied: { icon: Check, tone: "ok" },
   verified: { icon: CheckCheck, tone: "ok" },
   verifying: { icon: Clock, tone: "info" },
