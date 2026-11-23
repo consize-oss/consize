@@ -13,7 +13,6 @@ import (
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/store"
 	"github.com/consize-oss/consize/pkg/plugin"
-	"github.com/consize-oss/consize/pkg/plugins/kubernetes"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
@@ -200,6 +199,11 @@ func (s *Scheduler) read(ctx context.Context, job store.DiscoveryRun) store.Disc
 	if key != job.ScopeKey {
 		return fail("scope_changed")
 	}
+	identity := plugin.InvocationFrom(ctx)
+	identity.OperationID = job.ID
+	identity.WorkflowID = job.ID
+	identity.Actor = job.Actor
+	ctx = plugin.WithInvocation(ctx, identity)
 	callCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 	snapshot, err := p.DiscoverSnapshot(callCtx)
@@ -211,8 +215,9 @@ func (s *Scheduler) read(ctx context.Context, job store.DiscoveryRun) store.Disc
 			if delay > 5*time.Minute {
 				delay = 5 * time.Minute
 			}
-			var access *kubernetes.ScanError
-			if errors.As(err, &access) && access.RetryAfterSeconds > 0 {
+			var providerFailure plugin.ProviderFailure
+			if errors.As(err, &providerFailure) && providerFailure.ProviderFailure().RetryAfterSeconds > 0 {
+				access := plugin.SafeFailureDetails(providerFailure.ProviderFailure())
 				hint := time.Duration(access.RetryAfterSeconds) * time.Second
 				if access.RetryAfterSeconds > 300 {
 					hint = 5 * time.Minute
@@ -243,8 +248,13 @@ func (s *Scheduler) read(ctx context.Context, job store.DiscoveryRun) store.Disc
 	return store.DiscoveryCompletion{Scan: &snapshot.Scan, Resources: normalized}
 }
 func classifyDiscoveryError(err error) (string, bool) {
-	var scan *kubernetes.ScanError
-	if errors.As(err, &scan) {
+	var runtimeFailure *plugin.RuntimeError
+	if errors.As(err, &runtimeFailure) && runtimeFailure.Code == plugin.FailureInternal {
+		return "provider_failure", false
+	}
+	var providerFailure plugin.ProviderFailure
+	if errors.As(err, &providerFailure) {
+		scan := plugin.SafeFailureDetails(providerFailure.ProviderFailure())
 		switch scan.Code {
 		case "unauthorized":
 			return "authentication", false
@@ -253,7 +263,7 @@ func classifyDiscoveryError(err error) (string, bool) {
 		case "configuration", "unsupported_client":
 			return "configuration", false
 		case "tls", "network", "timeout", "rate_limited", "server":
-			return scan.Code, kubernetes.ScanRetryable(scan.Code)
+			return scan.Code, scan.Retryable
 		case "request", "redirect_blocked":
 			return "request", false
 		case "canceled":

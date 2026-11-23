@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -37,7 +38,7 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, args []string) error {
+func run(ctx context.Context, args []string) (resultErr error) {
 	if len(args) == 0 {
 		return usage()
 	}
@@ -54,7 +55,7 @@ func run(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
-		defer st.Close()
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		results, err := discovery.NewWithConfig(st, plugins, cfg.Discovery).Run(ctx)
 		if err != nil {
 			return err
@@ -70,7 +71,7 @@ func run(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
-		defer st.Close()
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		if !st.Durable() {
 			return fmt.Errorf("worker requires database_url or state_path")
 		}
@@ -104,10 +105,11 @@ func run(ctx context.Context, args []string) error {
 		if err := fs.Parse(args[1:]); err != nil {
 			return err
 		}
-		_, plugins, _, _, err := foundation(ctx, *configPath)
+		st, plugins, _, _, err := foundation(ctx, *configPath)
 		if err != nil {
 			return err
 		}
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		return printJSON(plugins.Manifests())
 	case "health":
 		fs := flag.NewFlagSet("health", flag.ExitOnError)
@@ -115,10 +117,11 @@ func run(ctx context.Context, args []string) error {
 		if err := fs.Parse(args[1:]); err != nil {
 			return err
 		}
-		_, plugins, _, _, err := foundation(ctx, *configPath)
+		st, plugins, _, _, err := foundation(ctx, *configPath)
 		if err != nil {
 			return err
 		}
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		out := map[string]plugin.Health{}
 		for _, manifest := range plugins.Manifests() {
 			health, err := plugins.Health(ctx, manifest.ID)
@@ -143,10 +146,11 @@ func run(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
-		_, plugins, _, _, err := foundation(ctx, *configPath)
+		st, plugins, _, _, err := foundation(ctx, *configPath)
 		if err != nil {
 			return err
 		}
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		p, err := plugins.MetricsPlugin(*pluginID, res.Type)
 		if err != nil {
 			return err
@@ -168,10 +172,11 @@ func run(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
-		_, plugins, _, cfg, err := foundation(ctx, *configPath)
+		st, plugins, _, cfg, err := foundation(ctx, *configPath)
 		if err != nil {
 			return err
 		}
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		metricsPluginID := *pluginID
 		if metricsPluginID == "" {
 			metricsPluginID = cfg.Recommender.MetricsPluginID
@@ -190,7 +195,7 @@ func run(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
-		recs, err := recommender.New(cfg.Recommender).Recommend(ctx, recommender.Input{
+		recs, err := recommender.Generate(ctx, plugins, cfg.Recommender.AlgorithmPluginID, recommender.Input{
 			Resource: res,
 			Evidence: []plugin.MetricsSnapshot{
 				snapshot,
@@ -225,6 +230,7 @@ func run(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
+		defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 		res, err := config.LoadResource(*resourcePath)
 		if err != nil {
 			return err
@@ -307,8 +313,16 @@ func foundation(ctx context.Context, path string) (store.RuntimeStore, *plugin.M
 		}
 	}
 	plugins := plugin.NewManager()
+	if err := plugins.SetJournal(ctx, st); err != nil {
+		closeRuntime(st, plugins)
+		return nil, nil, nil, bootstrap.Config{}, err
+	}
 	if err := bootstrap.RegisterConfiguredPlugins(ctx, plugins, cfg); err != nil {
-		st.Close()
+		closeRuntime(st, plugins)
+		return nil, nil, nil, bootstrap.Config{}, err
+	}
+	if err := recommender.Register(plugins, cfg.Recommender); err != nil {
+		closeRuntime(st, plugins)
 		return nil, nil, nil, bootstrap.Config{}, err
 	}
 	return st, plugins, policy.NewEngine(), cfg, nil
@@ -438,7 +452,7 @@ func printJSON(v any) error {
 	return enc.Encode(v)
 }
 
-func runEndToEnd(ctx context.Context, configPath, resourcePath, recommendationPath, mode, actor string) error {
+func runEndToEnd(ctx context.Context, configPath, resourcePath, recommendationPath, mode, actor string) (resultErr error) {
 	if mode != "dry_run" && mode != "approved" {
 		return fmt.Errorf("end-to-end execution requires dry_run or approved mode")
 	}
@@ -446,6 +460,7 @@ func runEndToEnd(ctx context.Context, configPath, resourcePath, recommendationPa
 	if err != nil {
 		return err
 	}
+	defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 	res, err := config.LoadResource(resourcePath)
 	if err != nil {
 		return err
@@ -476,7 +491,7 @@ func runEndToEnd(ctx context.Context, configPath, resourcePath, recommendationPa
 			return err
 		}
 	} else {
-		recs, err := recommender.New(cfg.Recommender).Recommend(ctx, recommender.Input{
+		recs, err := recommender.Generate(ctx, plugins, cfg.Recommender.AlgorithmPluginID, recommender.Input{
 			Resource: res,
 			Evidence: []plugin.MetricsSnapshot{
 				before,
@@ -575,12 +590,12 @@ func initializeHTTPServer(ctx context.Context, st store.RuntimeStore, plugins *p
 	return server, nil
 }
 
-func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendationPath string, demo bool) error {
+func serveHTTP(ctx context.Context, configPath, addr, resourcePath, recommendationPath string, demo bool) (resultErr error) {
 	st, plugins, policies, cfg, err := optionalFoundation(ctx, configPath)
 	if err != nil {
 		return err
 	}
-	defer st.Close()
+	defer func() { resultErr = errors.Join(resultErr, closeRuntime(st, plugins)) }()
 	if err := validateListenAddress(addr, cfg.Auth.Enabled); err != nil {
 		return err
 	}
@@ -692,4 +707,12 @@ func optionalFoundation(ctx context.Context, path string) (store.RuntimeStore, *
 		return foundation(ctx, path)
 	}
 	return store.NewMemory(), plugin.NewManager(), policy.NewEngine(), bootstrap.Config{}, nil
+}
+
+// Stop managed invocations before releasing the runtime journal and state lock.
+func closeRuntime(st store.RuntimeStore, manager *plugin.Manager) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	shutdownErr := manager.Shutdown(ctx)
+	return errors.Join(shutdownErr, st.Close())
 }

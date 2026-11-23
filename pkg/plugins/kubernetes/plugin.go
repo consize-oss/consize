@@ -90,7 +90,7 @@ func NewWithPatcherAndConfig(patcher Patcher, cfg Config) (*Plugin, error) {
 func (p *Plugin) ID() string { return ID }
 
 func (p *Plugin) Manifest() plugin.Manifest {
-	return plugin.Manifest{
+	return plugin.WithBuiltinRuntime(plugin.Manifest{
 		ID:                      ID,
 		DisplayName:             "Kubernetes Action",
 		Version:                 "0.3.0-alpha",
@@ -100,7 +100,7 @@ func (p *Plugin) Manifest() plugin.Manifest {
 		Capabilities:            []string{plugin.CapabilityActionPlan, plugin.CapabilityActionExecute, plugin.CapabilityActionPreflight, plugin.CapabilityResourceDiscover},
 		CanMutateInfrastructure: true,
 		RequiresApproval:        true,
-	}
+	}, "kubernetes")
 }
 
 func (p *Plugin) Health(ctx context.Context) plugin.Health {
@@ -211,4 +211,8 @@ func deploymentIdentity(res resource.Resource) (string, string, error) {
 		return "", "", errors.New("kubernetes deployment resource requires metadata.namespace and metadata.name")
 	}
 	return ns, name, nil
+}
+
+func (p *Plugin) InstanceScope() plugin.ResourceScope {
+	return plugin.ResourceScope{Provider: resource.ProviderKubernetes, Account: p.clusterID, Location: p.location}
 }

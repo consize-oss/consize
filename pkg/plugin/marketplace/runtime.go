@@ -18,14 +18,15 @@ import (
 )
 
 type Request struct {
-	Protocol int                `json:"protocol"`
-	Method   string             `json:"method"`
-	Config   json.RawMessage    `json:"config"`
-	Input    plugin.ActionInput `json:"input"`
-	Plan     plugin.ActionPlan  `json:"plan"`
-	Resource resource.Resource  `json:"resource"`
-	Start    time.Time          `json:"start"`
-	End      time.Time          `json:"end"`
+	Invocation *plugin.InvocationIdentity `json:"invocation,omitempty"`
+	Protocol   int                        `json:"protocol"`
+	Method     string                     `json:"method"`
+	Config     json.RawMessage            `json:"config"`
+	Input      plugin.ActionInput         `json:"input"`
+	Plan       plugin.ActionPlan          `json:"plan"`
+	Resource   resource.Resource          `json:"resource"`
+	Start      time.Time                  `json:"start"`
+	End        time.Time                  `json:"end"`
 }
 type Response struct {
 	Preflight []plugin.PreflightCheck `json:"preflight,omitempty"`
@@ -40,6 +41,7 @@ type ExternalConfig struct {
 }
 
 type remote struct {
+	runtimeMetadata   bool
 	executionEnvelope bool
 	digest            string
 	directory         string
@@ -59,6 +61,7 @@ func Load(cfg ExternalConfig) (*remote, error) {
 	}
 	p := &remote{directory: cfg.Directory, key: key, manifest: r.Manifest, config: cfg.Config, digest: r.SHA256}
 	var handshake struct {
+		RuntimeMetadata   bool            `json:"runtime_metadata"`
 		ExecutionEnvelope bool            `json:"execution_envelope"`
 		Preflight         bool            `json:"preflight"`
 		Manifest          plugin.Manifest `json:"manifest"`
@@ -72,6 +75,7 @@ func Load(cfg ExternalConfig) (*remote, error) {
 		return nil, errors.New("plugin handshake does not match signed contract")
 	}
 	p.executionEnvelope = handshake.ExecutionEnvelope
+	p.runtimeMetadata = handshake.RuntimeMetadata
 	return p, nil
 }
 func Register(manager *plugin.Manager, cfg ExternalConfig) error {
@@ -101,6 +105,13 @@ func (b *limitedBuffer) Write(p []byte) (int, error) {
 // before sending it to an older executable whose decoder rejects unknown fields.
 func (p *remote) prepareRequest(req Request) Request {
 	req.Protocol, req.Config = Protocol, p.config
+	if !p.runtimeMetadata {
+		req.Invocation = nil
+		req.Plan.Runtime = nil
+		req.Plan.ResourceScope = nil
+		req.Resource.Producer = nil
+		req.Input.Resource.Producer = nil
+	}
 	if !p.executionEnvelope {
 		req.Plan.Execution = nil
 	}
@@ -114,6 +125,10 @@ func (p *remote) call(ctx context.Context, req Request, out any) error {
 	}
 	if !reflect.DeepEqual(r.Manifest, p.manifest) || r.SHA256 != p.digest {
 		return errors.New("installed release changed; restart with explicit configuration")
+	}
+	if p.runtimeMetadata {
+		identity := plugin.InvocationFrom(ctx)
+		req.Invocation = &identity
 	}
 	req = p.prepareRequest(req)
 	b, err := json.Marshal(req)
@@ -243,6 +258,9 @@ func ServeOnce(ctx context.Context, in io.Reader, out io.Writer, factory func(js
 		err = errors.New("unsupported protocol")
 	} else {
 		var p plugin.Plugin
+		if req.Invocation != nil {
+			ctx = plugin.WithInvocation(ctx, *req.Invocation)
+		}
 		p, err = factory(req.Config)
 		if err == nil {
 			action, actionOK := p.(plugin.RecoverableActionPlugin)
@@ -251,12 +269,13 @@ func ServeOnce(ctx context.Context, in io.Reader, out io.Writer, factory func(js
 			switch req.Method {
 			case "handshake":
 				result = struct {
+					RuntimeMetadata   bool            `json:"runtime_metadata"`
 					ExecutionEnvelope bool            `json:"execution_envelope"`
 					Preflight         bool            `json:"preflight"`
 					Manifest          plugin.Manifest `json:"manifest"`
 					Recovery          bool            `json:"recovery"`
 					Windowed          bool            `json:"windowed"`
-				}{true, preflightOK, p.Manifest(), actionOK, metricsOK}
+				}{true, true, preflightOK, p.Manifest(), actionOK, metricsOK}
 			case "preflight":
 				if preflightOK {
 					result, err = preflight.Preflight(ctx, req.Plan)

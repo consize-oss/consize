@@ -37,6 +37,11 @@ func digestPlan(plan plugin.ActionPlan) string {
 }
 
 func (c *Controller) runClaimed(parent context.Context, job store.Job) error {
+	identity := plugin.InvocationFrom(parent)
+	identity.OperationID = job.DispatchID
+	identity.WorkflowID = fmt.Sprint(job.ID)
+	identity.Actor = job.Actor
+	parent = plugin.WithInvocation(parent, identity)
 	job.Plan.Execution = &plugin.ExecutionEnvelope{DispatchID: job.DispatchID, PlanDigest: job.PlanDigest, LeaseEpoch: job.Lease.Epoch, LeaseUntil: job.Lease.Until}
 	ctx, cancel := context.WithTimeout(parent, c.stepTimeout)
 	finished := make(chan struct{})

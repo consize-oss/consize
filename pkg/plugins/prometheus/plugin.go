@@ -102,14 +102,15 @@ func NewWithClient(client Client, cfg Config) *Plugin {
 func (p *Plugin) ID() string { return ID }
 
 func (p *Plugin) Manifest() plugin.Manifest {
-	return plugin.Manifest{
+	return plugin.WithBuiltinRuntime(plugin.Manifest{
 		ID:                     ID,
 		DisplayName:            "Prometheus Metrics",
 		Version:                "0.3.0-alpha",
+		DataVersion:            QueryCatalogVersion + "/" + AggregationVersion,
 		Category:               plugin.CategoryMetrics,
 		SupportedResourceTypes: []string{resource.TypeKubernetesDeployment},
 		Capabilities:           []string{plugin.CapabilityMetricsRead},
-	}
+	}, "kubernetes")
 }
 
 func (p *Plugin) Health(ctx context.Context) plugin.Health {

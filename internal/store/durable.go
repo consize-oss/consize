@@ -10,28 +10,30 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/internal/audit"
+	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
 type diskState struct {
-	DiscoveryRuns   map[string]DiscoveryRun      `json:"discovery_runs"`
-	Collections     map[string]Collection        `json:"collections"`
-	Version         int                          `json:"version"`
-	Migrations      []MigrationRecord            `json:"migrations,omitempty"`
-	Resources       map[string]resource.Resource `json:"resources"`
-	Recommendations map[int64]Recommendation     `json:"recommendations"`
-	ActionRecords   map[int64]Action             `json:"action_records"`
-	Actions         map[int64]ActionEvent        `json:"actions"`
-	AuditEvents     map[string]audit.Event       `json:"audit_events"`
-	Jobs            map[int64]Job                `json:"jobs"`
-	NextActionID    int64                        `json:"next_action_id"`
-	NextEventID     int64                        `json:"next_event_id"`
-	NextRecID       int64                        `json:"next_recommendation_id"`
+	PluginStatuses  map[string]plugin.InstanceStatus `json:"plugin_statuses"`
+	DiscoveryRuns   map[string]DiscoveryRun          `json:"discovery_runs"`
+	Collections     map[string]Collection            `json:"collections"`
+	Version         int                              `json:"version"`
+	Migrations      []MigrationRecord                `json:"migrations,omitempty"`
+	Resources       map[string]resource.Resource     `json:"resources"`
+	Recommendations map[int64]Recommendation         `json:"recommendations"`
+	ActionRecords   map[int64]Action                 `json:"action_records"`
+	Actions         map[int64]ActionEvent            `json:"actions"`
+	AuditEvents     map[string]audit.Event           `json:"audit_events"`
+	Jobs            map[int64]Job                    `json:"jobs"`
+	NextActionID    int64                            `json:"next_action_id"`
+	NextEventID     int64                            `json:"next_event_id"`
+	NextRecID       int64                            `json:"next_recommendation_id"`
 }
 
 const (
 	minimumStateVersion = 1
-	currentStateVersion = 9
+	currentStateVersion = 10
 )
 
 // OpenDurable owns one local state file for its entire lifetime; other processes fail closed.
@@ -90,6 +92,7 @@ func OpenDurable(path string) (*Memory, error) {
 	m.jobs = state.Jobs
 	m.collections = state.Collections
 	m.discoveryRuns = state.DiscoveryRuns
+	m.pluginStatuses = state.PluginStatuses
 	m.nextActionID = state.NextActionID
 	m.nextEventID = state.NextEventID
 	m.nextRecID = state.NextRecID
@@ -218,6 +221,12 @@ func migrateState(state *diskState) (bool, error) {
 		state.Migrations = append(state.Migrations, MigrationRecord{FromVersion: 8, ToVersion: 9, Name: "durable-scoped-discovery"})
 		migrated = true
 	}
+	if state.Version == 9 {
+		state.PluginStatuses = map[string]plugin.InstanceStatus{}
+		state.Version = 10
+		state.Migrations = append(state.Migrations, MigrationRecord{FromVersion: 9, ToVersion: 10, Name: "plugin-runtime-health"})
+		migrated = true
+	}
 	if state.Version != currentStateVersion {
 		return false, fmt.Errorf("unsupported state schema version %d", state.Version)
 	}
@@ -235,6 +244,14 @@ func firstStoredTime(values ...time.Time) time.Time {
 }
 
 func validateState(state diskState) error {
+	if state.PluginStatuses == nil {
+		return errors.New("missing plugin runtime state")
+	}
+	for id, status := range state.PluginStatuses {
+		if id != status.Identity.InstanceID || plugin.ValidateInstanceStatus(status) != nil {
+			return errors.New("invalid plugin runtime state")
+		}
+	}
 	for id, r := range state.DiscoveryRuns {
 		if id != r.ID || validateDiscoveryRun(r) != nil {
 			return errors.New("invalid durable discovery run")
@@ -399,7 +416,7 @@ func (m *Memory) persistLocked() (err error) {
 		}
 	}()
 	state := diskState{
-		Version: currentStateVersion, Migrations: append([]MigrationRecord(nil), m.diagnostics.Migrations...), Resources: m.resources,
+		PluginStatuses: m.pluginStatuses, Version: currentStateVersion, Migrations: append([]MigrationRecord(nil), m.diagnostics.Migrations...), Resources: m.resources,
 		Recommendations: m.recs, ActionRecords: m.actionRecords, Actions: m.actions, AuditEvents: m.auditEvents, Jobs: m.jobs, Collections: m.collections, DiscoveryRuns: m.discoveryRuns,
 		NextActionID: m.nextActionID, NextEventID: m.nextEventID, NextRecID: m.nextRecID,
 	}

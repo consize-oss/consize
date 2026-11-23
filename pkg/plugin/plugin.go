@@ -26,18 +26,21 @@ const (
 )
 
 type Manifest struct {
-	ID                      string   `json:"id"`
-	DisplayName             string   `json:"display_name"`
-	Version                 string   `json:"version"`
-	Category                string   `json:"category"`
-	SupportedResourceTypes  []string `json:"supported_resource_types"`
-	SupportedActionTypes    []string `json:"supported_action_types"`
-	Capabilities            []string `json:"capabilities"`
-	CanMutateInfrastructure bool     `json:"can_mutate_infrastructure"`
-	RequiresApproval        bool     `json:"requires_approval"`
+	DataVersion             string           `json:"data_version,omitempty"`
+	Runtime                 *RuntimeManifest `json:"runtime,omitempty"`
+	ID                      string           `json:"id"`
+	DisplayName             string           `json:"display_name"`
+	Version                 string           `json:"version"`
+	Category                string           `json:"category"`
+	SupportedResourceTypes  []string         `json:"supported_resource_types"`
+	SupportedActionTypes    []string         `json:"supported_action_types"`
+	Capabilities            []string         `json:"capabilities"`
+	CanMutateInfrastructure bool             `json:"can_mutate_infrastructure"`
+	RequiresApproval        bool             `json:"requires_approval"`
 }
 
 type Health struct {
+	Ready     *bool          `json:"ready,omitempty"`
 	Details   map[string]any `json:"details,omitempty"`
 	Status    string         `json:"status"`
 	Message   string         `json:"message"`
@@ -66,8 +69,16 @@ type ExecutionEnvelope struct {
 	LeaseUntil time.Time `json:"lease_until"`
 }
 
+type ResourceScope struct {
+	Provider   string `json:"provider"`
+	Account    string `json:"account"`
+	Location   string `json:"location"`
+	ResourceID string `json:"resource_id"`
+}
 type ActionPlan struct {
-	Execution *ExecutionEnvelope `json:"execution,omitempty"`
+	ResourceScope *ResourceScope     `json:"resource_scope,omitempty"`
+	Runtime       *Provenance        `json:"runtime,omitempty"`
+	Execution     *ExecutionEnvelope `json:"execution,omitempty"`
 
 	Preflight            []PreflightCheck `json:"preflight,omitempty"`
 	PluginArtifactDigest string           `json:"plugin_artifact_digest,omitempty"`
@@ -122,6 +133,7 @@ func (e *PreflightError) Error() string {
 type ArtifactIdentity interface{ ArtifactDigest() string }
 
 type ActionResult struct {
+	Runtime    *Provenance    `json:"runtime,omitempty"`
 	PluginID   string         `json:"plugin_id"`
 	ResourceID string         `json:"resource_id"`
 	ActionType string         `json:"action_type"`
@@ -131,6 +143,7 @@ type ActionResult struct {
 }
 
 type MetricsSnapshot struct {
+	Runtime     *Provenance               `json:"runtime,omitempty"`
 	Records     []evidence.Record         `json:"records,omitempty"`
 	Coverage    map[string]MetricCoverage `json:"coverage,omitempty"`
 	PluginID    string                    `json:"plugin_id"`
@@ -179,6 +192,7 @@ type MetricsPlugin interface {
 // CostEstimate prices a proposed state. It is intentionally distinct from
 // realized billing, which requires provider invoice or billing-export data.
 type CostEstimate struct {
+	Runtime         *Provenance    `json:"runtime,omitempty"`
 	PluginID        string         `json:"plugin_id"`
 	ResourceID      string         `json:"resource_id"`
 	Classification  string         `json:"classification"`
@@ -201,6 +215,7 @@ type CostPlugin interface {
 // the universal registry. Provider plugins own collection; core owns identity,
 // persistence, lifecycle, and policy-visible normalization.
 type ProviderObservation struct {
+	Runtime    *Provenance       `json:"runtime,omitempty"`
 	PluginID   string            `json:"plugin_id"`
 	Provider   string            `json:"provider"`
 	ObservedAt time.Time         `json:"observed_at"`

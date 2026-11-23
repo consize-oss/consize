@@ -34,7 +34,11 @@ func ValidateCapabilities(m *plugin.Manager, cfg Config) error {
 		found := false
 		for _, manifest := range m.Manifests() {
 			if manifest.ID == binding.id && plugin.Supports(manifest.Capabilities, binding.capability) {
-				found = true
+				for _, status := range m.InstanceStatuses() {
+					if status.Identity.InstanceID == binding.id && (status.State == plugin.StateReady || status.State == plugin.StateDegraded) {
+						found = true
+					}
+				}
 			}
 		}
 		if !found {
@@ -58,6 +62,11 @@ func CapabilityDiagnostics(m *plugin.Manager, cfg Config) []string {
 	}
 	if !cfg.Verification.Enabled {
 		out = append(out, "Verification is disabled; automated execution is unavailable.")
+	}
+	for _, status := range m.InstanceStatuses() {
+		if status.State != plugin.StateReady && status.State != plugin.StateDegraded {
+			out = append(out, fmt.Sprintf("Plugin instance %s is %s; its capabilities are unavailable.", status.Identity.InstanceID, status.State))
+		}
 	}
 	return out
 }

@@ -532,6 +532,7 @@ export interface components {
             orphaned_references?: string[];
         };
         Resource: {
+            producer?: components["schemas"]["PluginProvenance"];
             /** @description Version of the universal resource contract. */
             schema_version: number;
             /** @description Stable Consize identity derived only from immutable provider coordinates for new resources. */
@@ -685,6 +686,7 @@ export interface components {
             updated_at: string;
         };
         Recommendation: {
+            runtime?: components["schemas"]["PluginProvenance"];
             schema_version?: number;
             /** Format: int64 */
             id: number;
@@ -730,6 +732,7 @@ export interface components {
             calculated_at?: string;
         };
         CostEstimate: {
+            runtime?: components["schemas"]["PluginProvenance"];
             plugin_id: string;
             resource_id: string;
             classification: string;
@@ -745,6 +748,8 @@ export interface components {
             evidence?: components["schemas"]["JsonObject"];
         };
         Manifest: {
+            runtime?: components["schemas"]["RuntimeManifest"];
+            data_version?: string;
             id: string;
             display_name: string;
             version: string;
@@ -756,10 +761,13 @@ export interface components {
             requires_approval: boolean;
         };
         PluginStatus: {
+            runtime?: components["schemas"]["PluginInstanceStatus"];
             manifest: components["schemas"]["Manifest"];
             health: components["schemas"]["PluginHealth"];
         };
         PluginHealth: {
+            /** @description Explicit startup readiness; a provider may be ready while awaiting its first complete scan. */
+            ready?: boolean;
             details?: components["schemas"]["JsonObject"];
             status: string;
             message: string;
@@ -778,6 +786,8 @@ export interface components {
             details?: components["schemas"]["JsonObject"];
         };
         ActionPlan: {
+            resource_scope?: components["schemas"]["PluginResourceScope"];
+            runtime?: components["schemas"]["PluginProvenance"];
             execution?: components["schemas"]["ExecutionEnvelope"];
             preflight?: components["schemas"]["PreflightCheck"][];
             plugin_artifact_digest?: string;
@@ -863,6 +873,7 @@ export interface components {
             finished_at?: string;
         };
         ActionResult: {
+            runtime?: components["schemas"]["PluginProvenance"];
             plugin_id: string;
             resource_id: string;
             action_type: string;
@@ -938,6 +949,7 @@ export interface components {
         };
         /** @description Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero. */
         EvidenceRecord: {
+            producer?: components["schemas"]["PluginProvenance"];
             /** @enum {integer} */
             schema_version: 1;
             id: string;
@@ -969,6 +981,7 @@ export interface components {
             };
         };
         MetricsSnapshot: {
+            runtime?: components["schemas"]["PluginProvenance"];
             records?: components["schemas"]["EvidenceRecord"][];
             plugin_id: string;
             resource_id: string;
@@ -1240,6 +1253,59 @@ export interface components {
             /** Format: date-time */
             finished_at?: string;
             outcome?: string;
+        };
+        PluginProvenance: {
+            package_id: string;
+            instance_id: string;
+            version: string;
+            integrity?: string;
+            configuration_id?: string;
+        };
+        PluginResourceScope: {
+            provider: string;
+            account: string;
+            location: string;
+            resource_id: string;
+        };
+        RuntimeManifest: {
+            sdk_range: string;
+            core_range: string;
+            provider: string;
+            configuration_version: string;
+            /** @enum {string} */
+            distribution: "builtin" | "external";
+            integrity: string;
+            capabilities: components["schemas"]["CapabilityDescriptor"][];
+        };
+        CapabilityDescriptor: {
+            name: string;
+            version: string;
+            resource_types: string[] | null;
+            providers: string[] | null;
+            operations: string[] | null;
+            modes: string[] | null;
+        };
+        ProviderFailureDetails: {
+            code: string;
+            retryable: boolean;
+            retry_after_seconds: number;
+        };
+        PluginInstanceStatus: {
+            provider_failure?: components["schemas"]["ProviderFailureDetails"];
+            identity: components["schemas"]["PluginProvenance"];
+            manifest: components["schemas"]["Manifest"];
+            /** @enum {string} */
+            state: "discovered" | "installed" | "disabled" | "configuring" | "ready" | "degraded" | "unavailable" | "incompatible" | "failed" | "draining" | "stopped";
+            required: boolean;
+            active: number;
+            /** Format: date-time */
+            last_health?: string;
+            /** Format: date-time */
+            last_success?: string;
+            /** Format: date-time */
+            last_failure?: string;
+            /** @enum {string} */
+            failure?: "unavailable" | "incompatible" | "invalid_response" | "timeout" | "canceled" | "internal" | "capability_unsupported" | "invalid_request" | "busy";
         };
     };
     responses: {

@@ -15,6 +15,8 @@ import (
 )
 
 type Config struct {
+	PluginInstances []plugin.InstanceConfig      `json:"plugin_instances,omitempty"`
+	PluginSecretEnv map[string]string            `json:"plugin_secret_env,omitempty"`
 	Discovery       DiscoveryScheduleConfig      `json:"discovery,omitempty"`
 	Collection      CollectionConfig             `json:"collection,omitempty"`
 	Worker          WorkerConfig                 `json:"worker,omitempty"`
@@ -81,6 +83,7 @@ type PrometheusConfig struct {
 }
 
 type RecommenderConfig struct {
+	AlgorithmPluginID string         `json:"algorithm_plugin_id,omitempty"`
 	Quality           quality.Config `json:"quality,omitempty"`
 	ConfidenceProfile string         `json:"confidence_profile,omitempty"`
 	Enabled           bool           `json:"enabled"`
@@ -124,7 +127,7 @@ type AuditConfig struct {
 	Path string `json:"path"`
 }
 
-func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config) error {
+func RegisterConfiguredPlugins(ctx context.Context, m *plugin.Manager, cfg Config) error {
 	if cfg.Recommender.ConfidenceProfile != "" && cfg.Recommender.ConfidenceProfile != "standard" && cfg.Recommender.ConfidenceProfile != "lab" {
 		return fmt.Errorf("confidence_profile must be standard or lab")
 	}
@@ -133,63 +136,12 @@ func RegisterConfiguredPlugins(_ context.Context, m *plugin.Manager, cfg Config)
 			return fmt.Errorf("configure external plugin: %w", err)
 		}
 	}
-	if cfg.Kubernetes.Enabled {
-		p, err := kubernetes.New(kubernetes.Config{
-			Kubeconfig:    cfg.Kubernetes.Kubeconfig,
-			DiscoveryAuth: cfg.Kubernetes.DiscoveryAuth,
-			Context:       cfg.Kubernetes.Context,
-			Discovery:     cfg.Kubernetes.Discovery,
-			ClusterID:     cfg.Kubernetes.ClusterID,
-			Location:      cfg.Kubernetes.Location,
-		})
-		if err != nil {
-			return fmt.Errorf("configure kubernetes plugin: %w", err)
-		}
-		if err := m.RegisterAction(p); err != nil {
-			return err
-		}
-		if err := m.RegisterDiscovery(p); err != nil {
-			return err
-		}
+	if cfg.Pricing.Enabled && cfg.Pricing.EffectivePluginID() != pricing.ID {
+		return fmt.Errorf("pricing plugin_id must be %q", pricing.ID)
 	}
-	if cfg.Prometheus.Enabled {
-		window, err := parseOptionalDuration(cfg.Prometheus.Window)
-		if err != nil {
-			return fmt.Errorf("prometheus window: %w", err)
-		}
-		step, err := parseOptionalDuration(cfg.Prometheus.Step)
-		if err != nil {
-			return fmt.Errorf("prometheus step: %w", err)
-		}
-		p, err := prometheus.New(prometheus.Config{
-			BaseURL:        cfg.Prometheus.BaseURL,
-			Transport:      cfg.Prometheus.Transport,
-			Mapping:        cfg.Prometheus.Mapping,
-			Percentile:     cfg.Prometheus.Percentile,
-			MinimumSamples: cfg.Prometheus.MinimumSamples,
-			Window:         window,
-			Step:           step,
-			Queries:        cfg.Prometheus.Queries,
-			Units:          cfg.Prometheus.Units,
-		})
-		if err != nil {
-			return fmt.Errorf("configure prometheus plugin: %w", err)
-		}
-		if err := m.RegisterMetrics(p); err != nil {
-			return err
-		}
-	}
-	if cfg.Pricing.Enabled {
-		p, err := pricing.New(pricing.Config{Currency: cfg.Pricing.Currency, Source: cfg.Pricing.Source, MemoryGiBMonthly: cfg.Pricing.MemoryGiBMonthly, CPUCoreMonthly: cfg.Pricing.CPUCoreMonthly})
-		if err != nil {
-			return fmt.Errorf("configure pricing plugin: %w", err)
-		}
-		if cfg.Pricing.EffectivePluginID() != p.ID() {
-			return fmt.Errorf("pricing plugin_id must be %q", p.ID())
-		}
-		if err := m.RegisterCost(p); err != nil {
-			return err
-		}
+
+	if err := registerInstances(ctx, m, cfg); err != nil {
+		return err
 	}
 	return ValidateCapabilities(m, cfg)
 }

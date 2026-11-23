@@ -670,6 +670,7 @@ components:
       type: object
       required: [schema_version, id, type, provider, provider_resource_id, name, environment, owner, region, account, criticality, lifecycle_state, support_status, labels, metadata, current_state, monthly_cost, source_plugin_id, observed_at, first_seen_at, last_seen_at, created_at, updated_at]
       properties:
+        producer: {$ref: '#/components/schemas/PluginProvenance'}
         schema_version: {type: integer, minimum: 1, description: Version of the universal resource contract.}
         id: {type: string, minLength: 1, description: Stable Consize identity derived only from immutable provider coordinates for new resources.}
         type: {type: string, minLength: 1, description: Provider-neutral resource type.}
@@ -794,6 +795,7 @@ components:
       type: object
       required: [id, resource_id, plugin_id, algorithm_id, action_type, title, summary, current, proposed, parameters, estimated_savings_monthly, confidence, risk, evidence, policy_id, status, created_at, updated_at]
       properties:
+        runtime: {$ref: '#/components/schemas/PluginProvenance'}
         schema_version: {type: integer, minimum: 1}
         id: {type: integer, format: int64}
         resource_id: {type: string}
@@ -835,6 +837,7 @@ components:
       type: object
       required: [plugin_id, resource_id, classification, currency, current_monthly, proposed_monthly, savings_monthly, pricing_source, effective_at, collected_at]
       properties:
+        runtime: {$ref: '#/components/schemas/PluginProvenance'}
         plugin_id: {type: string}
         resource_id: {type: string}
         classification: {type: string}
@@ -850,6 +853,8 @@ components:
       type: object
       required: [id, display_name, version, category, supported_resource_types, supported_action_types, capabilities, can_mutate_infrastructure, requires_approval]
       properties:
+        runtime: {$ref: '#/components/schemas/RuntimeManifest'}
+        data_version: {type: string}
         id: {type: string}
         display_name: {type: string}
         version: {type: string}
@@ -863,12 +868,14 @@ components:
       type: object
       required: [manifest, health]
       properties:
+        runtime: {$ref: '#/components/schemas/PluginInstanceStatus'}
         manifest: {$ref: '#/components/schemas/Manifest'}
         health: {$ref: '#/components/schemas/PluginHealth'}
     PluginHealth:
       type: object
       required: [status, message, checked_at]
       properties:
+        ready: {type: boolean, description: "Explicit startup readiness; a provider may be ready while awaiting its first complete scan."}
         details: {$ref: '#/components/schemas/JsonObject'}
         status: {type: string}
         message: {type: string}
@@ -892,6 +899,8 @@ components:
       type: object
       required: [plugin_id, resource_id, action_type, summary, diff, rollback_available, requires_approval]
       properties:
+        resource_scope: {$ref: '#/components/schemas/PluginResourceScope'}
+        runtime: {$ref: '#/components/schemas/PluginProvenance'}
         execution: {$ref: '#/components/schemas/ExecutionEnvelope'}
         preflight: {type: array, items: {$ref: '#/components/schemas/PreflightCheck'}}
         plugin_artifact_digest: {type: string}
@@ -970,6 +979,7 @@ components:
       type: object
       required: [plugin_id, resource_id, action_type, applied, message, evidence]
       properties:
+        runtime: {$ref: '#/components/schemas/PluginProvenance'}
         plugin_id: {type: string}
         resource_id: {type: string}
         action_type: {type: string}
@@ -1050,6 +1060,7 @@ components:
       description: Immutable content-addressed provenance. Null value denotes missing, invalid, or unavailable measurement; a measured zero is numeric zero.
       required: [schema_version, id, resource_id, plugin_id, signal, query, kind, aggregation, unit, original_unit, scale, value, sample_count, window_start, window_end, collected_at, fresh_until, quality]
       properties:
+        producer: {$ref: '#/components/schemas/PluginProvenance'}
         schema_version: {type: integer, enum: [1]}
         id: {type: string, pattern: '^evidence:v1:[a-f0-9]{64}$'}
         resource_id: {type: string}
@@ -1074,6 +1085,7 @@ components:
       type: object
       required: [plugin_id, resource_id, source, window, signals, evidence, collected_at]
       properties:
+        runtime: {$ref: '#/components/schemas/PluginProvenance'}
         records: {type: array, maxItems: 256, items: {$ref: '#/components/schemas/EvidenceRecord'}}
         plugin_id: {type: string}
         resource_id: {type: string}
@@ -1331,3 +1343,65 @@ components:
         started_at: {type: string, format: date-time}
         finished_at: {type: string, format: date-time}
         outcome: {type: string}
+
+    PluginProvenance:
+      type: object
+      required: [package_id, instance_id, version]
+      properties:
+        package_id: {type: string}
+        instance_id: {type: string}
+        version: {type: string}
+        integrity: {type: string}
+        configuration_id: {type: string}
+    PluginResourceScope:
+      type: object
+      required: [provider, account, location, resource_id]
+      properties:
+        provider: {type: string}
+        account: {type: string}
+        location: {type: string}
+        resource_id: {type: string}
+    RuntimeManifest:
+      type: object
+      required: [sdk_range, core_range, provider, configuration_version, distribution, integrity, capabilities]
+      properties:
+        sdk_range: {type: string}
+        core_range: {type: string}
+        provider: {type: string}
+        configuration_version: {type: string}
+        distribution: {type: string, enum: [builtin, external]}
+        integrity: {type: string}
+        capabilities:
+          type: array
+          items: {$ref: '#/components/schemas/CapabilityDescriptor'}
+    CapabilityDescriptor:
+      type: object
+      required: [name, version, resource_types, providers, operations, modes]
+      properties:
+        name: {type: string}
+        version: {type: string}
+        resource_types: {type: [array, "null"], items: {type: string}}
+        providers: {type: [array, "null"], items: {type: string}}
+        operations: {type: [array, "null"], items: {type: string}}
+        modes: {type: [array, "null"], items: {type: string}}
+    ProviderFailureDetails:
+      type: object
+      required: [code, retryable, retry_after_seconds]
+      properties:
+        code: {type: string}
+        retryable: {type: boolean}
+        retry_after_seconds: {type: integer, minimum: 0, maximum: 300}
+    PluginInstanceStatus:
+      type: object
+      required: [identity, manifest, state, required, active]
+      properties:
+        provider_failure: {$ref: '#/components/schemas/ProviderFailureDetails'}
+        identity: {$ref: '#/components/schemas/PluginProvenance'}
+        manifest: {$ref: '#/components/schemas/Manifest'}
+        state: {type: string, enum: [discovered, installed, disabled, configuring, ready, degraded, unavailable, incompatible, failed, draining, stopped]}
+        required: {type: boolean}
+        active: {type: integer}
+        last_health: {type: string, format: date-time}
+        last_success: {type: string, format: date-time}
+        last_failure: {type: string, format: date-time}
+        failure: {type: string, enum: [unavailable, incompatible, invalid_response, timeout, canceled, internal, capability_unsupported, invalid_request, busy]}

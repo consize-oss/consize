@@ -8,14 +8,22 @@ import (
 	"testing"
 
 	"github.com/consize-oss/consize/internal/auth"
+	"github.com/consize-oss/consize/internal/discovery"
 	"github.com/consize-oss/consize/internal/store"
+	"github.com/consize-oss/consize/pkg/plugin"
 	k8splugin "github.com/consize-oss/consize/pkg/plugins/kubernetes"
 )
 
 func TestDiscoveryRunAPIRequiresAdminAndRejectsScopeOverrides(t *testing.T) {
 	s, st, _ := apiFixture(t)
+	s.plugins = plugin.NewManager()
 	if err := s.plugins.RegisterDiscovery(k8splugin.NewWithPatcher(nil)); err != nil {
 		t.Fatal(err)
+	}
+	var schedulerErr error
+	s.discoveryScheduler, schedulerErr = discovery.NewScheduler(st, s.plugins, s.cfg.Discovery)
+	if schedulerErr != nil {
+		t.Fatal(schedulerErr)
 	}
 	t.Setenv("CON15_ADMIN_TOKEN", "fixture-admin-token-at-least-24-characters")
 	t.Setenv("CON15_OPERATOR_TOKEN", "fixture-operator-token-at-least-24-characters")
