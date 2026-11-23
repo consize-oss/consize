@@ -98,6 +98,12 @@ For Helm values, Service Accounts, and integration secrets, read the [installati
 
 The first v0.3 plugins are `kubernetes-action` and `prometheus-metrics`. Signed plugin installation is implemented, but the public catalog and publisher-key service have not launched yet.
 
+The independently distributed [Prometheus plugin](https://github.com/consize-oss/consize-prometheus-plugin)
+provides source, platform binaries and its own signed catalog. See the
+[standalone plugin guide](docs/guides/external-prometheus-plugin.md) for discovery,
+compatibility and explicit installation. It requires the v0.3 development runtime;
+the v0.2.0 release does not support external plugins.
+
 ---
 
 ## Roadmap

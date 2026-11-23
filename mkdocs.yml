@@ -104,6 +104,7 @@ nav:
   - Guides:
       - Kubernetes Rightsizing: guides/rightsizing.md
       - Observability: guides/observability.md
+      - Standalone Prometheus Plugin: guides/external-prometheus-plugin.md
       - Environments: guides/environments.md
       - How Consize Works: concepts/architecture.md
       - The Safety Net: concepts/safety-net.md
