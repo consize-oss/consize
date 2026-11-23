@@ -22,7 +22,6 @@ export function useResourceInventory() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = useResourceList();
   const sync = useResourceSync();
   const filters: ResourceFilters = {
     q: searchParams.get("q") ?? "",
@@ -40,7 +39,8 @@ export function useResourceInventory() {
     region: searchParams.get("region") || undefined,
     type: searchParams.get("type") || undefined,
   };
-  const inventory = buildResourceInventory(query.data?.resources ?? [], scope, filters, view, Number(searchParams.get("page")));
+  const query = useResourceList(scope);
+  const inventory = buildResourceInventory(query.data ?? [], scope, filters, view, Number(searchParams.get("page")));
   const hasLocalFilters = Object.values(filters).some(Boolean) || view !== "all";
 
   function updateFilters(changes: Record<string, string>) {
@@ -62,16 +62,12 @@ export function useResourceInventory() {
   }
 
   function selectView(nextView: ResourceView) {
+    if (nextView === view) return;
     updateFilters({ view: nextView === "all" ? "" : nextView });
   }
 
   function resetFilters() {
     updateFilters(Object.fromEntries(LOCAL_KEYS.map((key) => [key, ""])));
-  }
-
-  function reviewAllGaps() {
-    // Match the scope-wide attention strip, even if the table had narrower local filters.
-    updateFilters({ q: "", environment: "", owner: "", coverage: "", telemetry: "", optimization: "", view: "attention" });
   }
 
   function changePage(requestedPage: number) {
@@ -133,7 +129,6 @@ export function useResourceInventory() {
     changeFilter,
     selectView,
     resetFilters,
-    reviewAllGaps,
     changePage,
     isLoading: query.isPending,
     isError: query.isError,

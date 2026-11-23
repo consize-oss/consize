@@ -1,9 +1,11 @@
 "use client";
 
-import { useResourceInventory } from "./resourceInventory";
+import { useRef, useState } from "react";
+import { useResourceInventory, type ResourceInventoryItem } from "./resourceInventory";
 import { ResourcesFilters } from "./ResourcesFilters";
 import { ResourcesTable } from "./ResourcesTable";
 import { ResourcesPagination } from "./ResourcesPagination";
+import { ResourceGapDetailsPanel } from "./ResourceGapDetailsPanel";
 
 const INVENTORY_VIEWS = [
   { id: "all", label: "All" },
@@ -12,8 +14,20 @@ const INVENTORY_VIEWS = [
 ] as const;
 
 export function ResourcesInventoryPanel() {
-  const { counts, view: activeView, selectView, isLoading, isError } = useResourceInventory();
+  const { allItems, counts, view: activeView, selectView, isLoading, isError, asOf, refresh } = useResourceInventory();
+  const [selectedResource, setSelectedResource] = useState<ResourceInventoryItem | null>(null);
+  const reviewButton = useRef<HTMLButtonElement>(null);
+  const inventoryHeading = useRef<HTMLHeadingElement>(null);
   const available = !isLoading && !isError;
+  const reviewedResource = selectedResource && (allItems.find((resource) => resource.id === selectedResource.id) ?? selectedResource);
+
+  function closeReview() {
+    setSelectedResource(null);
+    const focusTarget = reviewButton.current?.isConnected ? reviewButton.current : inventoryHeading.current;
+    focusTarget?.focus({ preventScroll: true });
+    reviewButton.current = null;
+  }
+
   return (
     <section
       aria-labelledby="resource-inventory-heading"
@@ -21,11 +35,11 @@ export function ResourcesInventoryPanel() {
     >
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 pb-3 pt-4">
         <div className="min-w-0 space-y-1">
-          <h2 id="resource-inventory-heading" className="text-sm font-semibold text-fg">
+          <h2 ref={inventoryHeading} id="resource-inventory-heading" tabIndex={-1} className="text-sm font-semibold text-fg">
             Infrastructure inventory
           </h2>
           <p className="text-xs leading-4 text-fg-muted">
-            All resources discovered from the infrastructure scope above.
+            Resources matching the selected view and filters.
           </p>
         </div>
 
@@ -57,8 +71,14 @@ export function ResourcesInventoryPanel() {
       </div>
 
       <ResourcesFilters />
-      <ResourcesTable />
+      <div id="resource-inventory-results">
+        <ResourcesTable onReview={(resource, button) => {
+          reviewButton.current = button;
+          setSelectedResource(resource);
+        }} />
+      </div>
       <ResourcesPagination />
+      {reviewedResource && <ResourceGapDetailsPanel resource={reviewedResource} asOf={asOf} onRecheck={refresh} onClose={closeReview} />}
     </section>
   );
 }
