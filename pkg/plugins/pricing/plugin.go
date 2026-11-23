@@ -2,6 +2,7 @@ package pricing
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -38,14 +39,14 @@ func New(cfg Config) (*Plugin, error) {
 func (p *Plugin) ID() string { return ID }
 
 func (p *Plugin) Manifest() plugin.Manifest {
-	return plugin.Manifest{
+	return plugin.WithBuiltinRuntime(plugin.Manifest{
 		ID:                     ID,
 		DisplayName:            "Configured Rate Card",
 		Version:                "0.3.0-alpha",
 		Category:               plugin.CategoryCost,
 		SupportedResourceTypes: []string{resource.TypeKubernetesDeployment},
 		Capabilities:           []string{plugin.CapabilityCostRead},
-	}
+	}, "kubernetes")
 }
 
 func (p *Plugin) Health(context.Context) plugin.Health {
@@ -108,6 +109,9 @@ func number(value any) (float64, error) {
 
 func optionalNumber(value any) (float64, bool) {
 	switch v := value.(type) {
+	case json.Number:
+		n, err := v.Float64()
+		return n, err == nil
 	case float64:
 		return v, true
 	case float32:

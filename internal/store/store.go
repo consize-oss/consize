@@ -12,6 +12,7 @@ import (
 )
 
 type Recommendation struct {
+	Runtime                 *plugin.Provenance   `json:"runtime,omitempty"`
 	EvidenceSnapshot        []evidence.Record    `json:"evidence_snapshot,omitempty"`
 	SchemaVersion           int                  `json:"schema_version"`
 	ID                      int64                `json:"id"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/consize-oss/consize/pkg/plugin"
 	"regexp"
 	"sort"
 
@@ -69,6 +70,7 @@ type DiagnosticsStore interface {
 }
 
 type RuntimeStore interface {
+	plugin.RuntimeJournal
 	JobStore
 	DiagnosticsStore
 	Close() error

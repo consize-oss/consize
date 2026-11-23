@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"github.com/consize-oss/consize/pkg/plugin"
 	"io"
 	"net"
 	"strings"
@@ -151,4 +152,8 @@ func (s *diagnosticState) snapshot() Diagnostics {
 		d.LatestError = &e
 	}
 	return d
+}
+
+func (e *Error) ProviderFailure() plugin.FailureDetails {
+	return plugin.SafeFailureDetails(plugin.FailureDetails{Code: e.Code, Retryable: e.Retryable, RetryAfterSeconds: e.RetryAfterSeconds})
 }

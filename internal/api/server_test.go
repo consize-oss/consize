@@ -15,6 +15,7 @@ import (
 	"github.com/consize-oss/consize/internal/auth"
 	"github.com/consize-oss/consize/internal/bootstrap"
 	"github.com/consize-oss/consize/internal/policy"
+	"github.com/consize-oss/consize/internal/recommender"
 	"github.com/consize-oss/consize/internal/store"
 	"github.com/consize-oss/consize/internal/testevidence"
 	"github.com/consize-oss/consize/pkg/plugin"
@@ -279,6 +280,9 @@ func TestRecommendationAPIExposesImmutableProvenance(t *testing.T) {
 	server.cfg.Recommender.ConfidenceProfile = "lab"
 	server.cfg.Recommender.MetricsPluginID = "metrics"
 	server.cfg.Recommender.ActionPluginID = "kubernetes-action"
+	if err := recommender.Register(server.plugins, server.cfg.Recommender); err != nil {
+		t.Fatal(err)
+	}
 	w := httptest.NewRecorder()
 	server.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/recommendations/generate?resource_id=test", nil))
 	if w.Code != http.StatusOK {

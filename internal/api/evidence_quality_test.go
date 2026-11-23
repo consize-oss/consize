@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/consize-oss/consize/internal/auth"
+	"github.com/consize-oss/consize/internal/recommender"
 	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
@@ -108,6 +109,9 @@ func TestQualityFailureDoesNotCreateRecommendation(t *testing.T) {
 	s.cfg.Recommender.Enabled = true
 	s.cfg.Recommender.MetricsPluginID = "metrics"
 	s.cfg.Recommender.ActionPluginID = "kubernetes-action"
+	if err := recommender.Register(s.plugins, s.cfg.Recommender); err != nil {
+		t.Fatal(err)
+	}
 	before, err := st.ListRecommendations(context.Background())
 	if err != nil {
 		t.Fatal(err)

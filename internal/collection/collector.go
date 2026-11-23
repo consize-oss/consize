@@ -20,7 +20,6 @@ import (
 	"github.com/consize-oss/consize/pkg/evidence"
 	"github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
-	"github.com/consize-oss/consize/pkg/plugins/prometheus"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
@@ -115,12 +114,24 @@ func New(st store.CollectionStore, registry Registry, plugins *plugin.Manager, s
 	}
 	provider, err := plugins.MetricsPlugin(c.PluginID, resource.TypeKubernetesDeployment)
 	if err != nil {
+		if !c.Enabled {
+			out.cfg.PluginID = ""
+			return out, nil
+		}
 		return nil, errors.New("configured collection provider unavailable")
 	}
 	if _, ok := provider.(plugin.WindowedMetricsPlugin); !ok {
+		if !c.Enabled {
+			out.cfg.PluginID = ""
+			return out, nil
+		}
 		return nil, errors.New("collection provider must support fixed windows")
 	}
-	raw, err := json.Marshal([]any{"collection-instance-v1", prometheus.QueryCatalogVersion, prometheus.AggregationVersion, c.PluginID, provider.Manifest().Version, s.ProviderConfig})
+	identity, err := plugins.InstanceIdentity(c.PluginID)
+	if err != nil {
+		return nil, errors.New("collection instance identity unavailable")
+	}
+	raw, err := json.Marshal([]any{"collection-instance-v2", identity, provider.Manifest().DataVersion, c.PluginID, provider.Manifest().Version, s.ProviderConfig})
 	if err != nil {
 		return nil, errors.New("invalid collection provider configuration")
 	}
@@ -248,8 +259,13 @@ func (c *Collector) execute(ctx context.Context, job store.Collection) error {
 	return err
 }
 func classify(err error) (string, bool) {
-	var p *prometheus.Error
-	if errors.As(err, &p) {
+	var runtimeFailure *plugin.RuntimeError
+	if errors.As(err, &runtimeFailure) && runtimeFailure.Code == plugin.FailureInvalidResponse {
+		return "invalid_evidence", false
+	}
+	var upstream plugin.ProviderFailure
+	if errors.As(err, &upstream) {
+		p := plugin.SafeFailureDetails(upstream.ProviderFailure())
 		switch p.Code {
 		case "authentication", "authorization":
 			return "provider_access", false
@@ -273,6 +289,11 @@ func classify(err error) (string, bool) {
 }
 
 func (c *Collector) read(ctx context.Context, job store.Collection) store.CollectionResult {
+	identity := plugin.InvocationFrom(ctx)
+	identity.OperationID = job.ID
+	identity.WorkflowID = job.ID
+	identity.Actor = job.Actor
+	ctx = plugin.WithInvocation(ctx, identity)
 	fail := func(code string) store.CollectionResult { return store.CollectionResult{ErrorCode: code} }
 	if job.InstanceDigest != c.digest || job.PluginID != c.cfg.PluginID {
 		return fail("instance_changed")
@@ -322,8 +343,9 @@ func retryDelay(job store.Collection, err error) time.Duration {
 	if delay > 5*time.Minute {
 		delay = 5 * time.Minute
 	}
-	var upstream *prometheus.Error
-	if errors.As(err, &upstream) && upstream.RetryAfterSeconds > 0 {
+	var providerFailure plugin.ProviderFailure
+	if errors.As(err, &providerFailure) && providerFailure.ProviderFailure().RetryAfterSeconds > 0 {
+		upstream := plugin.SafeFailureDetails(providerFailure.ProviderFailure())
 		hint := time.Duration(upstream.RetryAfterSeconds) * time.Second
 		if upstream.RetryAfterSeconds > 300 {
 			hint = 5 * time.Minute

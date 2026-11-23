@@ -71,8 +71,9 @@ type Stats struct {
 }
 
 type PluginStatus struct {
-	Manifest plugin.Manifest `json:"manifest"`
-	Health   plugin.Health   `json:"health"`
+	Runtime  *plugin.InstanceStatus `json:"runtime,omitempty"`
+	Manifest plugin.Manifest        `json:"manifest"`
+	Health   plugin.Health          `json:"health"`
 }
 
 type PolicySummary struct {
@@ -89,6 +90,9 @@ type actionRequest struct {
 
 func NewServer(st store.Store, plugins *plugin.Manager, policies *policy.Engine, cfg bootstrap.Config) (*Server, error) {
 	if err := bootstrap.ValidateCapabilities(plugins, cfg); err != nil {
+		return nil, err
+	}
+	if err := recommender.Register(plugins, cfg.Recommender); err != nil {
 		return nil, err
 	}
 	authorizer, err := auth.New(cfg.Auth)
@@ -394,7 +398,7 @@ func (s *Server) handleGenerateRecommendation(w http.ResponseWriter, r *http.Req
 		writeError(w, http.StatusBadGateway, err.Error())
 		return
 	}
-	recs, err := recommender.New(s.cfg.Recommender).Recommend(r.Context(), recommender.Input{Resource: res, Evidence: []plugin.MetricsSnapshot{snapshot}})
+	recs, err := recommender.Generate(r.Context(), s.plugins, s.cfg.Recommender.AlgorithmPluginID, recommender.Input{Resource: res, Evidence: []plugin.MetricsSnapshot{snapshot}})
 	if err != nil {
 		var blocked *quality.BlockedError
 		if errors.As(err, &blocked) {
@@ -586,7 +590,15 @@ func (s *Server) pluginStatuses(ctx context.Context) ([]PluginStatus, error) {
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, PluginStatus{Manifest: manifest, Health: health})
+		var runtime *plugin.InstanceStatus
+		for _, status := range s.plugins.InstanceStatuses() {
+			if status.Identity.InstanceID == manifest.ID {
+				copy := status
+				runtime = &copy
+				break
+			}
+		}
+		out = append(out, PluginStatus{Manifest: manifest, Health: health, Runtime: runtime})
 	}
 	return out, nil
 }
@@ -881,7 +893,9 @@ func (s *Server) protect(requiredRole any, next http.HandlerFunc) http.HandlerFu
 			writeError(w, status, err.Error())
 			return
 		}
-		next(w, authorized)
+		identity, _ := auth.FromContext(authorized.Context())
+		invocation := plugin.InvocationIdentity{CorrelationID: correlationFromContext(authorized.Context()), Actor: identity.Subject}
+		next(w, authorized.WithContext(plugin.WithInvocation(authorized.Context(), invocation)))
 	})
 }
 

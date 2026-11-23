@@ -16,7 +16,7 @@ func TestEnrichKeepsEstimateClassification(t *testing.T) {
 	if err := manager.RegisterCost(p); err != nil {
 		t.Fatal(err)
 	}
-	res := resource.Resource{ID: "resource", Type: resource.TypeKubernetesDeployment, CurrentState: map[string]any{"memory_request_bytes": int64(1024 * 1024 * 1024)}}
+	res := resource.Resource{ID: "resource", Type: resource.TypeKubernetesDeployment, Provider: resource.ProviderKubernetes, CurrentState: map[string]any{"memory_request_bytes": int64(1024 * 1024 * 1024)}}
 	rec, err := Enrich(context.Background(), manager, p.ID(), res, store.Recommendation{Proposed: map[string]any{"resource": "memory", "request": int64(512 * 1024 * 1024)}})
 	if err != nil {
 		t.Fatal(err)

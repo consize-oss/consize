@@ -90,3 +90,25 @@ func TestExecutionEnvelopeNegotiationPreservesLegacyStrictDecoder(t *testing.T) 
 		}
 	}
 }
+
+func TestRuntimeMetadataNegotiationKeepsOlderExecutablesCompatible(t *testing.T) {
+	identity := plugin.InvocationIdentity{Actor: "fixture-actor", CorrelationID: "fixture-request"}
+	provenance := plugin.Provenance{PackageID: "package", InstanceID: "instance", Version: "1.0.0"}
+	request := Request{Invocation: &identity, Plan: plugin.ActionPlan{Runtime: &provenance, ResourceScope: &plugin.ResourceScope{Account: "cluster"}}}
+	request.Resource.Producer = &provenance
+	request.Input.Resource.Producer = &provenance
+	old := (&remote{}).prepareRequest(request)
+	raw, err := json.Marshal(old)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, field := range []string{`"invocation"`, `"runtime"`, `"producer"`, `"resource_scope"`} {
+		if bytes.Contains(raw, []byte(field)) {
+			t.Fatal("sent unnegotiated field to an older executable", field)
+		}
+	}
+	current := (&remote{runtimeMetadata: true}).prepareRequest(request)
+	if current.Invocation == nil || current.Plan.Runtime == nil || current.Resource.Producer == nil || current.Input.Resource.Producer == nil || current.Plan.ResourceScope == nil {
+		t.Fatal("negotiated metadata was dropped")
+	}
+}

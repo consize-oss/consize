@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/consize-oss/consize/pkg/provenance"
 	"math"
 	"strings"
 	"time"
@@ -30,26 +31,27 @@ var ErrInvalid = errors.New("invalid evidence")
 // Record values use canonical units; OriginalUnit and Scale preserve normalization.
 // Value is nil when no trustworthy numeric measurement exists. Measured zero is a non-nil pointer to zero.
 type Record struct {
-	SchemaVersion int               `json:"schema_version"`
-	ID            string            `json:"id"`
-	ResourceID    string            `json:"resource_id"`
-	PluginID      string            `json:"plugin_id"`
-	Signal        string            `json:"signal"`
-	Query         string            `json:"query"`
-	Kind          string            `json:"kind"`
-	Aggregation   string            `json:"aggregation"`
-	Unit          string            `json:"unit"`
-	OriginalUnit  string            `json:"original_unit"`
-	Scale         float64           `json:"scale"`
-	Value         *float64          `json:"value"`
-	SampleCount   int               `json:"sample_count"`
-	WindowStart   time.Time         `json:"window_start"`
-	WindowEnd     time.Time         `json:"window_end"`
-	CollectedAt   time.Time         `json:"collected_at"`
-	FreshUntil    time.Time         `json:"fresh_until"`
-	Quality       string            `json:"quality"`
-	Parents       []string          `json:"parents,omitempty"`
-	Extensions    map[string]string `json:"extensions,omitempty"`
+	Producer      *provenance.Identity `json:"producer,omitempty"`
+	SchemaVersion int                  `json:"schema_version"`
+	ID            string               `json:"id"`
+	ResourceID    string               `json:"resource_id"`
+	PluginID      string               `json:"plugin_id"`
+	Signal        string               `json:"signal"`
+	Query         string               `json:"query"`
+	Kind          string               `json:"kind"`
+	Aggregation   string               `json:"aggregation"`
+	Unit          string               `json:"unit"`
+	OriginalUnit  string               `json:"original_unit"`
+	Scale         float64              `json:"scale"`
+	Value         *float64             `json:"value"`
+	SampleCount   int                  `json:"sample_count"`
+	WindowStart   time.Time            `json:"window_start"`
+	WindowEnd     time.Time            `json:"window_end"`
+	CollectedAt   time.Time            `json:"collected_at"`
+	FreshUntil    time.Time            `json:"fresh_until"`
+	Quality       string               `json:"quality"`
+	Parents       []string             `json:"parents,omitempty"`
+	Extensions    map[string]string    `json:"extensions,omitempty"`
 }
 
 func Number(v float64) *float64 { return &v }

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"github.com/consize-oss/consize/pkg/plugin"
 	"io"
 	validation "k8s.io/apimachinery/pkg/util/validation"
 	"net"
@@ -222,4 +223,8 @@ func safeMappingCause(err error) error {
 		return &MappingError{Code: mapping.Code}
 	}
 	return &MappingError{Code: "invalid_universal_resource"}
+}
+
+func (e *ScanError) ProviderFailure() plugin.FailureDetails {
+	return plugin.SafeFailureDetails(plugin.FailureDetails{Code: e.Code, Retryable: ScanRetryable(e.Code), RetryAfterSeconds: e.RetryAfterSeconds})
 }

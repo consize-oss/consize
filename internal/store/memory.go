@@ -11,12 +11,14 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/internal/audit"
+	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
 
 var ErrNotFound = resource.ErrNotFound
 
 type Memory struct {
+	pluginStatuses          map[string]plugin.InstanceStatus
 	discoveryRuns           map[string]DiscoveryRun
 	collections             map[string]Collection
 	path                    string
@@ -43,6 +45,7 @@ type Memory struct {
 
 func NewMemory() *Memory {
 	return &Memory{
+		pluginStatuses:          map[string]plugin.InstanceStatus{},
 		jobs:                    map[int64]Job{},
 		collections:             map[string]Collection{},
 		discoveryRuns:           map[string]DiscoveryRun{},

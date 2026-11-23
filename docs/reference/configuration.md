@@ -4,6 +4,10 @@ Consize can be configured to control what it observes, what it can change, and h
 
 This page is the reference list of configuration options. For task-based walkthroughs, see [Production Installation](../getting-started/installation.md) and [Environments](../guides/environments.md).
 
+## Plugin instances
+
+See [Plugin runtime](plugin-runtime.md) for package manifests, scoped instance configuration, secret references, compatibility, health and lifecycle behavior.
+
 ## Durable storage
 
 | Variable | Default | Description |

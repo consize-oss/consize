@@ -60,23 +60,23 @@ func TestBlockedPreflightDoesNotQueueJob(t *testing.T) {
 func (a *testAction) Plan(context.Context, plugin.ActionInput) (plugin.ActionPlan, error) {
 	return plugin.ActionPlan{PluginID: a.ID(), ResourceID: "test", ActionType: "resize", OriginalState: map[string]any{"size": 100}, AppliedState: map[string]any{"size": 75}, RollbackAvailable: true, Diff: map[string]any{"original": 100, "target": 75}}, nil
 }
-func (a *testAction) Execute(context.Context, plugin.ActionPlan) (plugin.ActionResult, error) {
+func (a *testAction) Execute(_ context.Context, plan plugin.ActionPlan) (plugin.ActionResult, error) {
 	a.applies++
 	a.state = plugin.StateApplied
 	if a.lostAck {
 		a.lostAck = false
 		return plugin.ActionResult{}, errors.New("response lost after apply")
 	}
-	return plugin.ActionResult{Applied: true}, nil
+	return plugin.ActionResult{PluginID: a.ID(), ResourceID: plan.ResourceID, ActionType: plan.ActionType, Applied: true}, nil
 }
 func (a *testAction) Inspect(context.Context, plugin.ActionPlan) (string, error) { return a.state, nil }
-func (a *testAction) Rollback(context.Context, plugin.ActionPlan) (plugin.ActionResult, error) {
+func (a *testAction) Rollback(_ context.Context, plan plugin.ActionPlan) (plugin.ActionResult, error) {
 	a.rollbacks++
 	if a.rollbackError {
 		return plugin.ActionResult{}, errors.New("provider unavailable")
 	}
 	a.state = plugin.StateOriginal
-	return plugin.ActionResult{Applied: true}, nil
+	return plugin.ActionResult{PluginID: a.ID(), ResourceID: plan.ResourceID, ActionType: plan.ActionType, Applied: true}, nil
 }
 func (a *testAction) Ready(context.Context, plugin.ActionPlan) error {
 	if a.unready {
