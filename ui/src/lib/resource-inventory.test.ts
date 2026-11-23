@@ -4,11 +4,12 @@ import { setupServer } from "msw/node";
 import { handlers, setScenario } from "@/mocks/handlers";
 import { baseRecommendations } from "@/mocks/fixtures";
 import { scopeOptionsSchema, recommendationListSchema } from "@/schemas";
-import { resourceListSchema, resourceDiscoverySchema, type Resource } from "@/features/resources/queries";
+import { fetchAssessedInventory, resourceListSchema, resourceDiscoverySchema } from "@/features/resources/queries";
+import { http, HttpResponse } from "msw";
 import { baseResources } from "@/mocks/resources";
 import {
-  buildResourceInventory, resourceInventoryCSV, inventoryDetailsSchema, NO_OWNER,
-  type ResourceFilters, type ResourceInventoryDetails,
+  buildResourceInventory, resourceConcerns, resourceHasNoGaps, resourceInventoryCSV, inventoryDetailsSchema, NO_OWNER,
+  type ResourceFilters, type ResourceInventoryDetails, type ResourceInventoryItem,
 } from "@/features/resources/resourceInventoryModel";
 
 const empty: ResourceFilters = { q: "", environment: "", owner: "", coverage: "", telemetry: "", optimization: "" };
@@ -17,9 +18,9 @@ const exampleTime = "2026-01-01T00:00:00.000Z";
 // These examples belong to the tests, independently of the editable demo inventory.
 function exampleResource(
   id: string,
-  fields: Partial<Resource> = {},
+  fields: Partial<ResourceInventoryItem> = {},
   details: Partial<ResourceInventoryDetails> = {},
-): Resource {
+): ResourceInventoryItem {
   return {
     schema_version: 1, id, name: "Example " + id,
     type: "kubernetes.deployment", provider: "kubernetes", provider_resource_id: "example:" + id,
@@ -28,12 +29,13 @@ function exampleResource(
     support_status: "fully_supported", labels: {}, current_state: {}, monthly_cost: 100,
     source_plugin_id: "example-kubernetes", observed_at: exampleTime, first_seen_at: exampleTime,
     last_seen_at: exampleTime, created_at: exampleTime, updated_at: exampleTime,
-    metadata: { inventory: {
+    metadata: {},
+    inventory: {
       scope_type: "Deployment", action_path_available: true,
       telemetry: { status: "healthy", source: "Example collector", checked_at: exampleTime },
       policy_coverage: "covered", optimization_status: "no_action_needed", recommendation_ids: [],
       ...details,
-    } },
+    },
     ...fields,
   };
 }
@@ -87,15 +89,16 @@ describe("Resource inventory rules", () => {
     assert.equal(result.counts.all, 10);
   });
 
-  it("counts an overlapping resource once under Attention and separately under each problem", () => {
+  it("keeps every confirmed concern on one Attention row and counts the resource once", () => {
     const resource = exampleResource("overlap", { owner: "" }, {
       telemetry: { status: "stale" }, policy_coverage: "uncovered",
       action_path_available: false, optimization_status: "action_unsupported",
     });
-    const result = buildResourceInventory([resource], {}, empty, "attention", 1);
+    const result = buildResourceInventory([resource, resource], {}, empty, "attention", 1);
     assert.equal(result.counts.attention, 1);
     assert.equal(result.summary.gapCount, 1);
-    assert.deepEqual(result.summary.attention, { unowned: 1, stale: 1, policy: 1, unsupported: 1 });
+    assert.deepEqual(result.pagination.items.map((item) => item.id), ["overlap"]);
+    assert.deepEqual(resourceConcerns(resource), ["unowned", "stale", "policy"]);
   });
 
   it("includes unmonitored resources without treating unknown policy as a confirmed gap", () => {
@@ -104,8 +107,21 @@ describe("Resource inventory rules", () => {
     const result = buildResourceInventory([unknownPolicy, unmonitored], {}, empty, "attention", 1);
     assert.equal(result.counts.attention, 1);
     assert.equal(result.counts.unmonitored, 1);
-    assert.equal(result.summary.attention.policy, 0);
     assert.equal(result.filteredItems[0].id, "unmonitored");
+    assert.equal(resourceHasNoGaps(unknownPolicy), false);
+    assert.deepEqual(resourceConcerns(unknownPolicy), []);
+  });
+
+  it("keeps action capability separate from the four gap-review concerns", () => {
+    const resource = exampleResource("capability-only", {}, {
+      action_path_available: false, optimization_status: "action_unsupported",
+    });
+    const result = buildResourceInventory([resource], {}, empty, "attention", 1);
+    assert.deepEqual(resourceConcerns(resource), []);
+    assert.equal(result.counts.attention, 0);
+    assert.equal(result.summary.gapCount, 0);
+    assert.equal(result.summary.actionPathCount, 0);
+    assert.equal(resourceHasNoGaps(resource), true);
   });
 
   it("filters before paginating and keeps tab counts tied to the same matching records", () => {
@@ -118,10 +134,12 @@ describe("Resource inventory rules", () => {
     assert.deepEqual(result.pagination.items.map((resource) => resource.id),
       ["coverage-7", "coverage-8", "coverage-9", "coverage-10", "coverage-11"]);
     assert.equal(result.summary.totalResources, 14);
+    assert.equal(result.summary.gapCount, 12);
     const unowned = buildResourceInventory(coverageRecords, {}, { ...empty, owner: NO_OWNER }, "all", 8);
     assert.equal(unowned.pagination.currentPage, 1);
     assert.equal(unowned.pagination.totalItems, 3);
     assert.equal(unowned.counts.attention, 3);
+    assert.equal(unowned.summary.gapCount, 3);
   });
 
   it("searches IDs, names and tags without case sensitivity", () => {
@@ -158,7 +176,7 @@ describe("Resource inventory rules", () => {
     assert.equal(byRegion.summary.totalResources, 0);
   });
 
-  it("uses the same Attention rule for the strip, tab and returned resources", () => {
+  it("uses the same confirmed gaps for the summary, tab and filtered resources", () => {
     const result = buildResourceInventory(ruleRecords, {}, empty, "attention", 1);
     assert.equal(result.summary.gapCount, 3);
     assert.equal(result.counts.attention, 3);
@@ -167,11 +185,13 @@ describe("Resource inventory rules", () => {
   });
 
   it("does not invent rates when assessments or the inventory are unavailable", () => {
-    const absent = buildResourceInventory([exampleResource("absent", { metadata: {} })], {}, empty, "all", 1);
+    const absent = buildResourceInventory([exampleResource("absent", { inventory: {} })], {}, empty, "all", 1);
     assert.equal(absent.summary.healthyCount, null);
     assert.equal(absent.summary.automationPercentage, null);
-    assert.equal(absent.summary.gapCount, null);
-    assert.equal(absent.summary.attention.policy, null);
+    assert.equal(absent.summary.gapCount, absent.counts.attention);
+    assert.equal(absent.summary.gapCount, 0);
+    assert.equal(absent.counts.unmonitored, 0);
+    assert.equal(resourceHasNoGaps(absent.filteredItems[0]), false);
     const none = buildResourceInventory([], {}, empty, "all", 1);
     assert.equal(none.summary.totalResources, 0);
     assert.equal(none.summary.healthyPercentage, null);
@@ -209,10 +229,6 @@ describe("Resource inventory rules", () => {
       assert.equal(result.summary.automationPercentage, 80);
       assert.equal(result.summary.gapCount, example.gaps);
       assert.equal(result.counts.attention, example.gaps);
-      assert.deepEqual(result.summary.attention, {
-        unowned: 2 * example.copies, stale: example.copies,
-        policy: 2 * example.copies, unsupported: 2 * example.copies,
-      });
       assert.equal(result.counts.unmonitored, example.copies);
       assert.equal(result.pagination.currentPage, example.pages);
       assert.equal(result.pagination.totalPages, example.pages);
@@ -263,6 +279,47 @@ describe("Resource inventory rules", () => {
     assert.ok(csv.includes('"' + "'=1+1" + '"'));
     assert.ok(csv.includes('"Team, ""A"""'));
     assert.ok(csv.includes('"first\nsecond"'));
+  });
+});
+
+describe("Assessed resource inventory API", () => {
+  it("follows snapshot cursors and only counts confirmed issues from the server assessment", async () => {
+    const stale = exampleResource("live-stale");
+    const unknown = exampleResource("live-unknown", {
+      metadata: { inventory: { policy_coverage: "uncovered", action_path_available: false } },
+    });
+    const assessment = {
+      version: "inventory-v1", assessed_at: exampleTime, owner: "Assessed team",
+      telemetry: { status: "unknown", source_plugin_ids: [], last_measurement_at: null },
+      policy: { status: "unknown", policy_ids: [] }, actions: { status: "unknown" },
+      optimization_status: "awaiting_evidence", active_recommendation_ids: [],
+    };
+    const cursors: (string | null)[] = [];
+    const server = setupServer(http.get("*/api/resources/inventory", ({ request }) => {
+      const cursor = new URL(request.url).searchParams.get("cursor");
+      cursors.push(cursor);
+      return HttpResponse.json({
+        snapshot_id: "test-snapshot", filtered_total: 2, has_more: !cursor, next_cursor: cursor ? "" : "page-two",
+        resources: cursor ? [{ resource: unknown, assessment }] : [{ resource: stale, assessment: {
+          ...assessment, owner: null,
+          telemetry: { status: "stale", source_plugin_ids: ["Live metrics"], last_measurement_at: exampleTime },
+          policy: { status: "uncovered", policy_ids: [] },
+        } }],
+      });
+    }));
+    server.listen({ onUnhandledRequest: "error" });
+    try {
+      const records = await fetchAssessedInventory();
+      assert.deepEqual(cursors, [null, "page-two"]);
+      const result = buildResourceInventory(records, {}, empty, "attention", 1);
+      assert.deepEqual(result.counts, { all: 2, attention: 1, unmonitored: 0 });
+      assert.deepEqual(resourceConcerns(result.filteredItems[0]), ["unowned", "stale", "policy"]);
+      assert.equal(result.filteredItems[0].inventory.telemetry?.source, "Live metrics");
+      assert.deepEqual(resourceConcerns(records[1]), []);
+      assert.equal(resourceHasNoGaps(records[1]), false);
+    } finally {
+      server.close();
+    }
   });
 });
 

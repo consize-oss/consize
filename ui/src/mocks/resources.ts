@@ -17,6 +17,14 @@ const SCOPE_TYPE_LABELS: Record<string, string> = {
   "aws.elasticache.cluster": "ElastiCache cluster",
 };
 
+const SAMPLE_SIGNALS: Record<NonNullable<ResourceInventoryDetails["kind"]>, string[]> = {
+  compute: ["CPU usage", "Memory usage"],
+  gpu: ["CPU usage", "Memory usage"],
+  database: ["CPU usage", "Memory usage", "Connection count"],
+  storage: ["Storage used", "Request count"],
+  ai: ["Request count", "Response time", "Token usage"],
+};
+
 type ResourceSeed = Pick<Resource, "id" | "name" | "provider" | "environment" | "owner" | "region"> & {
   source: string;
   scopeType?: string;
@@ -74,7 +82,16 @@ function mockResource(
     labels: resource.labels ?? {},
     metadata: {
       inventory: {
-        ...details, kind: resource.kind, recommendation_ids: recommendationIds,
+        ...details,
+        assessed_at: observedAt,
+        telemetry: details.telemetry && {
+          ...details.telemetry,
+          ...(["healthy", "stale"].includes(details.telemetry.status) ? {
+            signals: details.telemetry.signals ?? SAMPLE_SIGNALS[resource.kind],
+            freshness_limit: details.telemetry.freshness_limit ?? (resource.kind === "storage" ? "60 minutes" : "15 minutes"),
+          } : {}),
+        },
+        kind: resource.kind, recommendation_ids: recommendationIds,
         scope_type: resource.scopeType ?? SCOPE_TYPE_LABELS[type] ?? (type === "kubernetes.node_group" ? (resource.kind === "gpu" ? "GPU node group" : "Worker pool") : type),
       },
     },
@@ -109,14 +126,14 @@ export const baseResources: Resource[] = [
     description: "Amazon S3 Bucket · 42 TB",
     optimization_status: "recommendations", action_path_available: true,
     telemetry: { status: "healthy", source: "Storage Lens", checked_at: checkedAgo(5) },
-    policy_coverage: "unknown",
+    policy_coverage: "uncovered",
   }),
   mockResource("rec_07", "llm.application", "model_only", {
     description: "LLM Router · Bedrock and OpenAI",
     owner_note: "genai-sre",
     optimization_status: "awaiting_evidence", action_path_available: true,
-    telemetry: { status: "stale", source: "OTel Gateway", checked_at: checkedAgo(180) },
-    policy_coverage: "covered",
+    telemetry: { status: "stale", source: "OTel Gateway", checked_at: checkedAgo(180), freshness_limit: "15 minutes", signals: ["CPU usage", "Memory usage"] },
+    policy_coverage: "covered", policy_ids: ["llm-routing-cost-guard"],
   }),
   mockResource("rec_06", "kubernetes.node_group", "unsupported", {
     description: "Kubernetes Deployment · staging-workers",
@@ -125,17 +142,17 @@ export const baseResources: Resource[] = [
     telemetry: { status: "healthy", source: "Prometheus", checked_at: checkedAgo(0.75) },
     policy_coverage: "covered",
   }),
-  mockResource("rec_08", "kubernetes.node_group", "unsupported", {
+  mockResource("rec_08", "kubernetes.node_group", "fully_supported", {
     description: "Amazon EKS Node Group · GPU",
     owner_note: "ml-ops",
-    optimization_status: "action_unsupported", action_path_available: false,
+    optimization_status: "no_action_needed", action_path_available: true,
     telemetry: { status: "healthy", source: "CloudWatch", checked_at: checkedAgo(2) },
     policy_coverage: "covered",
   }),
-  mockResource("rec_03", "kubernetes.node_group", "unsupported", {
+  mockResource("rec_03", "kubernetes.node_group", "fully_supported", {
     description: "Kubernetes GPU node group · inference",
     owner_note: "ml-ops",
-    optimization_status: "action_unsupported", action_path_available: false,
+    optimization_status: "no_action_needed", action_path_available: true,
     telemetry: { status: "healthy", source: "Prometheus", checked_at: checkedAgo(1) },
     policy_coverage: "covered",
   }),
@@ -160,10 +177,10 @@ export const baseResources: Resource[] = [
     telemetry: { status: "healthy", source: "Prometheus", checked_at: checkedAgo(1) },
     policy_coverage: "covered",
   }),
-  mockResource("rec_11", "aws.elasticache.cluster", "unsupported", {
+  mockResource("rec_11", "aws.elasticache.cluster", "fully_supported", {
     description: "Amazon ElastiCache · Redis sessions",
     owner_note: "core-pay-sre",
-    optimization_status: "action_unsupported", action_path_available: false,
+    optimization_status: "no_action_needed", action_path_available: true,
     telemetry: { status: "healthy", source: "CloudWatch", checked_at: checkedAgo(2) },
     policy_coverage: "covered",
   }),
@@ -490,10 +507,10 @@ export const baseResources: Resource[] = [
     id: "res_42", name: "batch-training-pool", provider: "kubernetes",
     environment: "production", owner: "ML Ops", region: "us-east-1",
     source: "prod-us-east-1", kind: "gpu",
-  }, "kubernetes.node_group", "unsupported", {
+  }, "kubernetes.node_group", "fully_supported", {
     description: "Kubernetes GPU node group · batch training",
     owner_note: "ml-ops",
-    optimization_status: "action_unsupported", action_path_available: false,
+    optimization_status: "no_action_needed", action_path_available: true,
     telemetry: { status: "healthy", source: "Prometheus", checked_at: checkedAgo(1) },
     policy_coverage: "covered",
   }),
@@ -501,10 +518,10 @@ export const baseResources: Resource[] = [
     id: "res_43", name: "nightly-etl-workers", provider: "kubernetes",
     environment: "production", owner: "Data Eng", region: "us-east-1",
     source: "prod-us-east-1", kind: "compute",
-  }, "kubernetes.node_group", "unsupported", {
+  }, "kubernetes.node_group", "fully_supported", {
     description: "Kubernetes node group · nightly ETL",
     owner_note: "data-platform",
-    optimization_status: "action_unsupported", action_path_available: false,
+    optimization_status: "no_action_needed", action_path_available: true,
     telemetry: { status: "healthy", source: "Prometheus", checked_at: checkedAgo(2) },
     policy_coverage: "covered",
   }),
@@ -512,10 +529,10 @@ export const baseResources: Resource[] = [
     id: "res_44", name: "image-render-workers", provider: "kubernetes",
     environment: "production", owner: "Platform", region: "us-east-1",
     source: "prod-us-east-1", kind: "gpu",
-  }, "kubernetes.node_group", "unsupported", {
+  }, "kubernetes.node_group", "fully_supported", {
     description: "Kubernetes GPU node group · image rendering",
     owner_note: "media-platform",
-    optimization_status: "action_unsupported", action_path_available: false,
+    optimization_status: "no_action_needed", action_path_available: true,
     telemetry: { status: "healthy", source: "Prometheus", checked_at: checkedAgo(1) },
     policy_coverage: "covered",
   }),

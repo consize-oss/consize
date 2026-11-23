@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { Box, BrainCircuit, Cpu, Database, Hexagon } from "lucide-react";
 import { relativeTime, titleCase } from "@/lib/format";
 import { RESOURCE_PAGE_SIZE, useResourceInventory, type ResourceInventoryItem } from "./resourceInventory";
+import { resourceConcerns, resourceHasNoGaps } from "./resourceInventoryModel";
 
 const RESOURCE_STYLES = {
   compute: { icon: Hexagon, color: "border-status-info/25 bg-status-info/10 text-status-info" },
@@ -20,8 +20,10 @@ const TELEMETRY = {
   unknown: { label: "Unknown", color: "text-fg-muted" },
 };
 
-export function ResourcesTable() {
-  const { items, isLoading, isError, isRetrying, retry, hasFilters, asOf } = useResourceInventory();
+type ReviewResource = (resource: ResourceInventoryItem, button: HTMLButtonElement) => void;
+
+export function ResourcesTable({ onReview }: { onReview: ReviewResource }) {
+  const { items, isLoading, isError, error, isRetrying, retry, hasFilters, asOf, view } = useResourceInventory();
 
   if (isLoading) {
     return (
@@ -38,7 +40,7 @@ export function ResourcesTable() {
     return (
       <div role="alert" className="p-6">
         <p className="text-sm font-medium text-fg">Couldn&apos;t load resources</p>
-        <p className="mt-1 text-xs text-fg-muted">Please try again.</p>
+        <p className="mt-1 text-xs text-fg-muted">{error?.message || "Please try again."}</p>
         <button
           type="button"
           onClick={() => void retry()}
@@ -55,16 +57,20 @@ export function ResourcesTable() {
   if (items.length === 0) {
     return (
       <div role="status" className="px-4 py-12 text-center">
-        <p className="text-sm font-medium text-fg">{hasFilters ? "No resources match these filters" : "No resources discovered yet"}</p>
-        <p className="mt-1 text-xs text-fg-muted">{hasFilters ? "Try different filters or change the infrastructure scope." : "Resources will appear here when inventory is available."}</p>
+        <p className="text-sm font-medium text-fg">{
+          view === "attention" ? "No confirmed coverage gaps"
+            : view === "unmonitored" ? "No unmonitored resources"
+              : hasFilters ? "No resources match these filters" : "No resources discovered yet"
+        }</p>
+        <p className="mt-1 text-xs text-fg-muted">{hasFilters ? "Try a different tab or change the filters." : "Resources will appear here when inventory is available."}</p>
       </div>
     );
   }
 
   return (
-    <div id="resource-inventory-results" role="region" aria-label="Resources table" tabIndex={0} className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-500">
+    <div role="region" aria-label="Resources table" tabIndex={0} className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-500">
       <table className="w-full min-w-[1000px] table-fixed border-collapse text-left">
-        <caption className="sr-only">Resource inventory, providers, environments, owners, telemetry, policy coverage, and optimization status.</caption>
+        <caption className="sr-only">Resource inventory, providers, environments, owners, telemetry, policy coverage, and gap review.</caption>
         <colgroup>
           <col className="w-[29%]" />
           <col className="w-[11%]" />
@@ -76,27 +82,26 @@ export function ResourcesTable() {
         </colgroup>
         <thead className="border-b border-app-border bg-app-bg/60 text-[10px] uppercase tracking-wide text-fg-muted">
           <tr className="h-10">
-            {["Resource", "Provider", "Environment", "Owner", "Telemetry", "Policy", "Optimization status"].map((heading) => (
+            {["Resource", "Provider", "Environment", "Owner", "Telemetry", "Policy", "Gap review"].map((heading) => (
               <th key={heading} scope="col" className="px-3 font-semibold">{heading}</th>
             ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-app-border text-[11px] leading-4">
-          {items.map((resource) => <ResourceRow key={resource.id} resource={resource} now={asOf} />)}
+          {items.map((resource) => <ResourceRow key={resource.id} resource={resource} now={asOf} onReview={onReview} />)}
         </tbody>
       </table>
     </div>
   );
 }
 
-function ResourceRow({ resource, now }: { resource: ResourceInventoryItem; now: number }) {
+function ResourceRow({ resource, now, onReview }: { resource: ResourceInventoryItem; now: number; onReview: ReviewResource }) {
   const details = resource.inventory;
   const style = RESOURCE_STYLES[details.kind ?? "compute"];
   const ResourceIcon = style.icon;
   const telemetry = TELEMETRY[details.telemetry?.status ?? "unknown"];
   const coverage = details.policy_coverage ?? "unknown";
-  const recommendationIds = details.recommendation_ids;
-  const optimizationStatus = details.optimization_status ?? (recommendationIds?.length ? "recommendations" : "unknown");
+  const concerns = resourceConcerns(resource);
   const checkedAt = details.telemetry?.checked_at;
   const secondsSinceCheck = checkedAt ? Math.max(0, Math.floor((now - new Date(checkedAt).getTime()) / 1000)) : null;
   const telemetryAge = checkedAt && secondsSinceCheck != null
@@ -127,9 +132,9 @@ function ResourceRow({ resource, now }: { resource: ResourceInventoryItem; now: 
       </td>
       <td className="break-words px-3 py-3.5">
         {resource.owner.trim() ? <span className="block text-fg-secondary">{resource.owner}</span> : (
-          <span className="text-fg-muted" title="No owner assigned">
+          <span className="text-fg-muted">
             <span aria-hidden="true">{"\u2014"}</span>
-            <span className="sr-only">No owner assigned</span>
+            <span className="sr-only">Owner missing</span>
           </span>
         )}
         {resource.owner.trim() && details.owner_note && details.owner_note !== resource.owner && (
@@ -154,29 +159,26 @@ function ResourceRow({ resource, now }: { resource: ResourceInventoryItem; now: 
         {coverage === "covered" ? (
           <span className="inline-flex rounded border border-ok-line bg-ok-bg px-1.5 py-0.5 text-[10px] font-medium text-ok-strong">Covered</span>
         ) : (
-          <span className="text-fg-muted" title={coverage === "uncovered" ? "No policy coverage" : "Policy coverage is unknown"}>
+          <span className="text-fg-muted">
             <span aria-hidden="true">{"\u2014"}</span>
             <span className="sr-only">{coverage === "uncovered" ? "No policy coverage" : "Policy coverage unknown"}</span>
           </span>
         )}
       </td>
       <td className="px-3 py-3.5">
-        {optimizationStatus === "awaiting_evidence" ? (
-          <span className="text-fg-secondary">Awaiting evidence</span>
-        ) : optimizationStatus === "no_action_needed" ? (
-          <span className="text-fg-secondary">No action needed</span>
-        ) : optimizationStatus === "action_unsupported" ? (
-          <span className="font-medium text-info-fg" title="An execution action is not supported for this resource">Action unsupported</span>
-        ) : optimizationStatus === "recommendations" && recommendationIds != null ? (
-          recommendationIds.length === 0 ? <span className="text-fg-secondary">No recommendations</span> : (
-            <Link
-              href={recommendationIds.length === 1 ? `/recommendations/${encodeURIComponent(recommendationIds[0])}` : "/recommendations"}
-              className="rounded font-medium text-info-fg no-underline hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
-            >
-              {recommendationIds.length} {recommendationIds.length === 1 ? "recommendation" : "recommendations"}
-            </Link>
-          )
-        ) : <span className="text-fg-muted">Unknown</span>}
+        {concerns.length > 0 ? (
+          <button
+            type="button" aria-haspopup="dialog" aria-label={`Review details for ${resource.name}`}
+            onClick={(event) => onReview(resource, event.currentTarget)}
+            className="cursor-pointer rounded text-left font-medium text-info-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          >
+            Review details
+          </button>
+        ) : (
+          <span className="text-fg-secondary" title={resourceHasNoGaps(resource) ? undefined : "No confirmed concerns to review. Some assessments are unavailable."}>
+            No action needed
+          </span>
+        )}
       </td>
     </tr>
   );

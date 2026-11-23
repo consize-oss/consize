@@ -3,16 +3,18 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { apiGet, ApiError } from "./api-client";
-import { resourceListSchema } from "../features/resources/queries";
+import { ApiError } from "./api-client";
+import { fetchAssessedInventory } from "../features/resources/queries";
 import { buildResourceInventory } from "../features/resources/resourceInventoryModel";
 
 afterEach(() => mock.restoreAll());
 
 it("renders zero resources from an empty backend response without invented assessments", async () => {
-  mock.method(globalThis, "fetch", async () => new Response('{"resources":[]}'));
-  const response = await apiGet("/api/resources", resourceListSchema);
-  const result = buildResourceInventory(response.resources, {}, {
+  mock.method(globalThis, "fetch", async () => new Response(
+    '{"resources":[],"filtered_total":0,"snapshot_id":"empty-snapshot","next_cursor":"","has_more":false}',
+  ));
+  const response = await fetchAssessedInventory();
+  const result = buildResourceInventory(response, {}, {
     q: "", environment: "", owner: "", coverage: "", telemetry: "", optimization: "",
   }, "all", 1);
   assert.equal(result.summary.totalResources, 0);
@@ -23,7 +25,7 @@ it("renders zero resources from an empty backend response without invented asses
 
 it("keeps unavailable backend state as an error instead of substituting demo resources", async () => {
   mock.method(globalThis, "fetch", async () => { throw new TypeError("unreachable"); });
-  await assert.rejects(apiGet("/api/resources", resourceListSchema), (error: unknown) =>
+  await assert.rejects(fetchAssessedInventory(), (error: unknown) =>
     error instanceof ApiError && error.status === 0);
 });
 
