@@ -73,9 +73,24 @@ Review git diff
 Open pull request
 ```
 
-## End-to-end tests
+## End-to-end and integration tests
 
-Some behavior cannot be fully tested with unit tests alone. For tests that interact with a running Kubernetes environment, see [E2E Tests](e2e.md).
+Some behavior cannot be fully tested with unit tests alone.
+
+### Kubernetes discovery qualification
+
+To run the complete isolated-cluster discovery-to-registry integration suite:
+
+```sh
+scripts/test/discovery.sh
+```
+
+This provisions an isolated Kind cluster, executes the end-to-end qualification
+suite, validates clean teardown, and generates a structured summary.
+See the [Kubernetes Discovery Qualification Guide](../guides/kubernetes-discovery-qualification.md)
+for details and troubleshooting.
+
+For broader tests that interact with an existing Kubernetes environment, see [E2E Tests](e2e.md).
 
 ## When tests fail
 
