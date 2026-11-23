@@ -766,6 +766,8 @@ export interface components {
             health: components["schemas"]["PluginHealth"];
         };
         PluginHealth: {
+            /** @description Explicit startup readiness; a provider may be ready while awaiting its first complete scan. */
+            ready?: boolean;
             details?: components["schemas"]["JsonObject"];
             status: string;
             message: string;

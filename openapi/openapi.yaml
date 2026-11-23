@@ -875,6 +875,7 @@ components:
       type: object
       required: [status, message, checked_at]
       properties:
+        ready: {type: boolean, description: "Explicit startup readiness; a provider may be ready while awaiting its first complete scan."}
         details: {$ref: '#/components/schemas/JsonObject'}
         status: {type: string}
         message: {type: string}

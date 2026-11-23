@@ -36,7 +36,7 @@ implement its SDK interface. Metadata alone never creates an executable adapter.
 Existing top-level `kubernetes`, `prometheus` and `pricing` configurations still
 work. They become required instances with their historical package IDs. Their
 configuration is validated before activation, and required dependencies must
-pass initial health checks. A previously tolerated unreachable enabled provider
+pass initial readiness checks. A provider reporting degraded health must explicitly declare `ready: true` to satisfy a required startup binding; Kubernetes does so after verifying scoped list access, while still awaiting its first complete scan. A previously tolerated unreachable enabled provider
 now fails startup instead of appearing ready.
 
 Use `plugin_instances` for separately scoped instances:

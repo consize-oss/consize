@@ -197,9 +197,17 @@ func (m *Manager) activate(ctx context.Context, e *runtimeEntry, secrets map[str
 			return m.activationFailure(ctx, e, &RuntimeError{Code: FailureInvalidRequest})
 		}
 	}
+	initialState := StateReady
 	if cfg.Required {
 		if _, err := run(ctx, e, modeLifecycle, func(ctx context.Context) (struct{}, error) {
 			h := p.Health(ctx)
+			if h.Ready != nil && !*h.Ready {
+				return struct{}{}, &RuntimeError{Code: FailureUnavailable}
+			}
+			if h.Status == "degraded" && h.Ready != nil && *h.Ready {
+				initialState = StateDegraded
+				return struct{}{}, nil
+			}
 			if h.Status != "healthy" && h.Status != "ready" && h.Status != "online" && h.Status != "ok" {
 				return struct{}{}, &RuntimeError{Code: FailureUnavailable}
 			}
@@ -222,7 +230,7 @@ func (m *Manager) activate(ctx context.Context, e *runtimeEntry, secrets map[str
 			}
 		}
 	}
-	e.setState(StateReady)
+	e.setState(initialState)
 	m.mu.Unlock()
 	if err := e.persist(ctx); err != nil {
 		e.setState(StateFailed)

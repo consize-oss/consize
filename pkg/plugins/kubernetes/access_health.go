@@ -99,5 +99,6 @@ func (p *Plugin) discoveryHealth(ctx context.Context) plugin.Health {
 		status = "healthy"
 		message = "Configured Deployment list access verified; last discovery scan complete."
 	}
-	return plugin.Health{Status: status, Message: message, CheckedAt: time.Now().UTC(), Details: map[string]any{"discovery": diagnostics}}
+	ready := err == nil
+	return plugin.Health{Ready: &ready, Status: status, Message: message, CheckedAt: time.Now().UTC(), Details: map[string]any{"discovery": diagnostics}}
 }

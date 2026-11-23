@@ -40,6 +40,7 @@ type Manifest struct {
 }
 
 type Health struct {
+	Ready     *bool          `json:"ready,omitempty"`
 	Details   map[string]any `json:"details,omitempty"`
 	Status    string         `json:"status"`
 	Message   string         `json:"message"`

@@ -331,7 +331,7 @@ func run[T any](ctx context.Context, e *runtimeEntry, mode invokeMode, call func
 		}
 	} else {
 		e.status.LastSuccess = &now
-		if e.status.State == StateDegraded {
+		if mode != modeProbe && e.status.State == StateDegraded {
 			e.status.State = StateReady
 		}
 	}

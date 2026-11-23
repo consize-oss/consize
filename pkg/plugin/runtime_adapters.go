@@ -34,6 +34,9 @@ func (p managedPlugin) health(ctx context.Context) (Health, error) {
 		default:
 			return Health{}, invalidOutput()
 		}
+		if h.Ready != nil && !*h.Ready {
+			h.Status = "unavailable"
+		}
 		now := time.Now().UTC()
 		p.e.mu.Lock()
 		p.e.status.LastHealth = &now

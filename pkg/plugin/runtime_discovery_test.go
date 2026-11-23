@@ -24,8 +24,13 @@ func TestTwoKubernetesInstancesKeepClusterScopeAndProvenance(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := manager.RegisterInstance(ctx, plugin.InstanceConfig{ID: cluster, PackageID: k8splugin.ID, Provider: resource.ProviderKubernetes, Account: cluster, Location: "local"}, provider, nil); err != nil {
+		if err := manager.RegisterInstance(ctx, plugin.InstanceConfig{ID: cluster, Required: true, PackageID: k8splugin.ID, Provider: resource.ProviderKubernetes, Account: cluster, Location: "local"}, provider, nil); err != nil {
 			t.Fatal(err)
+		}
+	}
+	for _, status := range manager.InstanceStatuses() {
+		if status.State != plugin.StateDegraded {
+			t.Fatal("unscanned but authorized discovery must start degraded", status.State)
 		}
 	}
 	providers := manager.DiscoveryPlugins()
