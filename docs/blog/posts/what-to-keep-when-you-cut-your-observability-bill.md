@@ -120,8 +120,7 @@ release-verification tool, ask these questions of any tool:
   to maintain?
 
 A tool that collects its own data doesn't depend on what you kept, but it's likely
-one more thing to run and pay for. We haven't evaluated any specific tool for this
-article.
+one more thing to run and pay for.
 
 To judge any cost change after you make it, see
 [How to Verify a Cost Change Was Safe](https://docs.consizehq.com/blog/how-to-verify-a-cost-change-was-safe/).
