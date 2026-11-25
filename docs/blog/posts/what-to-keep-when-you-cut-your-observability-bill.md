@@ -1,6 +1,6 @@
 ---
 date: 2026-11-30
-image: assets/blog/what-to-keep-when-you-cut-your-observability-bill.png
+image: assets/blog/docs/assets/blog/what-to-keep-when-you-cut-your-observability-bill.png
 categories:
   - Guides
 authors:
@@ -13,7 +13,7 @@ description: >
 ---
 
 # What to Keep When You Cut Your Observability Bill
-![what to keep when you cut your observability bill](../../assets/blog/what-to-keep-when-you-cut-your-observability-bill.png)
+![what to keep when you cut your observability bill](../../assets/blog/docs/assets/blog/what-to-keep-when-you-cut-your-observability-bill.png)
 
 A release check that can't find any data has to decide what that means. Depending
 on how it's written, it can treat the silence as a pass.
