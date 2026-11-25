@@ -3,6 +3,7 @@ date: 2026-11-30
 image: assets/blog/what-to-keep-when-you-cut-your-observability-bill.png
 categories:
   - Guides
+  - Engineering
 authors:
   - Ujunwa Njoku
 slug: what-to-keep-when-you-cut-your-observability-bill
