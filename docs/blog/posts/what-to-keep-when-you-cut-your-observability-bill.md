@@ -15,10 +15,10 @@ description: >
 # What to Keep When You Cut Your Observability Bill
 ![what to keep when you cut your observability bill](../../assets/blog/what-to-keep-when-you-cut-your-observability-bill.png)
 
+<!-- more -->
+
 A release check that can't find any data has to decide what that means. Depending
 on how it's written, it can treat the silence as a pass.
-
-<!-- more -->
 
 That's the risk when you cut your monitoring bill. Some of the numbers you remove
 are the ones your release checks read, and a check with nothing to read doesn't
