@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/consize-oss/consize/pkg/evidence"
+	qualitymodel "github.com/consize-oss/consize/pkg/evidence/quality"
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/resource"
 )
@@ -16,28 +17,34 @@ import (
 const ID = "prometheus-metrics"
 
 type Config struct {
-	Percentile     int `json:"percentile,omitempty"`
-	MinimumSamples int `json:"minimum_samples,omitempty"`
-	Mapping        MappingConfig
-	Transport      TransportConfig
-	BaseURL        string
-	Window         time.Duration
-	Step           time.Duration
-	Units          map[string]string
-	Queries        map[string]string
+	SourceScrapeIntervals  map[string]time.Duration `json:"source_scrape_intervals,omitempty"`
+	SourceTimestampQueries map[string]string        `json:"source_timestamp_queries,omitempty"`
+	SourceScrapeInterval   time.Duration            `json:"source_scrape_interval,omitempty"`
+	Percentile             int                      `json:"percentile,omitempty"`
+	MinimumSamples         int                      `json:"minimum_samples,omitempty"`
+	Mapping                MappingConfig
+	Transport              TransportConfig
+	BaseURL                string
+	Window                 time.Duration
+	Step                   time.Duration
+	Units                  map[string]string
+	Queries                map[string]string
 }
 
 type Plugin struct {
-	percentile     int
-	minimumSamples int
-	now            func() time.Time
-	mapping        MappingConfig
-	mappingError   error
-	customQueries  map[string]string
-	client         Client
-	window         time.Duration
-	step           time.Duration
-	units          map[string]string
+	sourceScrapeIntervals  map[string]time.Duration
+	sourceTimestampQueries map[string]string
+	sourceScrapeInterval   time.Duration
+	percentile             int
+	minimumSamples         int
+	now                    func() time.Time
+	mapping                MappingConfig
+	mappingError           error
+	customQueries          map[string]string
+	client                 Client
+	window                 time.Duration
+	step                   time.Duration
+	units                  map[string]string
 }
 
 func New(cfg Config) (*Plugin, error) {
@@ -96,7 +103,15 @@ func NewWithClient(client Client, cfg Config) *Plugin {
 	for key, unit := range cfg.Units {
 		units[key] = unit
 	}
-	return &Plugin{percentile: requestedPercentile, minimumSamples: minimumSamples, now: time.Now, client: client, window: window, step: step, units: units, mapping: mapping, mappingError: mappingError, customQueries: custom}
+	sources := map[string]string{}
+	for key, query := range cfg.SourceTimestampQueries {
+		sources[key] = query
+	}
+	intervals := map[string]time.Duration{}
+	for key, value := range cfg.SourceScrapeIntervals {
+		intervals[key] = value
+	}
+	return &Plugin{sourceScrapeIntervals: intervals, sourceTimestampQueries: sources, sourceScrapeInterval: cfg.SourceScrapeInterval, percentile: requestedPercentile, minimumSamples: minimumSamples, now: time.Now, client: client, window: window, step: step, units: units, mapping: mapping, mappingError: mappingError, customQueries: custom}
 }
 
 func (p *Plugin) ID() string { return ID }
@@ -318,6 +333,10 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 		if mapping.Status != "mapped" {
 			quality = evidence.Unavailable
 		}
+		sourceContext, sourceQueryID, sourceErr := p.sourceQuality(ctx, res, key, scope, start, end, historical, mapping)
+		if sourceErr != nil {
+			return plugin.MetricsSnapshot{}, sourceErr
+		}
 		for _, stat := range statistics {
 			aggregation := stat
 			if stat == "current" {
@@ -327,7 +346,12 @@ func (p *Plugin) ReadMetricsBetween(ctx context.Context, res resource.Resource, 
 			if v, ok := signals[key+"_"+stat].(float64); ok {
 				value = evidence.Number(v)
 			}
-			rec, err := evidence.Seal(evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: aggregation, Unit: unit, OriginalUnit: sourceUnit, Scale: scale, Value: value, SampleCount: len(values), WindowStart: recordStart, WindowEnd: recordEnd, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"requested_start": requestedStart.UTC().Format(time.RFC3339Nano), "requested_end": requestedEnd.UTC().Format(time.RFC3339Nano), "discarded_source_points": strconv.Itoa(rawDiscarded), "discarded_evaluation_points": strconv.Itoa(aggregateDiscarded), "query_version": definition.Version, "query_digest": queryIdentity(definition, p.step, sourceUnit), "catalog_version": QueryCatalogVersion, "aggregation_version": AggregationVersion, "aggregation_rule": definition.Aggregation, "percentile_method": PercentileMethod, "evaluation_at": evaluationAt.Format(time.RFC3339Nano), "minimum_samples": strconv.Itoa(requiredSamples), "sample_kind": sampleKind, "configured_percentile": strconv.Itoa(p.percentile), "mapping_cluster": res.Account, "mapping_deployment_uid": mappingUID(res), "mapping_namespace": namespace, "mapping_version": MappingVersion, "mapping_status": mapping.Status, "mapping_source": mapping.Source, "mapping_digest": mapping.Digest, "mapping_members": strconv.Itoa(mapping.Members), "mapping_excluded": strconv.Itoa(mapping.Excluded), "step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}})
+			record := evidence.Record{ResourceID: res.ID, PluginID: ID, Signal: key + "_" + stat, Query: query, Kind: evidence.Aggregated, Aggregation: aggregation, Unit: unit, OriginalUnit: sourceUnit, Scale: scale, Value: value, SampleCount: len(values), WindowStart: recordStart, WindowEnd: recordEnd, CollectedAt: collectedAt, FreshUntil: collectedAt.Add(2 * p.step), Quality: quality, Extensions: map[string]string{"requested_start": requestedStart.UTC().Format(time.RFC3339Nano), "requested_end": requestedEnd.UTC().Format(time.RFC3339Nano), "discarded_source_points": strconv.Itoa(rawDiscarded), "discarded_evaluation_points": strconv.Itoa(aggregateDiscarded), "query_version": definition.Version, "query_digest": queryIdentity(definition, p.step, sourceUnit), "catalog_version": QueryCatalogVersion, "aggregation_version": AggregationVersion, "aggregation_rule": definition.Aggregation, "percentile_method": PercentileMethod, "evaluation_at": evaluationAt.Format(time.RFC3339Nano), "minimum_samples": strconv.Itoa(requiredSamples), "sample_kind": sampleKind, "configured_percentile": strconv.Itoa(p.percentile), "mapping_cluster": res.Account, "mapping_deployment_uid": mappingUID(res), "mapping_namespace": namespace, "mapping_version": MappingVersion, "mapping_status": mapping.Status, "mapping_source": mapping.Source, "mapping_digest": mapping.Digest, "mapping_members": strconv.Itoa(mapping.Members), "mapping_excluded": strconv.Itoa(mapping.Excluded), "step": p.step.String(), "expected_points": strconv.Itoa(coverage[key].ExpectedPoints), "actual_points": strconv.Itoa(len(points)), "max_gap": maxGap.String(), "first_sample": first.UTC().Format(time.RFC3339Nano), "last_sample": last.UTC().Format(time.RFC3339Nano)}}
+			if sourceContext != "" {
+				record.Extensions[qualitymodel.ContextKey] = sourceContext
+				record.Extensions["source_query_id"] = sourceQueryID
+			}
+			rec, err := evidence.Seal(record)
 			if err != nil {
 				return plugin.MetricsSnapshot{}, err
 			}

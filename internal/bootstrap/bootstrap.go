@@ -70,16 +70,19 @@ type KubernetesConfig struct {
 }
 
 type PrometheusConfig struct {
-	Percentile     int                        `json:"percentile,omitempty"`
-	MinimumSamples int                        `json:"minimum_samples,omitempty"`
-	Mapping        prometheus.MappingConfig   `json:"mapping,omitempty"`
-	Transport      prometheus.TransportConfig `json:"transport,omitempty"`
-	Enabled        bool                       `json:"enabled"`
-	BaseURL        string                     `json:"base_url"`
-	Window         string                     `json:"window"`
-	Step           string                     `json:"step"`
-	Queries        map[string]string          `json:"queries"`
-	Units          map[string]string          `json:"units"`
+	SourceScrapeIntervals  map[string]string          `json:"source_scrape_intervals,omitempty"`
+	SourceTimestampQueries map[string]string          `json:"source_timestamp_queries,omitempty"`
+	SourceScrapeInterval   string                     `json:"source_scrape_interval,omitempty"`
+	Percentile             int                        `json:"percentile,omitempty"`
+	MinimumSamples         int                        `json:"minimum_samples,omitempty"`
+	Mapping                prometheus.MappingConfig   `json:"mapping,omitempty"`
+	Transport              prometheus.TransportConfig `json:"transport,omitempty"`
+	Enabled                bool                       `json:"enabled"`
+	BaseURL                string                     `json:"base_url"`
+	Window                 string                     `json:"window"`
+	Step                   string                     `json:"step"`
+	Queries                map[string]string          `json:"queries"`
+	Units                  map[string]string          `json:"units"`
 }
 
 type RecommenderConfig struct {

@@ -146,6 +146,22 @@ func statisticValue(values []float64, stat string) float64 {
 	return percentile(values, float64(number))
 }
 func validateCollectionSettings(c Config) error {
+	if len(c.SourceScrapeIntervals) > 32 {
+		return failure("configuration")
+	}
+	for key, interval := range c.SourceScrapeIntervals {
+		if c.SourceTimestampQueries[key] == "" || interval <= 0 || interval > 24*time.Hour || interval%time.Millisecond != 0 {
+			return failure("configuration")
+		}
+	}
+	if len(c.SourceTimestampQueries) > 32 || c.SourceScrapeInterval < 0 || c.SourceScrapeInterval > 24*time.Hour || c.SourceScrapeInterval%time.Millisecond != 0 {
+		return failure("configuration")
+	}
+	for key, query := range c.SourceTimestampQueries {
+		if (c.SourceScrapeInterval <= 0 && c.SourceScrapeIntervals[key] <= 0) || !labelName.MatchString(key) || len(key) > 128 || !validQuery(query) || (signalUnit(key) == "" && c.Queries[key] == "") {
+			return failure("configuration")
+		}
+	}
 	if c.Window%time.Millisecond != 0 || c.Step%time.Millisecond != 0 {
 		return failure("configuration")
 	}

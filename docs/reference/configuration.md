@@ -115,3 +115,10 @@ and context for the same verified endpoint as the existing Kubernetes client.
 Omission preserves the existing credential selection. See
 [Kubernetes access](kubernetes-access.md) for in-cluster tokens, list-only RBAC,
 health probes, failure classes and recovery.
+
+## Independent source observations
+
+Prometheus `source_scrape_interval` and `source_timestamp_queries` bind actual
+upstream scrape facts into evidence quality context. See
+[Real-source evidence qualification](evidence-qualification.md) for the contract,
+setup and the distinction between scrape observations and query evaluation points.

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"time"
 
 	"github.com/consize-oss/consize/pkg/plugin"
 	"github.com/consize-oss/consize/pkg/plugins/kubernetes"
@@ -52,7 +53,19 @@ func registerInstances(ctx context.Context, m *plugin.Manager, cfg Config) error
 			if err != nil {
 				return nil, errors.New("invalid metrics step")
 			}
-			return prometheus.New(prometheus.Config{BaseURL: c.BaseURL, Transport: c.Transport, Mapping: c.Mapping, Percentile: c.Percentile, MinimumSamples: c.MinimumSamples, Window: window, Step: step, Queries: c.Queries, Units: c.Units})
+			sourceInterval, err := parseOptionalDuration(c.SourceScrapeInterval)
+			if err != nil {
+				return nil, errors.New("invalid source scrape interval")
+			}
+			sourceIntervals := map[string]time.Duration{}
+			for key, value := range c.SourceScrapeIntervals {
+				interval, err := time.ParseDuration(value)
+				if err != nil {
+					return nil, errors.New("invalid source scrape interval")
+				}
+				sourceIntervals[key] = interval
+			}
+			return prometheus.New(prometheus.Config{SourceScrapeIntervals: sourceIntervals, SourceScrapeInterval: sourceInterval, SourceTimestampQueries: c.SourceTimestampQueries, BaseURL: c.BaseURL, Transport: c.Transport, Mapping: c.Mapping, Percentile: c.Percentile, MinimumSamples: c.MinimumSamples, Window: window, Step: step, Queries: c.Queries, Units: c.Units})
 		}},
 		{Manifest: (&pricing.Plugin{}).Manifest(), Configure: func(_ context.Context, raw json.RawMessage) (plugin.Plugin, error) {
 			var c pricing.Config
