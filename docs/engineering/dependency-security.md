@@ -42,3 +42,20 @@ Risk class F. Synthetic fixtures prove npm/dev blocking, Go reachable blocking, 
 Go results apply to the configured Go version, operating system, architecture, build tags and package roots. Reflection/unsafe and other static-analysis limits can hide runtime paths. This gate does not establish absence of vulnerabilities, scan release binaries/images, . Supported alternative build targets need explicit additional source/binary scans when introduced.
 
 References: [govulncheck command and limitations](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck), [stream protocol](https://github.com/golang/vuln/blob/v1.9.0/internal/govulncheck/govulncheck.go), [npm audit](https://docs.npmjs.com/cli/commands/npm-audit/), [security policy](ci-security.md).
+
+## Exception review — 26 November 2026
+
+SEC-EXC-2026-0001 through SEC-EXC-2026-0010 were removed after review.
+All ten covered the picomatch advisory
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf),
+which GitHub withdrew on 18 November because it is not a security issue.
+The related remediation issue [#110](https://github.com/consize-oss/consize/issues/110)
+is closed.
+
+Fresh `npm audit --package-lock-only --ignore-scripts --json` scans of both
+`tools/ci` and `ui`, using the public npm registry and the declared Node/npm
+versions, reported no high or critical findings. Moderate package findings
+remain visible for triage: nine in CI tooling and one in the UI graph.
+No dependencies, lockfiles, severity thresholds, scanner coverage or approval
+rules were changed. The active exception registry is empty; the removed records
+remain available in Git history.
