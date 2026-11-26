@@ -56,3 +56,19 @@ func TestStandaloneCollectionSettingsValidation(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestStandaloneSourceQualityConfiguration(t *testing.T) {
+	for _, fields := range []string{
+		`"source_scrape_interval":"fixture-invalid-duration"`,
+		`"source_timestamp_queries":{"cpu_cores":"timestamp(up)"}`,
+		`"source_timestamp_queries":{"cpu_cores":"timestamp(up)"},"source_scrape_intervals":{"cpu_cores":"-1s"}`,
+		`"source_scrape_intervals":{"cpu_cores":"fixture-invalid-duration"}`,
+	} {
+		if _, err := configuredPlugin(json.RawMessage(`{"base_url":"https://prometheus.example.invalid",` + fields + `}`)); err == nil || strings.Contains(err.Error(), "fixture-invalid-duration") {
+			t.Fatal("invalid cadence accepted or leaked", err)
+		}
+	}
+	if _, err := configuredPlugin(json.RawMessage(`{"base_url":"https://prometheus.example.invalid","source_timestamp_queries":{"cpu_cores":"timestamp(up)"},"source_scrape_intervals":{"cpu_cores":"15s"}}`)); err != nil {
+		t.Fatal(err)
+	}
+}

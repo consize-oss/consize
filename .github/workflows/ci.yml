@@ -313,7 +313,19 @@ jobs:
         run: scripts/ci/discovery-cluster.sh create "$RUNNER_TEMP/discovery-cluster"
 
       - name: Run formatting, vet, unit and race checks
+        env:
+          CONSIZE_EVIDENCE_TEST_FIXTURES: "1"
+          CONSIZE_EVIDENCE_QUALIFICATION_REPORT: ${{ runner.temp }}/evidence-qualification.json
         run: scripts/ci/backend.sh
+
+      - name: Upload real-source evidence qualification
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/evidence-qualification.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Delete isolated Kubernetes discovery test cluster
         if: always()

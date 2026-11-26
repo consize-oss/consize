@@ -1,0 +1,14 @@
+# Only for disposable qualification clusters. Faster real kubelet observations
+# allow a short integration window without changing or fabricating metric data.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        apiVersion: kubeadm.k8s.io/v1beta4
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            - name: housekeeping-interval
+              value: "1s"

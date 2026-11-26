@@ -98,3 +98,9 @@ isolated server test scrapes known CPU, memory, requests and limits and checks
 normalized evidence. That short test overrides the CPU lookback to two seconds;
 the production five-minute query is covered by full-history Promtool fixtures.
 These tests do not qualify a production exporter's UID enrichment or scrape history.
+
+For discovery-to-durable-storage qualification with actual Kubernetes/kubelet
+measurements, source scrape provenance, failure/recovery cases and cleanup, see
+[Real-source evidence qualification](evidence-qualification.md). The configuration
+reference there explains `source_scrape_interval` and `source_timestamp_queries`;
+query evaluation timestamps alone do not satisfy mandatory source-quality gates.

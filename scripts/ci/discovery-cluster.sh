@@ -31,7 +31,7 @@ if hasher.hexdigest() != sys.argv[2]:
 CHECKSUM
     mv "$archive" "$target/kind"
     chmod 0700 "$target/kind"
-    "$target/kind" create cluster --name "$cluster" --image "$image" --kubeconfig "$target/kubeconfig" --wait 120s
+    "$target/kind" create cluster --config "$(dirname "$0")/../test/evidence-kind.yaml" --name "$cluster" --image "$image" --kubeconfig "$target/kubeconfig" --wait 120s
     chmod 0600 "$target/kubeconfig"
     printf 'CONSIZE_DISCOVERY_TEST_KUBECONFIG=%s\n' "$target/kubeconfig" >> "$GITHUB_ENV"
     printf 'CONSIZE_DISCOVERY_TEST_CONTEXT=kind-%s\n' "$cluster" >> "$GITHUB_ENV"
