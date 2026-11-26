@@ -153,6 +153,7 @@ func TestIsolatedEvidencePipelineQualification(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitLive(t, ctx, "Prometheus startup", func() bool { return client.Ready(ctx) == nil })
+	observationStarted := time.Now()
 	path := filepath.Join(t.TempDir(), "state.json")
 	st, err := store.OpenDurable(path)
 	if err != nil {
@@ -183,6 +184,11 @@ func TestIsolatedEvidencePipelineQualification(t *testing.T) {
 	defer stopWarmup()
 	var baseline plugin.MetricsSnapshot
 	waitLive(t, warmup, "all MVP signals from actual samples", func() bool {
+		// Coverage can reach 90% before the requested interval is fully present.
+		// Gather the entire window plus scheduler/history margin first.
+		if time.Since(observationStarted) < liveObservationWindow()+30*time.Second {
+			return false
+		}
 		end := time.Now().UTC().Add(-time.Second).Truncate(time.Millisecond)
 		snapshot, e := p.ReadMetricsBetween(warmup, target, end.Add(-liveObservationWindow()-15*time.Second), end)
 		if e != nil {
@@ -190,7 +196,7 @@ func TestIsolatedEvidencePipelineQualification(t *testing.T) {
 		}
 		baseline = snapshot
 		report.Snapshot = &baseline
-		return completeEvidence(snapshot)
+		return completeEvidence(snapshot) && reportingAssessment(snapshot, snapshot.CollectedAt).Eligible
 	})
 	report.Snapshot = &baseline
 	report.Steps = append(report.Steps, "all ten MVP signals have measured values, units, coverage and sealed provenance")
