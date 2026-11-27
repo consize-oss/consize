@@ -8,7 +8,8 @@ import {
   buildSummary,
   detailFor,
 } from "./fixtures";
-import { pluginDetailFor, pluginFixtures, pluginSummary } from "./plugins";
+//import { pluginDetailFor, pluginFixtures, pluginSummary } from "./plugins";
+import { createPluginHandlers } from "./plugins";
 import { createPolicyHandlers } from "./policies";
 
 export type Scenario =
@@ -233,67 +234,12 @@ export const handlers = [
     return HttpResponse.json(detail);
   }),
 
-  // PRD §7.4: alpha normally shows Kubernetes + Prometheus only.
-  // "partial-failure" demonstrates the Degraded state (§7.9).
-  // http.get("*/api/v1/plugins", () => {
-  //   if (scenario === "backend-down") return unavailable("Capability service unavailable");
-  //   const now = new Date().toISOString();
-  //   return HttpResponse.json({
-  //     items: [
-  //       {
-  //         id: "kubernetes",
-  //         display_name: "Kubernetes",
-  //         capability: "Resource discovery",
-  //         health: scenario === "partial-failure" ? "degraded" : "healthy",
-  //         message: scenario === "partial-failure" ? "API server latency elevated" : undefined,
-  //         last_checked_at: now,
-  //       },
-  //       {
-  //         id: "prometheus",
-  //         display_name: "Prometheus",
-  //         capability: "Evidence collection",
-  //         health: "healthy",
-  //         last_checked_at: now,
-  //       },
-  //     ],
-  //   });
-  // }),
-
-  http.get("*/api/v1/plugins", ({ request }) => {
-    if (scenario === "backend-down") return unavailable("Plugin service unavailable");
-    const q = new URL(request.url).searchParams;
-    const all = pluginFixtures({ degradeKubernetes: scenario === "partial-failure" });
- 
-    let items = all;
-    const category = q.get("category");
-    if (category) items = items.filter((p) => p.category === category);
-    const text = q.get("q")?.trim().toLowerCase();
-    if (text) {
-      items = items.filter((p) =>
-        [p.display_name, p.description, p.capability].some((s) => s.toLowerCase().includes(text)),
-      );
-    }
-    // The summary is global, not filtered: tab counts must not change as you filter.
-    return HttpResponse.json({ items, summary: pluginSummary(all) });
-  }),
- 
-  http.get("*/api/v1/plugins/:id", ({ params }) => {
-    if (scenario === "backend-down") return unavailable("Plugin service unavailable");
-    const detail = pluginDetailFor(String(params.id), { degradeKubernetes: scenario === "partial-failure" });
-    if (!detail) {
-      return HttpResponse.json(
-        { title: "Plugin not found", status: 404, code: "not_found" },
-        { status: 404, headers: { "Content-Type": "application/problem+json" } },
-      );
-    }
-    return HttpResponse.json(detail);
-  }),
-
 
   // http.get("*/api/v1/audit-events", () => {
   //   if (isDown()) return unavailable("Audit service unavailable");
   //   return HttpResponse.json({ items: isEmpty() ? [] : auditEvents });
   // }),
 
-  ...createPolicyHandlers(() => scenario)
+  ...createPolicyHandlers(() => scenario),
+  ...createPluginHandlers(() => scenario),
 ];
