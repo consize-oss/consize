@@ -1,298 +1,191 @@
-import type { Plugin, PluginDetail, PluginSummary } from "@/schemas";
+import { http, HttpResponse } from "msw";
+import type { Configuration, Installation, PluginDetail } from "@/features/plugins/schemas";
+import type { Scenario } from "./handlers";
 
-const ago = (seconds: number) => new Date(Date.now() - seconds * 1000).toISOString();
+// ── Seed catalog ───────────────────────────────────────────────────────────
+type Seed = Omit<PluginDetail, "installation"> & { declared_access: string };
 
-type Opts = { degradeKubernetes?: boolean };
+const CONSIZE = { name: "Consize maintained", maintained_by_consize: true };
+const COMMUNITY = { name: "Community publisher", maintained_by_consize: false };
 
-export function pluginFixtures(opts: Opts = {}): Plugin[] {
+const SEEDS: Seed[] = [
+  {
+    id: "prometheus", name: "Prometheus Metrics", version: "0.3.0-alpha", package_label: "Built-in", brand: "prometheus",
+    description: "Collect operational metrics for recommendations and post-change verification.",
+    publisher: CONSIZE, capabilities: ["evidence"], availability: "built_in", declared_access: "Read-only",
+    overview: "Reads utilization and restart signals used as evidence for every recommendation and to verify changes after they ship.",
+    permissions: [{ id: "query", access: "read", title: "Query metrics", description: "Read CPU, memory, and restart series from the configured Prometheus." }],
+    documentation_url: "https://docs.consize.example/plugins/prometheus", install_blocker: "Built into Consize, so there is nothing to install.", configurable: false,
+  },
+  {
+    id: "kubernetes", name: "Kubernetes Action", version: "0.3.0-alpha", package_label: "Built-in", brand: "kubernetes",
+    description: "Discover deployments and apply approved resource changes.",
+    publisher: CONSIZE, capabilities: ["discovery", "actions"], availability: "built_in", declared_access: "Infrastructure write",
+    overview: "Discovers Deployments with their requests and limits, and applies changes that have passed policy and approval.",
+    permissions: [
+      { id: "read", access: "read", title: "Read deployments", description: "List Deployments, their resource requests and limits, and rollout state." },
+      { id: "write", access: "write", title: "Apply approved changes", description: "Patch resource requests and limits in permitted namespaces." },
+    ],
+    documentation_url: "https://docs.consize.example/plugins/kubernetes", install_blocker: "Built into Consize, so there is nothing to install.", configurable: false,
+  },
+  {
+    id: "github", name: "GitHub Pull Requests", version: "0.3.0", package_label: "Signed package", brand: "github",
+    description: "Propose infrastructure changes as reviewable pull requests in GitHub.",
+    publisher: CONSIZE, capabilities: ["actions"], availability: "available", declared_access: "Repository write",
+    overview: "Create a branch containing the proposed infrastructure change. Open a pull request with the plan and supporting evidence.",
+    overview_note: "Configured infrastructure repositories",
+    permissions: [
+      { id: "meta", access: "read", title: "Read repository metadata", description: "Identify the selected repository and base branch." },
+      { id: "pr", access: "write", title: "Write branches and pull requests", description: "Create a change branch and open a pull request in the configured repositories." },
+    ],
+    documentation_url: "https://docs.consize.example/plugins/github-pull-requests", install_blocker: null, configurable: true,
+  },
+  {
+    id: "cloud-pricing", name: "Cloud Pricing", version: "0.3.0-alpha", package_label: "Built-in", brand: "pricing",
+    description: "Enrich resource reductions with clearly sourced price estimates.",
+    publisher: CONSIZE, capabilities: ["cost_billing"], availability: "built_in", declared_access: "Read-only",
+    overview: "Attaches price estimates, with their source, to the savings shown on each recommendation.",
+    permissions: [{ id: "prices", access: "read", title: "Read public price lists", description: "Fetch provider price lists; no account access." }],
+    documentation_url: null, install_blocker: "Built into Consize, so there is nothing to install.", configurable: false,
+  },
+  {
+    id: "datadog", name: "Datadog Metrics", version: "2.1.0", package_label: "Signed package", brand: "datadog",
+    description: "Provide operational evidence from configured Datadog metrics.",
+    publisher: COMMUNITY, capabilities: ["evidence"], availability: "requires_upgrade", declared_access: "Read-only",
+    overview: "Supplies utilization and error-rate evidence from Datadog for recommendations and post-change checks.",
+    permissions: [{ id: "query", access: "read", title: "Query metrics", description: "Read metric series from the configured Datadog account." }],
+    documentation_url: "https://docs.consize.example/plugins/datadog",
+    install_blocker: "This plugin needs a newer version of Consize. Upgrade Consize, then install it.", configurable: true,
+  },
+  {
+    id: "webhook", name: "Webhook Notifications", version: "1.0.0", package_label: "Unsigned package", brand: "webhook",
+    description: "Deliver workflow events to approved destinations.",
+    publisher: COMMUNITY, capabilities: ["notifications"], availability: "verification_required", declared_access: "Send notifications",
+    overview: "Posts approval requests and policy blocks to webhook endpoints you approve.",
+    permissions: [{ id: "send", access: "write", title: "Send webhooks", description: "Send event payloads to approved destinations." }],
+    documentation_url: null,
+    install_blocker: "This package hasn't been verified. An administrator must verify its signature before it can be installed.", configurable: true,
+  },
+];
+
+const ACCOUNTS: Configuration["accounts"] = [
+  {
+    id: "acme-platform", name: "Acme Platform",
+    repositories: [
+      { id: "acme-platform/terraform", full_name: "acme-platform/terraform" },
+      { id: "acme-platform/kubernetes", full_name: "acme-platform/kubernetes" },
+    ],
+  },
+  { id: "acme-payments", name: "Acme Payments", repositories: [{ id: "acme-payments/infrastructure", full_name: "acme-payments/infrastructure" }] },
+];
+const KNOWN_REPOS = new Set(ACCOUNTS.flatMap((a) => a.repositories.map((r) => r.id)));
+const DEFAULT_VALUES: Configuration["values"] = { repository_ids: [], name: "Default", base_branch: "", infrastructure_path: "/", resource_mapping: "" };
+
+// ── In-memory state (what a real backend would persist) ────────────────────
+const installations = new Map<string, Installation>();
+const configs = new Map<string, Configuration["values"]>();
+
+export function resetPluginMock() {
+  installations.clear();
+  configs.clear();
+  installations.set("prometheus", { status: "healthy", declared_access: "Read-only" });
+  installations.set("kubernetes", { status: "healthy", declared_access: "Infrastructure write" });
+}
+resetPluginMock();
+
+function installationOf(id: string, scenario: Scenario): Installation | null {
+  const base = installations.get(id) ?? null;
+  // "partial-failure" degrades Kubernetes to demonstrate the Degraded state.
+  if (base && id === "kubernetes" && scenario === "partial-failure") {
+    return { ...base, status: "degraded", status_reason: "API server latency elevated" };
+  }
+  return base;
+}
+
+const detailOf = (seed: Seed, scenario: Scenario): PluginDetail => {
+  const { declared_access: _unused, ...rest } = seed;
+  void _unused;
+  return { ...rest, installation: installationOf(seed.id, scenario) };
+};
+
+const summaryOf = (seed: Seed, scenario: Scenario) => {
+  const d = detailOf(seed, scenario);
+  return {
+    id: d.id, name: d.name, description: d.description, version: d.version, publisher: d.publisher,
+    package_label: d.package_label, brand: d.brand, capabilities: d.capabilities,
+    availability: d.availability, installation: d.installation,
+  };
+};
+
+const problem = (status: number, title: string, code: string, detail?: string) =>
+  HttpResponse.json({ title, status, code, detail }, { status, headers: { "Content-Type": "application/problem+json" } });
+
+export function createPluginHandlers(getScenario: () => Scenario) {
+  const down = () => (getScenario() === "backend-down" ? problem(503, "Plugin service unavailable", "backend_unavailable") : undefined);
+  const find = (id: unknown) => SEEDS.find((s) => s.id === String(id));
+
   return [
-    {
-      id: "datadog",
-      display_name: "Datadog APM & Metrics",
-      capability: "Metrics & SLO evidence",
-      health: "healthy",
-      last_checked_at: ago(32),
-      version: "v3.4.1",
-      category: "evidence",
-      kind: "evidence",
-      source: "registry",
-      trust: "verified_publisher",
-      description: "Real-time telemetry ingestion, post-action health validation, and SLO evidence.",
-      attention: [],
-      engine_state: null,
-      facts: [
-        { label: "Telemetry scope", value: "8 clusters · 614 pods", tone: "default" },
-        { label: "Observed signals", value: "Latency, errors, CPU, memory", tone: "default" },
-        { label: "Authority", value: "Read-only telemetry", tone: "default" },
-      ],
-    },
-    {
-      id: "prometheus",
-      display_name: "Prometheus Metrics",
-      capability: "Utilization evidence",
-      health: "healthy",
-      last_checked_at: ago(45),
-      version: "v0.3.0",
-      category: "evidence",
-      kind: "evidence",
-      source: "built_in",
-      trust: "built_in",
-      description: "Scrapes the utilization and restart signals used as evidence for every recommendation.",
-      attention: [],
-      engine_state: null,
-      facts: [
-        { label: "Scrape scope", value: "8 clusters", tone: "default" },
-        { label: "Observed signals", value: "CPU, memory, restarts", tone: "default" },
-        { label: "Authority", value: "Read-only queries", tone: "default" },
-      ],
-    },
-    {
-      id: "kubernetes",
-      display_name: "Kubernetes Provider",
-      capability: "Resource discovery",
-      health: opts.degradeKubernetes ? "degraded" : "healthy",
-      message: opts.degradeKubernetes ? "API server latency elevated" : undefined,
-      last_checked_at: ago(60),
-      version: "v0.3.0",
-      category: "evidence",
-      kind: "evidence",
-      source: "built_in",
-      trust: "built_in",
-      description: "Discovers Deployments with their requests, limits, and rollout state.",
-      attention: [],
-      engine_state: null,
-      facts: [
-        { label: "Discovery scope", value: "8 clusters", tone: "default" },
-        { label: "Resource kinds", value: "Deployments", tone: "default" },
-        { label: "Authority", value: "Read inventory", tone: "default" },
-      ],
-    },
-    {
-      id: "kubecost",
-      display_name: "Kubecost Allocation",
-      capability: "Cost attribution",
-      health: "unavailable",
-      status_reason: "HTTP 401",
-      message: "Credentials were rejected",
-      last_checked_at: ago(18 * 60),
-      version: "v2.18.0",
-      category: "evidence",
-      kind: "cost",
-      source: "registry",
-      trust: "verified_publisher",
-      description: "Kubernetes allocation, idle-cost evidence, and workload-level cost attribution.",
-      attention: [],
-      engine_state: null,
-      facts: [
-        { label: "Financial scope", value: "4 clusters", tone: "default" },
-        { label: "Connection", value: "HTTP 401 · 18m ago", tone: "bad" },
-        { label: "Authority", value: "Read allocation API", tone: "default" },
-      ],
-    },
-    {
-      id: "aws-discovery",
-      display_name: "AWS Discovery",
-      capability: "Inventory & pricing",
-      health: "healthy",
-      last_checked_at: ago(90),
-      version: "v1.6.2",
-      category: "evidence",
-      kind: "evidence",
-      source: "registry",
-      trust: "verified_publisher",
-      description: "Discovers EC2, RDS, S3, and EKS resources and reads provider price lists.",
-      attention: ["credential_expiring"],
-      engine_state: null,
-      facts: [
-        { label: "Discovery scope", value: "EC2, RDS, S3, EKS", tone: "default" },
-        { label: "Credential", value: "12 days remaining", tone: "warn" },
-        { label: "Authority", value: "Read inventory and prices", tone: "default" },
-      ],
-    },
-    {
-      id: "github-gitops",
-      display_name: "GitHub GitOps Provider",
-      capability: "Pull request delivery",
-      health: "healthy",
-      last_checked_at: ago(180),
-      version: "v4.0.2",
-      category: "action",
-      kind: "action",
-      source: "registry",
-      trust: "verified_publisher",
-      description: "Declarative branches and pull requests with repository and CODEOWNERS checks.",
-      attention: ["permission_review"],
-      engine_state: null,
-      facts: [
-        { label: "Repository", value: "acme-corp/k8s-infra-live", tone: "default" },
-        { label: "Capabilities", value: "Branch · PR · status", tone: "default" },
-        { label: "Package trust", value: "Signature valid", tone: "ok" },
-      ],
-    },
-    {
-      id: "kubernetes-apply",
-      display_name: "Kubernetes Direct Apply",
-      capability: "Dry-run and apply",
-      health: "healthy",
-      last_checked_at: ago(60),
-      version: "v0.3.0",
-      category: "action",
-      kind: "action",
-      source: "built_in",
-      trust: "built_in",
-      description: "Plans, applies, and rolls back reviewed changes inside permitted namespaces.",
-      attention: [],
-      engine_state: null,
-      facts: [
-        { label: "Scope", value: "Namespace-scoped write", tone: "default" },
-        { label: "Modes", value: "Dry-run · apply · rollback", tone: "default" },
-        { label: "Authority", value: "Requires policy approval", tone: "default" },
-      ],
-    },
-    {
-      id: "headroom-p95",
-      display_name: "P95 Headroom Rightsizer",
-      capability: "Recommendation engine",
-      health: "healthy",
-      last_checked_at: ago(30),
-      version: "v1.0.0",
-      category: "algorithm",
-      kind: "algorithm",
-      source: "built_in",
-      trust: "built_in",
-      description: "Evaluates usage windows and proposes bounded CPU and memory changes.",
-      attention: [],
-      engine_state: "active",
-      facts: [
-        { label: "Window", value: "14-day rolling", tone: "default" },
-        { label: "Active proposals", value: "34 recommendations", tone: "ok" },
-        { label: "Authority", value: "Advisory only", tone: "default" },
-      ],
-    },
-    {
-      id: "slack",
-      display_name: "Slack Dispatch",
-      capability: "Alert delivery",
-      health: "healthy",
-      last_checked_at: ago(120),
-      version: "v1.2.0",
-      category: "notification",
-      kind: "notification",
-      source: "registry",
-      trust: "verified_publisher",
-      description: "Posts approval requests and policy blocks to the channels you choose.",
-      attention: [],
-      engine_state: null,
-      facts: [
-        { label: "Channel", value: "#finops-alerts", tone: "default" },
-        { label: "Events", value: "Approvals · blocks · rollbacks", tone: "default" },
-        { label: "Authority", value: "Post messages", tone: "default" },
-      ],
-    },
+    http.get("*/api/v1/plugins", () => down() ?? HttpResponse.json({ plugins: SEEDS.map((s) => summaryOf(s, getScenario())) })),
+
+    http.get("*/api/v1/plugins/:id", ({ params }) => {
+      const blocked = down();
+      if (blocked) return blocked;
+      const seed = find(params.id);
+      return seed ? HttpResponse.json(detailOf(seed, getScenario())) : problem(404, "Plugin not found", "not_found");
+    }),
+
+    http.post("*/api/v1/plugins/:id/install", ({ params }) => {
+      const blocked = down();
+      if (blocked) return blocked;
+      const seed = find(params.id);
+      if (!seed) return problem(404, "Plugin not found", "not_found");
+      if (installations.has(seed.id)) return problem(409, "Already installed", "already_installed");
+      if (seed.install_blocker) return problem(422, "Can't install this plugin", "install_blocked", seed.install_blocker);
+      installations.set(seed.id, {
+        status: seed.configurable ? "configuration_required" : "healthy",
+        declared_access: seed.declared_access,
+      });
+      return HttpResponse.json(detailOf(seed, getScenario()));
+    }),
+
+    http.get("*/api/v1/plugins/:id/configuration", ({ params }) => {
+      const blocked = down();
+      if (blocked) return blocked;
+      const seed = find(params.id);
+      if (!seed) return problem(404, "Plugin not found", "not_found");
+      if (!seed.configurable || !installations.has(seed.id)) return problem(409, "Nothing to configure", "not_configurable");
+      return HttpResponse.json({
+        connect_url: "https://github.com/apps/consize-demo/installations/new",
+        accounts: ACCOUNTS,
+        values: configs.get(seed.id) ?? DEFAULT_VALUES,
+      });
+    }),
+
+    http.put("*/api/v1/plugins/:id/configuration", async ({ params, request }) => {
+      const blocked = down();
+      if (blocked) return blocked;
+      const seed = find(params.id);
+      if (!seed) return problem(404, "Plugin not found", "not_found");
+      if (!installations.has(seed.id)) return problem(409, "Install the plugin first", "not_installed");
+
+      const body = (await request.json()) as Configuration["values"] & { enable: boolean };
+      const unknown = body.repository_ids.filter((id) => !KNOWN_REPOS.has(id));
+      if (unknown.length > 0) return problem(422, "Unknown repositories", "validation_failed", `Not connected: ${unknown.join(", ")}`);
+      if (body.enable && body.repository_ids.length === 0) {
+        return problem(422, "Can't enable yet", "validation_failed", "Select at least one repository to enable this plugin.");
+      }
+      const { enable, ...values } = body;
+      configs.set(seed.id, values);
+      installations.set(seed.id, {
+        status: enable ? "connected" : "disabled",
+        declared_access: seed.declared_access,
+      });
+      return HttpResponse.json(detailOf(seed, getScenario()));
+    }),
   ];
 }
 
-// Computed from the fixtures, not hardcoded, so the KPI cards and the list
-// can never disagree.
-export function pluginSummary(items: Plugin[]): PluginSummary {
-  const count = (c: Plugin["category"]) => items.filter((p) => p.category === c).length;
-  const evidence = items.filter((p) => p.category === "evidence");
-  const active = evidence.filter((p) => p.health !== "unavailable" && p.health !== "setup_required");
-  const WINDOW = 120;
-  const fresh = active.filter((p) => Date.now() - new Date(p.last_checked_at).getTime() <= WINDOW * 1000);
-  const actionPlugins = items.filter((p) => p.category === "action");
-  return {
-    counts: {
-      installed: items.length,
-      evidence: count("evidence"),
-      algorithm: count("algorithm"),
-      action: count("action"),
-      notification: count("notification"),
-      marketplace: null,
-    },
-    ingestion: {
-      active: active.length,
-      total: evidence.length,
-      fresh_ratio: active.length ? fresh.length / active.length : null,
-      freshness_window_seconds: WINDOW,
-    },
-    actions: {
-      paths: 3,
-      summary: "GitOps pull request, direct apply, schedule",
-      state:
-        actionPlugins.some((p) => p.attention.length > 0 || p.health !== "healthy")
-          ? "attention"
-          : "ready",
-    },
-    recommendations: { active: 84, resources: 1420 },
-    trust: {
-      trusted: items.filter((p) => p.trust !== "unverified").length,
-      total: items.length,
-    },
-  };
-}
-
-const EVIDENCE_GUARDRAIL = {
-  title: "Verification source",
-  description:
-    "Supplies the before and after signals used to verify a change and to trigger rollback when a threshold is breached.",
-};
-
-const DETAIL_EXTRAS: Record<string, Partial<PluginDetail>> = {
-  datadog: {
-    overview:
-      "Primary telemetry source for operational evidence and post-action verification across production workloads.",
-    scope_stats: [
-      { label: "Target fleet", value: "8 clusters", sub: "614 pods tracked", tone: "default" },
-      { label: "Ingestion", value: "12,410 metrics/s", sub: "Synced 32s ago", tone: "ok" },
-    ],
-    guardrail: {
-      title: "Canary health policy",
-      description:
-        "30-minute observation window. Triggers rollback when configured error or latency thresholds are breached.",
-    },
-    credentials: {
-      state: "encrypted",
-      entries: [
-        { label: "API key", masked: "••••••••8f2a" },
-        { label: "App key", masked: "••••••••99c1" },
-      ],
-    },
-  },
-  prometheus: { guardrail: EVIDENCE_GUARDRAIL },
-  kubecost: {
-    overview:
-      "Supplies workload-level cost attribution. Its connection is failing, so cost evidence is stale until the credential is replaced.",
-    credentials: { state: "invalid", entries: [{ label: "API token", masked: "••••••••c04e" }] },
-  },
-  "aws-discovery": {
-    credentials: { state: "expiring", entries: [{ label: "Role", masked: "••••••••AssumeRole" }] },
-  },
-  "github-gitops": {
-    overview:
-      "Creates reviewable pull requests for approved changes. A newer version asks for expanded repository permissions and needs review before it is applied.",
-    credentials: {
-      state: "encrypted",
-      entries: [
-        { label: "App ID", masked: "••••••••3181" },
-        { label: "Private key", masked: "••••••••e9d2" },
-      ],
-    },
-  },
-  slack: {
-    credentials: { state: "encrypted", entries: [{ label: "Webhook", masked: "••••••••t9QZ" }] },
-  },
-};
-
-export function pluginDetailFor(id: string, opts: Opts = {}): PluginDetail | undefined {
-  const p = pluginFixtures(opts).find((x) => x.id === id);
-  if (!p) return undefined;
-  return {
-    ...p,
-    overview: p.description,
-    scope_stats: p.facts.slice(0, 2).map((f) => ({ label: f.label, value: f.value, tone: f.tone })),
-    guardrail: null,
-    credentials: null,
-    ...DETAIL_EXTRAS[id],
-  };
+// For tests that exercise the pure catalog model without HTTP.
+export function pluginCatalogFixture(scenario: Scenario = "healthy") {
+  return SEEDS.map((s) => summaryOf(s, scenario));
 }
