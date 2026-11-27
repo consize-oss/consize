@@ -31,15 +31,18 @@ func main() {
 
 func configuredPlugin(raw json.RawMessage) (plugin.Plugin, error) {
 	var cfg struct {
-		Transport      prometheus.TransportConfig `json:"transport,omitempty"`
-		BaseURL        string                     `json:"base_url"`
-		Window         string                     `json:"window"`
-		Step           string                     `json:"step"`
-		Queries        map[string]string          `json:"queries"`
-		Units          map[string]string          `json:"units,omitempty"`
-		Mapping        prometheus.MappingConfig   `json:"mapping,omitempty"`
-		Percentile     int                        `json:"percentile,omitempty"`
-		MinimumSamples int                        `json:"minimum_samples,omitempty"`
+		SourceScrapeIntervals  map[string]string          `json:"source_scrape_intervals,omitempty"`
+		SourceTimestampQueries map[string]string          `json:"source_timestamp_queries,omitempty"`
+		SourceScrapeInterval   string                     `json:"source_scrape_interval,omitempty"`
+		Transport              prometheus.TransportConfig `json:"transport,omitempty"`
+		BaseURL                string                     `json:"base_url"`
+		Window                 string                     `json:"window"`
+		Step                   string                     `json:"step"`
+		Queries                map[string]string          `json:"queries"`
+		Units                  map[string]string          `json:"units,omitempty"`
+		Mapping                prometheus.MappingConfig   `json:"mapping,omitempty"`
+		Percentile             int                        `json:"percentile,omitempty"`
+		MinimumSamples         int                        `json:"minimum_samples,omitempty"`
 	}
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
@@ -64,5 +67,20 @@ func configuredPlugin(raw json.RawMessage) (plugin.Plugin, error) {
 			return nil, fmt.Errorf("invalid Prometheus collection duration")
 		}
 	}
-	return prometheus.New(prometheus.Config{BaseURL: cfg.BaseURL, Transport: cfg.Transport, Window: window, Step: step, Queries: cfg.Queries, Units: cfg.Units, Mapping: cfg.Mapping, Percentile: cfg.Percentile, MinimumSamples: cfg.MinimumSamples})
+	var sourceInterval time.Duration
+	if cfg.SourceScrapeInterval != "" {
+		sourceInterval, err = time.ParseDuration(cfg.SourceScrapeInterval)
+		if err != nil {
+			return nil, fmt.Errorf("invalid source scrape interval")
+		}
+	}
+	sourceIntervals := map[string]time.Duration{}
+	for key, value := range cfg.SourceScrapeIntervals {
+		interval, err := time.ParseDuration(value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid source scrape interval")
+		}
+		sourceIntervals[key] = interval
+	}
+	return prometheus.New(prometheus.Config{SourceScrapeIntervals: sourceIntervals, SourceTimestampQueries: cfg.SourceTimestampQueries, SourceScrapeInterval: sourceInterval, BaseURL: cfg.BaseURL, Transport: cfg.Transport, Window: window, Step: step, Queries: cfg.Queries, Units: cfg.Units, Mapping: cfg.Mapping, Percentile: cfg.Percentile, MinimumSamples: cfg.MinimumSamples})
 }
